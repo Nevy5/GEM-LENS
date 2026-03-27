@@ -20,91 +20,46 @@
   --FM: 'DM Mono', monospace;
   --F: 'DM Sans', sans-serif;
 }
-
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:15px; line-height:1.6; overflow:hidden; }
 
-/* ═══════════════════════════════════════════════
-   LAYOUT & SIDEBAR
-   ═══════════════════════════════════════════════ */
 .app { display:grid; grid-template-columns:280px 1fr; height:100vh; }
-
-.sidebar {
-  background:var(--bg2); border-right:0.5px solid var(--border);
-  padding:20px 0; display:flex; flex-direction:column; gap:0; overflow-y:auto;
-}
-
+.sidebar { background:var(--bg2); border-right:0.5px solid var(--border); padding:20px 0; display:flex; flex-direction:column; overflow-y:auto; }
 .sidebar-logo { display:flex; align-items:center; gap:10px; padding:0 24px 24px; border-bottom:0.5px solid var(--border); }
 .sidebar-gem { width:18px; height:18px; background:var(--gold); clip-path:polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%); }
-.sidebar-logo-text { font-family:var(--FD); font-size:20px; letter-spacing:2px; color:var(--text); }
+.sidebar-logo-text { font-family:var(--FD); font-size:20px; letter-spacing:2px; }
 
 .sidebar-section { padding:18px 24px 6px; }
 .sidebar-section-title { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text3); }
 
 .tab-btn {
   display:flex; align-items:center; width:100%; padding:12px 24px; border:none; background:transparent; 
-  cursor:pointer; font-family:var(--F); font-size:13px; color:var(--text2); border-left:2px solid transparent; transition:all .2s;
+  cursor:pointer; font-family:var(--F); font-size:13px; color:var(--text2); border-left:2px solid transparent; transition:0.2s;
 }
-.tab-btn:hover { background:rgba(255,255,255,0.02); color:var(--text); }
 .tab-btn.active { background:var(--golddim); color:var(--gold2); border-left-color:var(--gold); }
 
-/* ═══════════════════════════════════════════════
-   MAIN CONTENT
-   ═══════════════════════════════════════════════ */
 .main { padding:40px; overflow-y:auto; background:radial-gradient(circle at top right, #161614, #0b0b09); }
 .panel { display:none; max-width:1000px; margin:0 auto; animation: fadeIn 0.4s ease-out; }
 .panel.active { display:block; }
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-/* ═══════════════════════════════════════════════
-   UPLOAD & ANALYSIS ZONE
-   ═══════════════════════════════════════════════ */
-.upload-container {
-  background:var(--bg2); border:1px dashed var(--goldborder); border-radius:12px;
-  padding:40px; text-align:center; margin-bottom:32px; transition:0.3s;
-}
-.upload-container:hover { border-color:var(--gold); background:rgba(212,168,67,0.03); }
-.upload-icon { font-size:40px; margin-bottom:16px; display:block; }
+/* UPLOAD AREA */
+.upload-container { background:var(--bg2); border:1px dashed var(--goldborder); border-radius:12px; padding:40px; text-align:center; margin-bottom:32px; }
 .upload-title { font-family:var(--FD); font-size:28px; color:var(--gold); margin-bottom:8px; }
-.upload-hint { color:var(--text3); font-size:13px; margin-bottom:24px; }
-
-.btn-upload {
-  background:var(--surface); color:var(--text); padding:10px 24px; border-radius:6px;
-  border:0.5px solid var(--border2); cursor:pointer; font-family:var(--FM); font-size:12px;
-}
+.btn-upload { background:var(--surface); color:var(--text); padding:10px 24px; border-radius:6px; border:0.5px solid var(--border2); cursor:pointer; font-family:var(--FM); font-size:12px; }
 .preview-strip { display:flex; justify-content:center; gap:12px; margin-top:24px; flex-wrap:wrap; }
-.preview-box { width:90px; height:125px; border-radius:6px; object-fit:cover; border:1px solid var(--border2); background:var(--bg3); }
+.preview-box { width:90px; height:125px; border-radius:6px; object-fit:cover; border:1px solid var(--border2); }
+.btn-run-ia { width:100%; max-width:400px; margin:32px auto 0; padding:16px; border:none; border-radius:8px; background:linear-gradient(135deg, var(--gold), var(--gold2)); color:var(--bg); font-family:var(--FD); font-size:20px; cursor:pointer; display:block; }
+.btn-run-ia:disabled { opacity:0.3; cursor:not-allowed; }
 
-.btn-run-ia {
-  width:100%; max-width:400px; margin:32px auto 0; padding:16px; border:none; border-radius:8px;
-  background:linear-gradient(135deg, var(--gold), var(--gold2)); color:var(--bg);
-  font-family:var(--FD); font-size:20px; cursor:pointer; transition:0.3s; display:block;
-}
-.btn-run-ia:disabled { filter:grayscale(1); opacity:0.3; cursor:not-allowed; }
-
-/* ═══════════════════════════════════════════════
-   REPORT COMPONENTS
-   ═══════════════════════════════════════════════ */
-.report-grid { display:grid; grid-template-columns:1.5fr 1fr; gap:24px; }
-.card-hero { background:var(--bg2); border:0.5px solid var(--border); border-radius:12px; padding:32px; }
+/* REPORT ELEMENTS */
+.card-hero { background:var(--bg2); border:0.5px solid var(--border); border-radius:12px; padding:32px; margin-top:20px; }
 .hero-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; }
-.hero-title h1 { font-family:var(--FD); font-size:42px; line-height:1; letter-spacing:1px; }
-.hero-set { font-family:var(--FM); font-size:14px; color:var(--gold2); margin-top:8px; }
-
-.gls-score-big { text-align:center; }
 .gls-value { font-family:var(--FD); font-size:80px; line-height:1; color:var(--gold2); }
-.gls-label { font-size:10px; letter-spacing:3px; color:var(--text3); text-transform:uppercase; }
-
-.metric-box { background:var(--bg3); padding:16px; border-radius:8px; border:0.5px solid var(--border); }
-.metric-header { display:flex; justify-content:space-between; margin-bottom:8px; }
-.metric-name { font-size:11px; text-transform:uppercase; color:var(--text3); letter-spacing:1px; }
-.metric-val { font-family:var(--FM); font-size:14px; color:var(--text); }
-
-.status-bar { height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+.metric-box { background:var(--bg3); padding:16px; border-radius:8px; border:0.5px solid var(--border); margin-bottom:10px; }
+.status-bar { height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; margin-top:8px; }
 .status-fill { height:100%; background:var(--gold); transition:1s ease-out; }
-
-.loading-msg { font-family:var(--FM); font-size:13px; color:var(--gold2); margin-top:20px; display:none; }
 </style>
 </head>
 <body>
@@ -112,22 +67,48 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-logo"><div class="sidebar-gem"></div><span class="sidebar-logo-text">GEM LENS</span></div>
-    
-    <div class="sidebar-section"><div class="sidebar-section-title">Análisis Principal</div></div>
+    <div class="sidebar-section"><div class="sidebar-section-title">Análisis</div></div>
     <button class="tab-btn active" onclick="switchTab('motor')">⚡ MOTOR DE IA</button>
-    
-    <div class="sidebar-section"><div class="sidebar-section-title">Historial Local</div></div>
-    <div id="historyList"></div>
+    <button class="tab-btn" onclick="switchTab('vision')">👁️ VISIÓN DIRECTA</button>
   </aside>
 
   <main class="main">
     <div class="panel active" id="panel-motor">
         <div class="upload-container">
-            <span class="upload-icon">📸</span>
             <h2 class="upload-title">Laboratorio de Visión</h2>
-            <p class="upload-hint">Soportamos JPG, PNG y WEBP (Frente, Dorso y Detalles)</p>
-            
+            <p style="color:var(--text3); margin-bottom:20px;">Subí las fotos para el análisis Gemini 1.5</p>
             <input type="file" id="imageInput" multiple accept="image/*" style="display:none">
+            <button class="btn-upload" onclick="document.getElementById('imageInput').click()">SELECCIONAR FOTOGRAFÍAS</button>
+            <div class="preview-strip" id="previewStrip"></div>
+            <button class="btn-run-ia" id="btnRun" disabled onclick="runGeminiAnalysis()">INICIAR ESCANEO</button>
+            <div id="loadingMsg" style="display:none; color:var(--gold2); margin-top:20px; font-family:var(--FM);">PROCESANDO...</div>
+        </div>
+        <div id="resultOutput"></div>
+    </div>
+
+    <div class="panel" id="panel-vision">
+        <div class="card-hero">
+            <h2 style="font-family:var(--FD); color:var(--gold);">Visión Directa</h2>
+            <p>Módulo de inspección manual (Próximamente)</p>
+        </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// CONFIGURACIÓN
+const GEMINI_API_KEY = "AIzaSyBQHZbd6NhbR6ADGYa0T7s6v715dpiy2hY"; 
+let currentImages = [];
+
+// MANEJO DE IMÁGENES
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            currentImages.push(ev.target.result);
+            const img = document.createElement('img');
+            img.src =
             <button class="btn-upload" onclick="document.getElementById('imageInput').click()">SELECCIONAR FOTOGRAFÍAS</button>
             
             <div class="preview
