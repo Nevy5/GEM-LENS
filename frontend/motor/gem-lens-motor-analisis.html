@@ -734,8 +734,8 @@ function renderReport(card) {
     <div class="apikey-block" id="apikeyBlock">
       <div class="apikey-header">
         <div class="apikey-dot connected" id="apikeyDot"></div>
-        <span class="apikey-label">Motor · Gemini 2.5 Flash Vision via Puter.js</span>
-        <span class="apikey-status ok" id="apikeyStatusLabel">GRATUITO · SIN API KEY</span>
+        <span class="apikey-label"></span>
+        <span class="apikey-status ok" id="apikeyStatusLabel"></span>
       </div>
       <div class="apikey-hint" style="margin-top:0">
         Powered by <a href="https://puter.com" target="_blank">Puter.js</a> — acceso gratuito a IA de visión directamente desde el browser. Sin límites de requests para testing. El primer uso puede pedir login con cuenta Puter (gratuita).
@@ -927,14 +927,65 @@ function setupUploadLogic() {
   }
 }
 
-async function analyzeImages() {
-  const btnAnalyze    = document.getElementById('btnAnalyze');
-  const loadingStatus = document.getElementById('loadingStatus');
 
-  if (!GROQ_API_KEY) {
-    alert('\u26a0\ufe0f Necesit\u00e1s una Groq API Key (gratuita).\n\n1. Entr\u00e1 a console.groq.com\n2. Cre\u00e1 una cuenta gratis (sin tarjeta)\n3. Ve a API Keys y generá una key\n4. Peg\u00e1la en el campo de arriba y presion\u00e1 GUARDAR');
+async function analyzeImages() {
+  const input = document.getElementById("imageInput");
+  const output = document.getElementById("visionOutput");
+
+  if (!input || !input.files.length) {
+    alert("Subí al menos una imagen.");
     return;
   }
+
+  output.style.display = "block";
+  output.innerHTML = "Analizando con GROK Vision...";
+
+  try {
+    const file = input.files[0];
+    const base64 = await toBase64(file);
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + (localStorage.getItem("GROQ_API_KEY") || "")
+      },
+      body: JSON.stringify({
+        model: "llama-3.2-90b-vision-preview",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Analizá esta carta TCG en detalle: autenticidad, centering, esquinas, bordes, superficie, estado PSA estimado y valor de mercado." },
+              { type: "image_url", image_url: base64 }
+            ]
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data || !data.choices) {
+      throw new Error("Respuesta inválida de GROK");
+    }
+
+    output.innerHTML = data.choices[0].message.content;
+
+  } catch (err) {
+    console.error(err);
+    output.innerHTML = "Error al analizar con GROK Vision.";
+  }
+}
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
   if (uploadedImages.length === 0) {
     alert('\u26a0\ufe0f Primero sub\u00ed al menos una foto de la carta.');
     return;
