@@ -918,16 +918,20 @@ async function analyzeImages() {
       })
     });
 
-    const data = await response.json();
-    const rawJson = data.candidates[0].content.parts[0].text;
-    const cleanJson = JSON.parse(rawJson.replace(/```json|```/g, ""));
+const data = await resp.json();
     
-    // Asignar ID temporal
-    cleanJson.id = Date.now();
+    // Esto evita el error si la API responde algo inesperado
+    if (!data.candidates || !data.candidates[0].content) {
+        throw new Error("Gemini no devolvió contenido válido. Revisá tu API Key.");
+    }
+
+    let resultText = data.candidates[0].content.parts[0].text;
     
-    // Limpiar subida y renderizar reporte nuevo
-    uploadedImages = [];
-    renderReport(cleanJson);
+    // IMPORTANTE: Limpia los triple acentos ```json que a veces manda la IA
+    const cleanJson = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
+    const resultObj = JSON.parse(cleanJson);
+    
+    renderReport(resultObj);
     
   } catch (error) {
     console.error("Error Gemini:", error);
