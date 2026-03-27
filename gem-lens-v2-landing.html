@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gem Lens — La lupa que tu colección necesitaba</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a08;
+  --bg2: #111110;
+  --bg3: #181815;
+  --surface: #1e1e1a;
+  --surface2: #252520;
+  --gold: #d4a843;
+  --gold2: #f0c96a;
+  --gold3: #8a6a20;
+  --gold-dim: rgba(212,168,67,0.15);
+  --teal: #2eb89a;
+  --teal-dim: rgba(46,184,154,0.12);
+  --red: #e05252;
+  --red-dim: rgba(224,82,82,0.12);
+  --text: #f0ede6;
+  --text2: rgba(240,237,230,0.55);
+  --text3: rgba(240,237,230,0.3);
+  --border: rgba(240,237,230,0.07);
+  --border2: rgba(240,237,230,0.14);
+  --gold-border: rgba(212,168,67,0.25);
+  --F: 'DM Sans', sans-serif;
+  --FD: 'Bebas Neue', sans-serif;
+  --FI: 'Instrument Serif', serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--F);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--gold3); border-radius: 2px; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 6vw; height: 58px;
+  background: rgba(10,10,8,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 0.5px solid var(--border);
+}
+
+.logo {
+  font-family: var(--FD);
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--text);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.logo-gem {
+  width: 20px; height: 20px;
+  background: var(--gold);
+  clip-path: polygon(50% 0%,100% 35%,85% 100%,15% 100%,0% 35%);
+  flex-shrink: 0;
+}
+
+.nav-right { display: flex; align-items: center; gap: 24px; }
+
+.nav-link {
+  font-size: 13px; color: var(--text2);
+  text-decoration: none; font-weight: 400;
+  transition: color .2s;
+}
+.nav-link:hover { color: var(--text); }
+
+.nav-pill {
+  background: var(--gold-dim); border: 0.5px solid var(--gold-border);
+  color: var(--gold2); font-size: 11px; font-weight: 500;
+  padding: 5px 12px; border-radius: 20px;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  padding: 90px 6vw 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 60px;
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Background grid texture */
+.hero::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(212,168,67,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,168,67,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none; z-index: 0;
+}
+
+.hero-left { position: relative; z-index: 1; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 500; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold);
+  margin-bottom: 24px;
+}
+.eyebrow-line { width: 24px; height: 1px; background: var(--gold); }
+
+h1 {
+  font-family: var(--FD);
+  font-size: clamp(52px, 6vw, 86px);
+  line-height: .95;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+h1 .italic-word {
+  font-family: var(--FI);
+  font-style: italic;
+  color: var(--gold2);
+  font-size: 1.05em;
+}
+
+.hero-sub {
+  font-size: 17px; font-weight: 300; line-height: 1.65;
+  color: var(--text2); max-width: 440px; margin-bottom: 40px;
+}
+
+.cta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--gold); color: #0a0a08;
+  font-family: var(--FD); font-size: 18px; letter-spacing: 1px;
+  padding: 14px 28px; border-radius: 3px; border: none; cursor: pointer;
+  text-decoration: none;
+  transition: background .2s, transform .15s;
+}
+.btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+.btn-primary svg { width:16px; height:16px; transition: transform .2s; }
+.btn-primary:hover svg { transform: translateX(3px); }
+
+.cta-sub { font-size: 12px; color: var(--text3); }
+
+/* ── REPORT CARD — the centerpiece ── */
+.hero-right { position: relative; z-index: 1; }
+
+.report-wrap {
+  position: relative;
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Glow behind card */
+.report-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 80%; height: 80%;
+  background: radial-gradient(ellipse, rgba(212,168,67,0.15) 0%, transparent 70%);
+  filter: blur(30px);
+  z-index: -1;
+}
+
+.report-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Gold accent line on top */
+.report-card::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* ── CARD PHOTO SECTION ── */
+.card-photo-section {
+  background: #0d0d0b;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.card-photo-label {
+  font-size: 10px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.card-photo-frame {
+  aspect-ratio: 5/7;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  border: 0.5px solid var(--border2);
+}
+
+/* Simulated card front */
+.card-front-sim {
+  width: 100%; height: 100%;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,200,50,0.3), transparent 60%),
+    linear-gradient(160deg, #1a1a4e 0%, #0d2e6b 40%, #0a1a3a 100%);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px;
+  position: relative;
+}
+
+.card-holo-shimmer {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.04) 30%,
+    rgba(255,200,100,0.08) 50%,
+    rgba(255,255,255,0.04) 70%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: shimmer 3s ease-in-out infinite alternate;
+}
+
+@keyframes shimmer {
+  from { opacity: 0.4; background-position: 0% 0%; }
+  to   { opacity: 1;   background-position: 100% 100%; }
+}
+
+.card-emoji { font-size: 32px; z-index: 1; }
+
+.card-name-sim {
+  font-family: var(--FD); font-size: 10px; letter-spacing: 1px;
+  color: rgba(255,255,255,0.7); z-index: 1; text-align: center;
+  padding: 0 4px;
+}
+
+/* Card reverse */
+.card-back-sim {
+  width: 100%; height: 100%;
+  background:
+    radial-gradient(circle at center, #2a1a5e 0%, #1a0e3e 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.card-back-pattern {
+  width: 60%; height: 60%;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.card-back-inner {
+  width: 80%; height: 80%;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  background: radial-gradient(ellipse, rgba(100,80,200,0.3), transparent);
+}
+
+/* Photo overlay badges */
+.photo-badge {
+  position: absolute; top: 6px; left: 6px;
+  background: rgba(10,10,8,0.8);
+  border: 0.5px solid var(--border2);
+  border-radius: 3px;
+  font-size: 9px; font-weight: 500; letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text2); padding: 3px 6px;
+}
+
+/* ── ANALYSIS ZONES OVERLAY ── */
+.analysis-overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+
+.zone-marker {
+  position: absolute;
+  border: 1.5px solid var(--gold);
+  border-radius: 2px;
+  opacity: 0.6;
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%,100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.zone-tl { width: 18px; height: 18px; top:8px; left:8px;
+  border-right: none; border-bottom: none; }
+.zone-tr { width: 18px; height: 18px; top:8px; right:8px;
+  border-left: none; border-bottom: none; }
+.zone-bl { width: 18px; height: 18px; bottom:8px; left:8px;
+  border-right: none; border-top: none; }
+.zone-br { width: 18px; height: 18px; bottom:8px; right:8px;
+  border-left: none; border-top: none; }
+
+.centering-h { position: absolute; left:0; right:0; top:50%;
+  height: 0; border-top: 0.5px dashed rgba(46,184,154,0.4); }
+.centering-v { position: absolute; top:0; bottom:0; left:50%;
+  width: 0; border-left: 0.5px dashed rgba(46,184,154,0.4); }
+
+/* ── SCORES STRIP ── */
+.scores-strip {
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--border);
+  gap: 8px;
+}
+
+.big-score {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.big-score-num {
+  font-family: var(--FD); font-size: 52px; line-height: 1;
+  color: var(--gold2); letter-spacing: -1px;
+}
+
+.big-score-label {
+  font-size: 9px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text3);
+}
+
+.score-divider {
+  width: 0.5px; height: 48px; background: var(--border2);
+  flex-shrink: 0;
+}
+
+.mini-scores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px; flex: 1;
+}
+
+.mini-score {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.mini-score-val {
+  font-family: var(--FD); font-size: 16px; line-height: 1;
+  color: var(--text);
+}
+
+.mini-score-val.ok { color: var(--teal); }
+.mini-score-val.warn { color: var(--gold); }
+.mini-score-val.bad { color: var(--red); }
+
+.mini-score-lbl {
+  font-size: 9px; color: var(--text3); letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.glp-strip {
+  flex-shrink: 0; text-align: right;
+}
+.glp-val {
+  font-family: var(--FD); font-size: 22px; color: var(--text2);
+  line-height: 1;
+}
+.glp-lbl { font-size: 9px; color: var(--text3); letter-spacing: 1px; }
+
+/* ── CARD INFO ── */
+.card-info {
+  padding: 14px 16px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.card-id-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 8px; margin-bottom: 8px;
+}
+
+.card-full-name {
+  font-family: var(--FD); font-size: 20px; letter-spacing: 0.5px;
+  color: var(--text); line-height: 1.1;
+}
+
+.rarity-badge {
+  display: inline-block;
+  background: var(--gold-dim);
+  border: 0.5px solid var(--gold-border);
+  color: var(--gold2); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.5px; padding: 3px 8px; border-radius: 3px;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+.card-meta-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+
+.meta-chip {
+  font-size: 11px; color: var(--text3); font-weight: 300;
+  background: var(--bg3); border: 0.5px solid var(--border);
+  padding: 2px 8px; border-radius: 2px;
+}
+
+/* ── AUTH BAR ── */
+.auth-bar {
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(46,184,154,0.06);
+  border-bottom: 0.5px solid var(--border);
+}
+
+.auth-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--teal); flex-shrink: 0;
+  box-shadow: 0 0 6px var(--teal);
+}
+
+.auth-text { font-size: 12px; color: var(--teal); flex: 1; }
+.auth-conf { font-size: 11px; color: var(--text3); }
+
+/* ── PRICE SECTION ── */
+.price-section {
+  padding: 14px 16px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.price-block {
+  background: var(--bg2); border: 0.5px solid var(--border);
+  border-radius: 6px; padding: 10px 12px;
+}
+
+.price-block.ars-block {
+  background: var(--gold-dim);
+  border-color: var(--gold-border);
+}
+
+.price-block-label {
+  font-size: 9px; font-weight: 500; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 4px;
+}
+
+.price-block.ars-block .price-block-label { color: var(--gold3); }
+
+.price-big {
+  font-family: var(--FD); font-size: 24px; line-height: 1;
+  color: var(--text); letter-spacing: 0.5px;
+}
+
+.price-block.ars-block .price-big { color: var(--gold2); }
+
+.price-range {
+  font-size: 10px; color: var(--text3); margin-top: 3px;
+}
+
+/* ── GRADING ROI ── */
+.grading-section {
+  padding: 14px 16px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.section-title-sm {
+  font-size: 10px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
+}
+
+.roi-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; border-bottom: 0.5px solid var(--border);
+  font-size: 12px; color: var(--text2);
+}
+.roi-row:last-child { border-bottom: none; }
+.roi-positive { color: var(--teal); font-weight: 500; }
+.roi-negative { color: var(--red); }
+.roi-neutral  { color: var(--text3); }
+
+/* ── DEMAND FOOTER ── */
+.demand-footer {
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.demand-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.dpill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 400;
+  padding: 4px 10px; border-radius: 20px; border: 0.5px solid;
+}
+
+.dpill-fire {
+  background: rgba(224,82,82,0.1); border-color: rgba(224,82,82,0.3);
+  color: #ff8080;
+}
+
+.dpill-up {
+  background: var(--teal-dim); border-color: rgba(46,184,154,0.3);
+  color: var(--teal);
+}
+
+.action-rec {
+  font-family: var(--FD); font-size: 13px; letter-spacing: 1px;
+  color: var(--gold2);
+}
+
+/* FLOATING TAGS */
+.float-chip {
+  position: absolute;
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px; font-weight: 500;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.fc-tl {
+  top: -14px; left: -20px;
+  color: var(--teal);
+  border-color: rgba(46,184,154,0.2);
+  background: rgba(46,184,154,0.07);
+}
+
+.fc-br {
+  bottom: 20px; right: -20px;
+  color: var(--gold2);
+  border-color: var(--gold-border);
+  background: var(--gold-dim);
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  padding: 40px 6vw;
+  background: var(--bg2);
+  border-top: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border);
+}
+
+.stats-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.stat-item {
+  padding: 0 32px;
+  border-right: 0.5px solid var(--border);
+  text-align: center;
+}
+.stat-item:first-child { padding-left: 0; }
+.stat-item:last-child  { border-right: none; padding-right: 0; }
+
+.stat-num {
+  font-family: var(--FD); font-size: 44px; letter-spacing: 0px;
+  color: var(--gold2); line-height: 1;
+}
+
+.stat-label { font-size: 13px; color: var(--text2); font-weight: 300; margin-top: 4px; }
+
+/* ── HOW IT WORKS ── */
+.section {
+  padding: 80px 6vw;
+  max-width: 1280px; margin: 0 auto;
+}
+
+h2 {
+  font-family: var(--FD); font-size: clamp(36px, 4vw, 60px);
+  letter-spacing: 1px; line-height: .95; margin-bottom: 48px;
+}
+
+.steps-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1px;
+  background: var(--border);
+  border: 0.5px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+
+.step {
+  background: var(--bg);
+  padding: 32px 28px; position: relative;
+}
+
+.step-n {
+  font-family: var(--FD); font-size: 80px;
+  color: var(--gold3); opacity: .5; line-height: 1;
+  margin-bottom: 12px;
+}
+
+.step-icon-wrap {
+  width: 44px; height: 44px;
+  border: 0.5px solid var(--gold-border);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+  background: var(--gold-dim);
+}
+
+.step-icon-wrap svg { width: 20px; height: 20px; stroke: var(--gold2); }
+
+.step-title {
+  font-family: var(--FD); font-size: 22px; letter-spacing: 0.5px;
+  margin-bottom: 8px; color: var(--text);
+}
+
+.step-desc { font-size: 13px; color: var(--text2); font-weight: 300; line-height: 1.6; }
+
+/* ── ALGORITHM SECTION ── */
+.algo-section {
+  padding: 80px 6vw;
+  background: var(--bg2);
+  border-top: 0.5px solid var(--border);
+}
+
+.algo-inner { max-width: 1280px; margin: 0 auto; }
+
+.algo-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 48px; align-items: start;
+}
+
+.algo-left h2 { margin-bottom: 16px; }
+.algo-left p { font-size: 14px; color: var(--text2); font-weight: 300; line-height: 1.7; }
+
+.scoring-breakdown {
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.score-cat {
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+
+.score-cat:hover { border-color: var(--border2); }
+
+.cat-n {
+  font-family: var(--FD); font-size: 14px; letter-spacing: 1px;
+  color: var(--text3); width: 20px; flex-shrink: 0;
+}
+
+.cat-info { flex: 1; }
+
+.cat-name {
+  font-size: 14px; font-weight: 500; margin-bottom: 4px;
+}
+
+.cat-bar-wrap {
+  height: 4px; background: var(--bg);
+  border-radius: 2px; overflow: hidden;
+}
+
+.cat-bar {
+  height: 100%; border-radius: 2px;
+  background: var(--gold);
+  transition: width 1s ease;
+}
+
+.cat-weight {
+  font-family: var(--FD); font-size: 18px;
+  color: var(--gold2); flex-shrink: 0; letter-spacing: 0.5px;
+}
+
+.cat-gate {
+  font-family: var(--FD); font-size: 12px; letter-spacing: 1px;
+  color: var(--red); padding: 4px 8px;
+  border: 0.5px solid rgba(224,82,82,0.3);
+  border-radius: 3px; background: var(--red-dim);
+}
+
+/* ── GLS SCALE ── */
+.gls-scale {
+  margin-top: 32px;
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.gls-title {
+  font-size: 10px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 14px;
+}
+
+.gls-grades {
+  display: grid; grid-template-columns: repeat(5,1fr); gap: 6px;
+}
+
+.gls-grade {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 4px;
+  border: 0.5px solid var(--border);
+}
+
+.gls-num {
+  font-family: var(--FD); font-size: 22px; line-height: 1;
+}
+
+.gls-name { font-size: 9px; color: var(--text3); margin-top: 2px; line-height: 1.2; }
+
+.gls-grade.g10 { background: rgba(212,168,67,0.15); border-color: rgba(212,168,67,0.3); }
+.gls-grade.g10 .gls-num { color: var(--gold2); }
+.gls-grade.g9  { background: rgba(46,184,154,0.1); border-color: rgba(46,184,154,0.25); }
+.gls-grade.g9  .gls-num { color: var(--teal); }
+.gls-grade.g8  { background: rgba(46,184,154,0.07); border-color: rgba(46,184,154,0.15); }
+.gls-grade.g8  .gls-num { color: rgba(46,184,154,0.8); }
+.gls-grade.g7  { background: var(--bg); }
+.gls-grade.g7  .gls-num { color: var(--text); }
+.gls-grade.g5  { background: var(--bg); }
+.gls-grade.g5  .gls-num { color: var(--text2); }
+
+/* ── FEED ── */
+.feed-section {
+  padding: 80px 6vw;
+  background: var(--bg);
+  border-top: 0.5px solid var(--border);
+}
+
+.feed-inner { max-width: 1280px; margin: 0 auto; }
+
+.feed-header-row {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+}
+
+.feed-link { font-size: 13px; color: var(--gold); text-decoration: none; }
+
+.feed-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
+}
+
+.fcard {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  cursor: pointer;
+  transition: border-color .2s, transform .2s;
+}
+
+.fcard:hover {
+  border-color: var(--border2);
+  transform: translateY(-3px);
+}
+
+.fcard-img {
+  height: 120px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.fcard-img-bg-1 { background: linear-gradient(135deg,#0d1b3e,#1a3a6e); }
+.fcard-img-bg-2 { background: linear-gradient(135deg,#1a0a2e,#4a1a7e); }
+.fcard-img-bg-3 { background: linear-gradient(135deg,#0a2e1a,#1a6e3a); }
+.fcard-img-bg-4 { background: linear-gradient(135deg,#2e1a0a,#8e4a1a); }
+.fcard-img-bg-5 { background: linear-gradient(135deg,#1a1a1a,#3a2a2a); }
+.fcard-img-bg-6 { background: linear-gradient(135deg,#0a1e2e,#1a4a6e); }
+
+.fcard-emoji { font-size: 28px; position: relative; z-index: 1; }
+
+.fcard-wm {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--FD); font-size: 11px; letter-spacing: 4px;
+  color: rgba(255,255,255,0.07); text-transform: uppercase;
+  writing-mode: vertical-rl; z-index: 0;
+}
+
+.fcard-score {
+  position: absolute; top:8px; left:8px;
+  background: rgba(10,10,8,0.85); border: 0.5px solid var(--gold-border);
+  border-radius: 3px; padding: 3px 7px;
+  font-family: var(--FD); font-size: 14px;
+  color: var(--gold2);
+}
+
+.fcard-body { padding: 12px; }
+
+.fcard-name {
+  font-family: var(--FD); font-size: 14px; letter-spacing: 0.3px;
+  margin-bottom: 3px; line-height: 1.1; color: var(--text);
+}
+
+.fcard-set { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+
+.fcard-prices {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+
+.fcard-usd {
+  font-family: var(--FD); font-size: 16px; color: var(--text);
+  letter-spacing: 0.3px;
+}
+
+.fcard-ars { font-size: 11px; color: var(--text3); }
+
+.fcard-footer {
+  padding: 8px 12px;
+  border-top: 0.5px solid var(--border);
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--text3);
+}
+
+/* ── PRICING ── */
+.pricing-section {
+  padding: 80px 6vw;
+  background: var(--bg2);
+  border-top: 0.5px solid var(--border);
+}
+
+.pricing-inner { max-width: 1000px; margin: 0 auto; }
+
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 12px; margin-top: 48px;
+}
+
+.pcard {
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 28px 24px;
+  position: relative;
+}
+
+.pcard.featured {
+  background: var(--gold-dim);
+  border-color: var(--gold-border);
+}
+
+.pcard-badge {
+  position: absolute; top:-12px; left:50%; transform:translateX(-50%);
+  background: var(--gold); color: var(--bg);
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  padding: 4px 14px; border-radius: 20px; white-space: nowrap;
+  font-family: var(--FD);
+}
+
+.plan-name {
+  font-family: var(--FD); font-size: 18px; letter-spacing: 1px;
+  color: var(--text2); margin-bottom: 16px;
+}
+
+.plan-price {
+  font-family: var(--FD); font-size: 40px; letter-spacing: -1px;
+  line-height: 1; color: var(--text);
+}
+
+.pcard.featured .plan-price { color: var(--gold2); }
+
+.plan-period { font-size: 12px; color: var(--text3); margin-bottom: 20px; }
+
+.plan-feats { list-style: none; margin-bottom: 24px; }
+
+.plan-feat {
+  display: flex; gap: 8px; padding: 7px 0;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 13px; color: var(--text2); font-weight: 300;
+}
+.plan-feat:last-child { border-bottom: none; }
+
+.feat-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold); margin-top: 7px; flex-shrink: 0;
+}
+.pcard.featured .feat-dot { background: var(--gold2); }
+
+.plan-btn {
+  display: block; width: 100%; text-align: center;
+  padding: 13px; border-radius: 4px; border: none; cursor: pointer;
+  font-family: var(--FD); font-size: 16px; letter-spacing: 1px;
+  transition: transform .15s;
+  text-decoration: none;
+}
+.plan-btn:hover { transform: translateY(-1px); }
+
+.btn-gold { background: var(--gold); color: var(--bg); }
+.btn-outline {
+  background: transparent;
+  border: 0.5px solid var(--border2);
+  color: var(--text2);
+}
+.btn-teal { background: var(--teal-dim); color: var(--teal); border: 0.5px solid rgba(46,184,154,0.3); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg);
+  border-top: 0.5px solid var(--border);
+  padding: 48px 6vw 32px;
+}
+
+.footer-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px; padding-bottom: 40px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.footer-tagline { font-size: 13px; color: var(--text3); margin-top: 10px; font-weight: 300; line-height: 1.6; }
+
+.footer-col-title {
+  font-family: var(--FD); font-size: 14px; letter-spacing: 1px;
+  color: var(--text2); margin-bottom: 14px;
+}
+
+.footer-links { list-style: none; }
+.footer-links li { margin-bottom: 8px; }
+.footer-links a { font-size: 13px; color: var(--text3); text-decoration: none; font-weight: 300; transition: color .2s; }
+.footer-links a:hover { color: var(--text); }
+
+.footer-bottom {
+  max-width: 1280px; margin: 0 auto;
+  padding-top: 24px;
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text3);
+}
+
+/* ── ANIMATIONS ON LOAD ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.hero-left > * { animation: fadeUp .7s ease both; }
+.hero-left .eyebrow      { animation-delay: .1s; }
+.hero-left h1            { animation-delay: .2s; }
+.hero-left .hero-sub     { animation-delay: .3s; }
+.hero-left .cta-row      { animation-delay: .4s; }
+.hero-right              { animation: fadeUp .9s .3s ease both; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-right { order: -1; }
+  .stats-inner { grid-template-columns: repeat(2,1fr); }
+  .stat-item { padding: 20px 0; border-right: none; border-bottom: 0.5px solid var(--border); }
+  .feed-grid { grid-template-columns: repeat(2,1fr); }
+  .algo-grid { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  nav .nav-right > *:not(.nav-pill) { display: none; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .feed-grid { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr; gap: 24px; }
+  .gls-grades { grid-template-columns: repeat(5,1fr); }
+  .float-chip { display: none; }
+  .card-photo-section { grid-template-columns: 1fr; }
+}
+
+/* UPLOAD ZONE */
+.upload-section {
+  padding: 80px 6vw;
+  background: var(--bg);
+  border-top: 0.5px solid var(--border);
+}
+
+.upload-inner { max-width: 700px; margin: 0 auto; text-align: center; }
+
+.upload-zone {
+  border: 1px dashed var(--border2);
+  border-radius: 12px;
+  padding: 52px 32px;
+  background: var(--bg2);
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  position: relative;
+}
+
+.upload-zone:hover {
+  border-color: var(--gold-border);
+  background: var(--gold-dim);
+}
+
+.upload-icon-wrap {
+  width: 56px; height: 56px;
+  border-radius: 50%; border: 0.5px solid var(--border2);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.upload-icon-wrap svg { width: 24px; height: 24px; stroke: var(--gold); }
+
+.upload-title {
+  font-family: var(--FD); font-size: 24px; letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.upload-desc { font-size: 13px; color: var(--text3); margin-bottom: 20px; font-weight: 300; }
+
+.upload-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--gold); color: var(--bg);
+  font-family: var(--FD); font-size: 16px; letter-spacing: 1px;
+  padding: 12px 24px; border-radius: 3px; border: none; cursor: pointer;
+  transition: background .2s;
+}
+
+.upload-btn:hover { background: var(--gold2); }
+.upload-sub { font-size: 12px; color: var(--text3); margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-gem"></div>
+    GEM LENS
+  </div>
+  <div class="nav-right">
+    <a href="#algoritmo" class="nav-link">Algoritmo</a>
+    <a href="#feed" class="nav-link">Comunidad</a>
+    <a href="#precios" class="nav-link">Precios</a>
+    <span class="nav-pill">Beta · 3 gratis/día</span>
+  </div>
+</nav>
+
+<!-- ─────────── HERO ─────────── -->
+<section style="position:relative; overflow:hidden;">
+  <div class="hero">
+
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="eyebrow">
+        <div class="eyebrow-line"></div>
+        Pokémon · Yu-Gi-Oh! · Magic · DBS
+      </div>
+
+      <h1>VALORÁ<br>TU<br><span class="italic-word">colección</span><br>CON IA</h1>
+
+      <p class="hero-sub">
+        La primera herramienta argentina de grading estimado por inteligencia artificial. 
+        Subí la foto, recibí el análisis completo en español rioplatense: 
+        autenticidad, condición GLS, precio al blue, ROI de grading.
+      </p>
+
+      <div class="cta-row">
+        <a href="#valorar" class="btn-primary">
+          SUBÍ TU CARTA
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+        <span class="cta-sub">Sin registro · Gratis</span>
+      </div>
+    </div>
+
+    <!-- RIGHT — THE REPORT CARD -->
+    <div class="hero-right">
+      <div class="report-wrap">
+
+        <div class="float-chip fc-tl">✓ Autenticidad verificada · Alta confianza</div>
+        <div class="float-chip fc-br">📈 HOLDEAR · Mercado alcista</div>
+
+        <div class="report-card">
+
+          <!-- ① FOTO DE LA CARTA (lo que pide el usuario) -->
+          <div class="card-photo-section">
+            <div>
+              <div class="card-photo-label">Foto analizada — frente</div>
+              <div class="card-photo-frame">
+                <div class="card-front-sim">
+                  <div class="card-holo-shimmer"></div>
+                  <div class="card-emoji">🔥</div>
+                  <div class="card-name-sim">CHARIZARD V</div>
+                </div>
+                <div class="photo-badge">FRENTE</div>
+                <!-- Análisis overlay -->
+                <div class="analysis-overlay">
+                  <div class="zone-marker zone-tl"></div>
+                  <div class="zone-marker zone-tr"></div>
+                  <div class="zone-marker zone-bl"></div>
+                  <div class="zone-marker zone-br"></div>
+                  <div class="centering-h"></div>
+                  <div class="centering-v"></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="card-photo-label">Foto analizada — reverso</div>
+              <div class="card-photo-frame">
+                <div class="card-back-sim">
+                  <div class="card-back-pattern">
+                    <div class="card-back-inner"></div>
+                  </div>
+                </div>
+                <div class="photo-badge">REVERSO</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ② SCORES: GLS (0-10) + GLP (0-500) + mini breakdown -->
+          <div class="scores-strip">
+            <div class="big-score">
+              <div class="big-score-num">8.5</div>
+              <div class="big-score-label">GLS Score</div>
+            </div>
+            <div class="score-divider"></div>
+            <div class="mini-scores">
+              <div class="mini-score">
+                <div class="mini-score-val ok">92</div>
+                <div class="mini-score-lbl">Centering</div>
+              </div>
+              <div class="mini-score">
+                <div class="mini-score-val warn">74</div>
+                <div class="mini-score-lbl">Esquinas</div>
+              </div>
+              <div class="mini-score">
+                <div class="mini-score-val ok">78</div>
+                <div class="mini-score-lbl">Bordes</div>
+              </div>
+              <div class="mini-score">
+                <div class="mini-score-val ok">88</div>
+                <div class="mini-score-lbl">Superficie</div>
+              </div>
+              <div class="mini-score">
+                <div class="mini-score-val ok">75</div>
+                <div class="mini-score-lbl">Color</div>
+              </div>
+              <div class="mini-score">
+                <div class="mini-score-val ok">✓</div>
+                <div class="mini-score-lbl">Auténtica</div>
+              </div>
+            </div>
+            <div class="score-divider"></div>
+            <div class="glp-strip">
+              <div class="glp-val">407</div>
+              <div class="glp-lbl">GLP / 500</div>
+            </div>
+          </div>
+
+          <!-- ③ IDENTIFICACIÓN -->
+          <div class="card-info">
+            <div class="card-id-row">
+              <div class="card-full-name">Charizard V — Alternate Art</div>
+              <span class="rarity-badge">⭐⭐ SECRET RARE</span>
+            </div>
+            <div class="card-meta-row">
+              <span class="meta-chip">Brilliant Stars</span>
+              <span class="meta-chip">174/172</span>
+              <span class="meta-chip">EN · 2022</span>
+              <span class="meta-chip">Pokémon TCG</span>
+            </div>
+          </div>
+
+          <!-- ④ AUTENTICIDAD -->
+          <div class="auth-bar">
+            <div class="auth-dot"></div>
+            <span class="auth-text">Autenticidad verificada — tipografía, rosette, colores y proporciones OK</span>
+            <span class="auth-conf">95% confianza</span>
+          </div>
+
+          <!-- ⑤ PRECIOS -->
+          <div class="price-section">
+            <div class="price-block">
+              <div class="price-block-label">TCGPlayer LP · USD</div>
+              <div class="price-big">USD 65</div>
+              <div class="price-range">NM: USD 87 · MP: USD 44</div>
+            </div>
+            <div class="price-block ars-block">
+              <div class="price-block-label">Precio estimado ARS</div>
+              <div class="price-big">$97.500</div>
+              <div class="price-range">Grupos WA: $90k – $105k</div>
+            </div>
+          </div>
+
+          <!-- ⑥ GRADING ROI -->
+          <div class="grading-section">
+            <div class="section-title-sm">Análisis de grading · PSA</div>
+            <div class="roi-row">
+              <span>PSA 8 (más probable) — costo USD 80</span>
+              <span class="roi-positive">+USD 35 ROI</span>
+            </div>
+            <div class="roi-row">
+              <span>PSA 9 (si está mejor) — costo USD 80</span>
+              <span class="roi-positive">+USD 105 ROI ✓✓</span>
+            </div>
+            <div class="roi-row">
+              <span>PSA 10 — poco probable</span>
+              <span class="roi-negative">condición insuficiente</span>
+            </div>
+          </div>
+
+          <!-- ⑦ DEMANDA LOCAL -->
+          <div class="demand-footer">
+            <div class="demand-pills">
+              <span class="dpill dpill-fire">🔥 Demanda alta</span>
+              <span class="dpill dpill-up">↑ Set alcista</span>
+            </div>
+            <div class="action-rec">HOLDEAR →</div>
+          </div>
+
+        </div><!-- /report-card -->
+      </div><!-- /report-wrap -->
+    </div><!-- /hero-right -->
+
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num">500</div>
+      <div class="stat-label">puntos de análisis por carta</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">6</div>
+      <div class="stat-label">categorías evaluadas (incluyendo autenticidad)</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">30s</div>
+      <div class="stat-label">tiempo promedio de análisis</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">0$</div>
+      <div class="stat-label">para empezar, sin registro</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="como-funciona">
+  <div class="eyebrow"><div class="eyebrow-line"></div>Proceso</div>
+  <h2>TRES PASOS.<br>TREINTA SEGUNDOS.</h2>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-n">01</div>
+      <div class="step-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="step-title">SACÁS LA FOTO</div>
+      <p class="step-desc">Desde el celular, cámara o galería. Podés mandar hasta 4 fotos: frente, reverso, bordes, esquinas. Más fotos = análisis más preciso.</p>
+    </div>
+    <div class="step">
+      <div class="step-n">02</div>
+      <div class="step-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
+      </div>
+      <div class="step-title">LA IA ANALIZA</div>
+      <p class="step-desc">Verificación de autenticidad (tipografía, rosette, colores), centering, 4 esquinas, 4 bordes, superficie holo y calidad de color. GLP 0–500.</p>
+    </div>
+    <div class="step">
+      <div class="step-n">03</div>
+      <div class="step-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
+      </div>
+      <div class="step-title">RECIBÍS EL INFORME</div>
+      <p class="step-desc">GLS 0–10, GLP 0–500, identificación exacta, precio USD y ARS al blue, consejo de grading con ROI estimado y consejo de inversión local argentino.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ALGORITHM -->
+<section class="algo-section" id="algoritmo">
+  <div class="algo-inner">
+    <div class="algo-grid">
+      <div class="algo-left">
+        <div class="eyebrow"><div class="eyebrow-line"></div>Scoring</div>
+        <h2>EL<br>ALGORITMO</h2>
+        <p>Sistema de puntuación dual: <strong>GLS</strong> (0–10, escala principal como PSA) alimentado por <strong>GLP</strong> (0–500, escala granular secundaria). Cada categoría contribuye con un peso específico al puntaje final.</p>
+
+        <div class="gls-scale" style="margin-top:28px;">
+          <div class="gls-title">Equivalencia GLP → GLS</div>
+          <div class="gls-grades">
+            <div class="gls-grade g10">
+              <div class="gls-num">10</div>
+              <div class="gls-name">Gem Mint 475+</div>
+            </div>
+            <div class="gls-grade g9">
+              <div class="gls-num">9</div>
+              <div class="gls-name">Mint 435+</div>
+            </div>
+            <div class="gls-grade g8">
+              <div class="gls-num">8</div>
+              <div class="gls-name">NM-Mint 380+</div>
+            </div>
+            <div class="gls-grade g7">
+              <div class="gls-num">7</div>
+              <div class="gls-name">NM 320+</div>
+            </div>
+            <div class="gls-grade g5">
+              <div class="gls-num">5–</div>
+              <div class="gls-name">EX y menor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="scoring-breakdown">
+
+          <div class="score-cat">
+            <div class="cat-n">00</div>
+            <div class="cat-info">
+              <div class="cat-name">Autenticidad — Tipografía + Rosette + Colores + Proporciones</div>
+              <div class="cat-bar-wrap" style="margin-top:6px;">
+                <div class="cat-bar" style="width:100%; background: var(--red);"></div>
+              </div>
+            </div>
+            <div class="cat-gate">GATE</div>
+          </div>
+
+          <div class="score-cat">
+            <div class="cat-n">01</div>
+            <div class="cat-info">
+              <div class="cat-name">Centering — Horizontal + Vertical (ratio borde)</div>
+              <div class="cat-bar-wrap" style="margin-top:6px;">
+                <div class="cat-bar" style="width:24%;"></div>
+              </div>
+            </div>
+            <div class="cat-weight">120 GLP</div>
+          </div>
+
+          <div class="score-cat">
+            <div class="cat-n">02</div>
+            <div class="cat-info">
+              <div class="cat-name">Esquinas — Whitening · Dobleces · Chips (4 × 30)</div>
+              <div class="cat-bar-wrap" style="margin-top:6px;">
+                <div class="cat-bar" style="width:24%;"></div>
+              </div>
+            </div>
+            <div class="cat-weight">120 GLP</div>
+          </div>
+
+          <div class="score-cat">
+            <div class="cat-n">03</div>
+            <div class="cat-info">
+              <div class="cat-name">Bordes — Roughness · Whitening · Cuts (4 × 20)</div>
+              <div class="cat-bar-wrap" style="margin-top:6px;">
+                <div class="cat-bar" style="width:16%;"></div>
+              </div>
+            </div>
+            <div class="cat-weight">80 GLP</div>
+          </div>
+
+          <div class="score-cat">
+            <div class="cat-n">04</div>
+            <div class="cat-info">
+              <div class="cat-name">Superficie — Holo scratches · Print lines · Stains · Reverso</div>
+              <div class="cat-bar-wrap" style="margin-top:6px;">
+                <div class="cat-bar" style="width:20%;"></div>
+              </div>
+            </div>
+            <div class="cat-weight">100 GLP</div>
+          </div>
+
+          <div class="score-cat">
+            <div class="cat-n">05</div>
+            <div class="cat-info">
+              <div class="cat-name">Color & Frescura — Saturación · Nitidez texto · Fading</div>
+              <div class="cat-bar-wrap" style="margin-top:6px;">
+                <div class="cat-bar" style="width:16%;"></div>
+              </div>
+            </div>
+            <div class="cat-weight">80 GLP</div>
+          </div>
+
+          <div style="background: var(--bg3); border: 0.5px solid var(--gold-border); border-radius:6px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
+            <div style="font-size:13px; color:var(--text2);">
+              <strong style="color:var(--gold2);">+15% confianza</strong> con 4 fotos (frente, reverso, macro bordes, macro esquinas)
+            </div>
+            <div style="font-family:var(--FD); font-size:20px; color:var(--gold2);">500 MAX</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- UPLOAD -->
+<section class="upload-section" id="valorar">
+  <div class="upload-inner">
+    <div class="eyebrow" style="justify-content:center; display:flex; margin-bottom:12px;"><div class="eyebrow-line"></div>Valuación gratuita</div>
+    <h2 style="text-align:center; margin-bottom:8px;">PROBALO AHORA</h2>
+    <p style="text-align:center; color:var(--text3); font-size:14px; margin-bottom:32px; font-weight:300;">Sin registro · 3 valuaciones gratuitas por día</p>
+
+    <div class="upload-zone" id="dropZone">
+      <div class="upload-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <div class="upload-title">ARRASTRÁ TU FOTO ACÁ</div>
+      <p class="upload-desc">o tocar para abrir la cámara / galería · JPG, PNG, HEIC · Hasta 4 fotos · 20MB</p>
+      <button class="upload-btn" onclick="event.stopPropagation(); showToast()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
+        SUBIR CARTA
+      </button>
+    </div>
+    <p class="upload-sub">Te quedan <strong>3</strong> valuaciones gratuitas hoy · <a href="#precios" style="color:var(--gold); text-decoration:none;">Ver plan Pro →</a></p>
+  </div>
+</section>
+
+<!-- COMMUNITY FEED -->
+<section class="feed-section" id="feed">
+  <div class="feed-inner">
+    <div class="feed-header-row">
+      <div>
+        <div class="eyebrow"><div class="eyebrow-line"></div>Comunidad Argentina</div>
+        <h2 style="margin-bottom:0;">LO QUE VALUÓ<br>LA COMUNIDAD HOY</h2>
+      </div>
+      <a href="#feed" class="feed-link">Ver todas →</a>
+    </div>
+
+    <div class="feed-grid">
+      <div class="fcard">
+        <div class="fcard-img fcard-img-bg-1">
+          <div class="fcard-wm">GEM LENS</div>
+          <div class="fcard-score">8.5</div>
+          <span class="fcard-emoji">🔥</span>
+        </div>
+        <div class="fcard-body">
+          <div class="fcard-name">Charizard V Alt Art</div>
+          <div class="fcard-set">Brilliant Stars · 174/172 · EN · <span style="color:var(--teal);font-size:10px;">LP</span></div>
+          <div class="fcard-prices">
+            <div class="fcard-usd">USD 65</div>
+            <div class="fcard-ars">ARS ~$97.500</div>
+          </div>
+        </div>
+        <div class="fcard-footer">
+          <span>@poketrader.baires</span><span>hace 2h</span>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard-img fcard-img-bg-2">
+          <div class="fcard-wm">GEM LENS</div>
+          <div class="fcard-score">6.0</div>
+          <span class="fcard-emoji">🐉</span>
+        </div>
+        <div class="fcard-body">
+          <div class="fcard-name">Blue-Eyes White Dragon</div>
+          <div class="fcard-set">LOB-001 · 1st Ed · EN · <span style="color:var(--gold);font-size:10px;">MP</span></div>
+          <div class="fcard-prices">
+            <div class="fcard-usd">USD 340</div>
+            <div class="fcard-ars">ARS ~$510.000</div>
+          </div>
+        </div>
+        <div class="fcard-footer">
+          <span>Anónimo</span><span>hace 5h</span>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard-img fcard-img-bg-3">
+          <div class="fcard-wm">GEM LENS</div>
+          <div class="fcard-score">9.0</div>
+          <span class="fcard-emoji">🌙</span>
+        </div>
+        <div class="fcard-body">
+          <div class="fcard-name">Umbreon VMAX Alt Art</div>
+          <div class="fcard-set">Evolving Skies · 215/203 · EN · <span style="color:var(--teal);font-size:10px;">NM</span></div>
+          <div class="fcard-prices">
+            <div class="fcard-usd">USD 285</div>
+            <div class="fcard-ars">ARS ~$427.500</div>
+          </div>
+        </div>
+        <div class="fcard-footer">
+          <span>Anónimo</span><span>hace 1h</span>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard-img fcard-img-bg-4">
+          <div class="fcard-wm">GEM LENS</div>
+          <div class="fcard-score">7.5</div>
+          <span class="fcard-emoji">🃏</span>
+        </div>
+        <div class="fcard-body">
+          <div class="fcard-name">Black Lotus Beta</div>
+          <div class="fcard-set">Limited Ed. Beta · 1993 · EN · <span style="color:var(--red);font-size:10px;">HP</span></div>
+          <div class="fcard-prices">
+            <div class="fcard-usd">USD 4.200</div>
+            <div class="fcard-ars">ARS ~$6.300.000</div>
+          </div>
+        </div>
+        <div class="fcard-footer">
+          <span>@magicargentina</span><span>hace 4h</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="precios">
+  <div class="pricing-inner">
+    <div style="text-align:center;">
+      <div class="eyebrow" style="justify-content:center; display:flex;"><div class="eyebrow-line"></div>Planes</div>
+      <h2>EMPEZÁ GRATIS.<br>CRECÉ CUANDO QUIERAS.</h2>
+    </div>
+    <div class="pricing-grid">
+      <div class="pcard">
+        <div class="plan-name">GRATUITO</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">para siempre</div>
+        <ul class="plan-feats">
+          <li class="plan-feat"><div class="feat-dot"></div><span>3 valuaciones por día</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Informe GLS + GLP completo</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Autenticidad + precios ARS</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Feed comunitario</span></li>
+        </ul>
+        <button class="plan-btn btn-outline" onclick="showToast()">EMPEZAR GRATIS</button>
+      </div>
+
+      <div class="pcard featured">
+        <div class="pcard-badge">⭐ MÁS POPULAR</div>
+        <div class="plan-name">PRO</div>
+        <div class="plan-price">$2.500</div>
+        <div class="plan-period">ARS / mes · o USD 4</div>
+        <ul class="plan-feats">
+          <li class="plan-feat"><div class="feat-dot"></div><span>Valuaciones ilimitadas</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Historial de colección</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Exportar CSV / Excel</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Alertas de precio</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Badge Pro en el feed</span></li>
+        </ul>
+        <button class="plan-btn btn-gold" onclick="showToast()">IR PRO — MERCADO PAGO</button>
+      </div>
+
+      <div class="pcard">
+        <div class="plan-name">CRÉDITOS</div>
+        <div class="plan-price">$1.500</div>
+        <div class="plan-period">ARS · pack de 10</div>
+        <ul class="plan-feats">
+          <li class="plan-feat"><div class="feat-dot"></div><span>Pack 10: $1.500 ARS</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Pack 30: $3.500 ARS</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Sin vencimiento</span></li>
+          <li class="plan-feat"><div class="feat-dot"></div><span>Mercado Pago</span></li>
+        </ul>
+        <button class="plan-btn btn-teal" onclick="showToast()">COMPRAR CRÉDITOS</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="logo"><div class="logo-gem"></div>GEM LENS</div>
+      <p class="footer-tagline">La primera herramienta de grading estimado por IA para el mercado argentino. Precios al blue, en 30 segundos. Hecho por coleccionistas, para coleccionistas.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">PRODUCTO</div>
+      <ul class="footer-links">
+        <li><a href="#">Cómo funciona</a></li>
+        <li><a href="#">El algoritmo</a></li>
+        <li><a href="#">Feed comunitario</a></li>
+        <li><a href="#">Novedades</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">LEGAL</div>
+      <ul class="footer-links">
+        <li><a href="#">Términos de uso</a></li>
+        <li><a href="#">Privacidad</a></li>
+        <li><a href="#">Disclaimer</a></li>
+        <li><a href="#">DNPDP</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">COMUNIDAD</div>
+      <ul class="footer-links">
+        <li><a href="#">@gemlens.ar</a></li>
+        <li><a href="#">WhatsApp</a></li>
+        <li><a href="#">Contacto</a></li>
+        <li><a href="#">FAQ</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Gem Lens · Argentina · Disclaimer: los informes son estimaciones y no constituyen grading oficial.</span>
+    <span>Hecho con IA para la comunidad TCG 🇦🇷</span>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div id="toast" style="
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--surface2); border:0.5px solid var(--gold-border);
+  color:var(--gold2); padding:14px 24px; border-radius:6px;
+  font-family:var(--FD); font-size:15px; letter-spacing:0.5px;
+  z-index:999; opacity:0; transition:all .3s ease; pointer-events:none;
+  white-space:nowrap;
+">
+  🚀 ¡PRÓXIMAMENTE EN GEMLENS.COM.AR!
+</div>
+
+<script>
+function showToast() {
+  const t = document.getElementById('toast');
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 3000);
+}
+
+// Drop zone
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => {
+  e.preventDefault();
+  dz.style.borderColor = 'var(--gold)';
+});
+dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.querySelector('.upload-title').textContent = '¡FOTO RECIBIDA!';
+  dz.querySelector('.upload-desc').textContent = 'Analizando tu carta... (demo visual)';
+  dz.style.borderColor = 'var(--teal)';
+});
+
+// Feed cards click
+document.querySelectorAll('.fcard').forEach(c => {
+  c.addEventListener('click', showToast);
+});
+
+// Animate score bars on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.cat-bar').forEach(b => {
+        b.style.width = b.style.width;
+      });
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.scoring-breakdown').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
