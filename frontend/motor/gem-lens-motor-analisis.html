@@ -334,22 +334,7 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
     <div class="page-title">ANALIZADOR IA</div>
     <p class="page-sub">Subí fotos de tu carta · Groq Vision + Llama 4 Scout · Gratis</p>
 
-    <!-- API KEY CONFIG -->
-    <div class="apikey-block">
-      <div class="apikey-header">
-        <div class="apikey-dot" id="apikeyDot"></div>
-        <span class="apikey-label">Groq API Key</span>
-        <span class="apikey-status off" id="apikeyStatusLabel">Sin configurar</span>
-      </div>
-      <div class="apikey-row">
-        <input type="password" class="apikey-input" id="apikeyInput" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-        <button class="apikey-save" onclick="saveApiKey()">GUARDAR</button>
-      </div>
-      <div class="apikey-hint">
-        API Key gratuita en <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> →
-        Free tier: 30 req/min · sin tarjeta. El modelo usado es <strong>meta-llama/llama-4-scout-17b-16e-instruct</strong> con soporte de visión.
-      </div>
-    </div>
+    <!-- API KEY: configurada en el código -->
 
     <!-- UPLOAD ZONE -->
     <div class="upload-zone" id="dropZone">
@@ -575,33 +560,10 @@ function cornerClass(pts, max) {
 }
 
 // ═══════════════════════════════════════════
-//  API KEY
+//  API KEY — hardcodeada
 // ═══════════════════════════════════════════
-let GROQ_API_KEY = localStorage.getItem('gem_lens_groq_key') || '';
-
-function saveApiKey() {
-  const val = document.getElementById('apikeyInput').value.trim();
-  if (!val) { alert('Ingresá una API key válida.'); return; }
-  GROQ_API_KEY = val;
-  localStorage.setItem('gem_lens_groq_key', val);
-  updateApiKeyUI(true);
-  checkAnalyzeButton();
-}
-
-function updateApiKeyUI(connected) {
-  const dot = document.getElementById('apikeyDot');
-  const label = document.getElementById('apikeyStatusLabel');
-  if (!dot || !label) return;
-  if (connected) {
-    dot.classList.add('connected');
-    label.textContent = '✓ Configurada';
-    label.className = 'apikey-status ok';
-  } else {
-    dot.classList.remove('connected');
-    label.textContent = 'Sin configurar';
-    label.className = 'apikey-status off';
-  }
-}
+// ⚠ REEMPLAZÁ ESTO CON TU KEY DE console.groq.com/keys
+const GROQ_API_KEY = 'gsk_TU_API_KEY_ACÁ';
 
 // ═══════════════════════════════════════════
 //  UPLOAD & IMAGES
@@ -644,7 +606,7 @@ function renderPreviews() {
 function checkAnalyzeButton() {
   const btn = document.getElementById('btnAnalyze');
   if (!btn) return;
-  btn.disabled = (uploadedImages.length === 0 || !GROQ_API_KEY);
+  btn.disabled = (uploadedImages.length === 0);
 }
 
 // Drag & drop
@@ -659,18 +621,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files);
   });
 
-  // Restore saved key
-  if (GROQ_API_KEY) {
-    document.getElementById('apikeyInput').value = GROQ_API_KEY;
-    updateApiKeyUI(true);
-  }
+  // Check button state on load
+  checkAnalyzeButton();
 });
 
 // ═══════════════════════════════════════════
 //  GROQ VISION ANALYSIS
 // ═══════════════════════════════════════════
 async function analyzeWithGroq() {
-  if (!GROQ_API_KEY) { alert('Primero configurá tu Groq API Key.'); return; }
+  if (!GROQ_API_KEY || GROQ_API_KEY.includes('TU_API_KEY')) {
+    alert('⚠ Configurá tu API Key de Groq directamente en el código (variable GROQ_API_KEY).');
+    return;
+  }
   if (uploadedImages.length === 0) { alert('Subí al menos una foto de la carta.'); return; }
 
   const btn = document.getElementById('btnAnalyze');
@@ -678,139 +640,167 @@ async function analyzeWithGroq() {
   const liveResult = document.getElementById('liveResult');
 
   btn.disabled = true;
-  loading.style.display = 'block';
   liveResult.innerHTML = '';
 
-  const PROMPT = `Sos un Lead Grading Specialist de PSA con 20 años de experiencia en TCG coleccionables.
-Analizá estas fotos de una carta TCG con máxima precisión técnica.
+  // Build image parts (reusable across both calls)
+  const imageParts = [];
+  for (const img of uploadedImages) {
+    const commaIdx = img.dataUrl.indexOf(',');
+    const header   = img.dataUrl.substring(0, commaIdx);
+    const b64data  = img.dataUrl.substring(commaIdx + 1);
+    const mimeMatch = header.match(/data:([^;]+);/);
+    const validMimes = ['image/jpeg','image/png','image/gif','image/webp'];
+    const mime = (mimeMatch && validMimes.includes(mimeMatch[1])) ? mimeMatch[1] : 'image/jpeg';
+    imageParts.push({ type:'image_url', image_url:{ url:`data:${mime};base64,${b64data}` } });
+  }
 
-RESPONDÉ ÚNICAMENTE con un objeto JSON válido. Sin texto antes ni después. Sin markdown. Sin bloques de código. Solo el JSON puro.
+  async function groqCall(messages, label) {
+    setLoadingMsg(label);
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        messages,
+        temperature: 0.05,
+        max_tokens: 1400
+      })
+    });
+    if (!res.ok) {
+      let errMsg = `HTTP ${res.status}`;
+      try { const e = await res.json(); errMsg = e?.error?.message || errMsg; } catch(e){}
+      if (res.status === 401) throw new Error('API Key inválida. Verificá en console.groq.com → API Keys.');
+      if (res.status === 429) throw new Error('Rate limit alcanzado. Esperá 1 minuto e intentá de nuevo.');
+      if (res.status === 413) throw new Error('Imágenes demasiado grandes. Reducí la resolución.');
+      if (res.status === 400) throw new Error('El modelo rechazó la request. Formato de imagen inválido (usá JPG/PNG/WEBP).');
+      throw new Error(errMsg);
+    }
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content || '';
+  }
 
-Usá exactamente este esquema:
+  function parseJSON(raw) {
+    const clean = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
+    try { return JSON.parse(clean); } catch(e) {
+      const m = clean.match(/\{[\s\S]*\}/);
+      if (m) return JSON.parse(m[0]);
+      throw new Error('No se pudo parsear JSON. Raw: ' + raw.slice(0,300));
+    }
+  }
+
+  function setLoadingMsg(msg) {
+    loading.style.display = 'block';
+    loading.innerHTML = `<span class="spinner"></span> ${msg}`;
+  }
+
+  try {
+
+    // ══════════════════════════════════════════════
+    //  PASO 1 — Identificación de la carta
+    // ══════════════════════════════════════════════
+    const PROMPT_ID = `Sos un experto en TCG coleccionables. Mirá esta imagen de una carta.
+Tu única tarea ahora es IDENTIFICAR la carta. No evalúes la condición todavía.
+
+Respondé SOLO con JSON puro, sin texto ni markdown:
 {
   "name": "Nombre completo de la carta",
   "set": "Nombre del set · Numero/Total · Idioma · Año",
   "game": "Pokémon TCG",
+  "variante": "ej: Alternate Art, Full Art, Holo Rare, Common, etc",
+  "rareza": "ej: Secret Rare, Ultra Rare, Common",
   "auth": {
     "estado": "autentica",
     "confianza": 95,
     "flags": []
   },
-  "centering": { "h": "52/48", "v": "51/49" },
-  "esquinas": { "TL": 28, "TR": 28, "BL": 28, "BR": 28 },
-  "bordes": { "top": 19, "bottom": 19, "left": 19, "right": 19 },
-  "superficie": {
-    "scratches": "ninguno",
-    "print_lines": "ninguno",
-    "stains": "ninguno",
-    "dents": "ninguno"
-  },
-  "color": {
-    "saturacion": "excelente",
-    "nitidez": "excelente",
-    "fading": "ninguno"
-  },
-  "notas": "Párrafo en español rioplatense sobre el estado físico y si conviene gradear.",
-  "mercado": { "usd_nm": 100, "ars": 150000 },
-  "grading": { "rec": "si", "gv_class": "gv-si" }
+  "mercado": { "usd_nm": 0, "ars": 0 }
 }
 
-Reglas estrictas:
-- esquinas: 0-30 por esquina (30=perfecta, 0=destruida/rota)
-- bordes: 0-20 por borde (20=perfecto)
-- centering: formato "55/45" siempre mayor primero
-- auth.estado: solo "autentica" o "falsificacion_detectada"
-- grading.rec: solo "si", "no" o "depende"
-- grading.gv_class: solo "gv-si", "gv-no" o "gv-dep"
-- mercado.usd_nm: integer en dólares (precio NM en TCGPlayer/eBay)
-- mercado.ars: integer en pesos (usd_nm × 1500 como referencia)
-- notas: 2-3 oraciones en español rioplatense, con opinión sobre grading`;
+Para auth.estado: solo "autentica" o "falsificacion_detectada".
+Para mercado.usd_nm: precio aproximado NM en dólares en TCGPlayer/eBay. Si no lo sabés, poné 0.`;
 
-  try {
-    // Build content array: images first, then text prompt
-    const contentParts = [];
+    const rawId = await groqCall([
+      { role:'user', content:[...imageParts, { type:'text', text:PROMPT_ID }] }
+    ], 'PASO 1/2 — Identificando la carta...');
 
-    for (const img of uploadedImages) {
-      const commaIdx = img.dataUrl.indexOf(',');
-      const header = img.dataUrl.substring(0, commaIdx);
-      const b64data = img.dataUrl.substring(commaIdx + 1);
-      const mimeMatch = header.match(/data:([^;]+);/);
-      const validMimes = ['image/jpeg','image/png','image/gif','image/webp'];
-      const mime = (mimeMatch && validMimes.includes(mimeMatch[1])) ? mimeMatch[1] : 'image/jpeg';
-      contentParts.push({
-        type: 'image_url',
-        image_url: { url: `data:${mime};base64,${b64data}` }
-      });
-    }
+    let cardId;
+    try { cardId = parseJSON(rawId); } catch(e) { throw new Error('Error identificando la carta: ' + e.message); }
 
-    contentParts.push({ type: 'text', text: PROMPT });
+    // ══════════════════════════════════════════════
+    //  PASO 2 — Análisis hipercrítico de condición
+    // ══════════════════════════════════════════════
+    const cardName = cardId.name || 'esta carta TCG';
+    const PROMPT_CONDITION = `Sos el grader más estricto y riguroso de PSA. Estás analizando: "${cardName}".
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-        messages: [{ role: 'user', content: contentParts }],
-        temperature: 0.1,
-        max_tokens: 1200
-      })
-    });
+INSTRUCCIÓN CLAVE: Sé HIPERCRÍTICO. Los coleccionistas te pagan para detectar hasta el defecto más pequeño. NO seas optimista. Si hay duda, penalizá. Una carta que parece NM a simple vista casi siempre tiene defectos cuando la mirás de cerca.
 
-    if (!response.ok) {
-      let errMsg = `HTTP ${response.status}`;
-      try {
-        const errBody = await response.json();
-        errMsg = errBody?.error?.message || errMsg;
-      } catch(e) {}
-      if (response.status === 401) throw new Error('API Key inválida. Verificá en console.groq.com → API Keys.');
-      if (response.status === 429) throw new Error('Límite de requests alcanzado. Esperá 1 minuto e intentá de nuevo.');
-      if (response.status === 413) throw new Error('Imágenes demasiado grandes. Reducí la resolución antes de subir.');
-      if (response.status === 400) throw new Error('El modelo rechazó la request. Verificá que el formato de imagen sea válido (JPG/PNG/WEBP).');
-      throw new Error(errMsg);
-    }
+Examiná CADA zona de la carta en las fotos:
+1. ESQUINAS: buscá whitening (blanqueado en las puntas), dobleces, chips, aplastamiento. Mirá las 4 esquinas por separado.
+2. BORDES: roughness (aspereza), whitening lineal, cuts, chips, irregularidades. Mirá los 4 bordes.
+3. SUPERFICIE FRENTE: scratches en la capa holo/foil (especialmente en ángulo), print lines, manchas, dents, marcas de dedos.
+4. REVERSO (si hay foto): scratches, manchas, rayones, doblez de reverso.
+5. CENTERING: medí visualmente cuánto borde hay en cada lado. Sé preciso.
+6. COLOR: decoloración, fading, saturación.
 
-    const data = await response.json();
-    const rawText = data?.choices?.[0]?.message?.content || '';
+Escalas de puntuación ESTRICTA:
+- Esquinas (0-30): 30=sin defecto alguno bajo lupa, 27-29=micro-whitening solo bajo lupa, 24-26=whitening muy leve visible a 5cm, 18-23=whitening moderado visible claramente, 10-17=whitening severo o doblez leve, 0-9=doblez o chip visible
+- Bordes (0-20): 20=perfectos, 17-19=mínimo roughness, 13-16=roughness moderado, 8-12=whitening claro, 0-7=daño severo
+- Superficie (0-100): resta puntos agresivamente por scratches (hasta -30 si son severos), stains (-15), print lines (-10), dents (-15)
+- Centering: medí el ratio con precisión
 
-    if (!rawText) throw new Error('El modelo no devolvió respuesta. Intentá de nuevo.');
+IMPORTANTE: Si la carta se ve usada, golpeada, manejada, es LP o peor. NO la graúes como NM si tiene cualquier señal de uso.
 
-    // Clean up any accidental markdown fences
-    const cleanText = rawText
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim();
+Respondé SOLO con JSON puro, sin markdown ni texto:
+{
+  "centering": { "h": "55/45", "v": "52/48" },
+  "esquinas": { "TL": 22, "TR": 24, "BL": 20, "BR": 18 },
+  "bordes": { "top": 15, "bottom": 14, "left": 16, "right": 13 },
+  "superficie": {
+    "scratches": "descripción honesta y específica de scratches",
+    "print_lines": "ninguno o descripción",
+    "stains": "ninguno o descripción",
+    "dents": "ninguno o descripción"
+  },
+  "color": {
+    "saturacion": "excelente|buena|regular|reducida",
+    "nitidez": "excelente|buena|reducida",
+    "fading": "ninguno|leve|moderado"
+  },
+  "condicion_texto": "NM|LP|MP|HP|DMG",
+  "notas": "Análisis detallado y honesto en español rioplatense, 3-4 oraciones. Describí defectos específicos que encontraste. Opiná si conviene gradear o no y por qué.",
+  "grading": { "rec": "si|no|depende", "gv_class": "gv-si|gv-no|gv-dep" }
+}`;
 
-    let parsed;
-    try {
-      parsed = JSON.parse(cleanText);
-    } catch(e) {
-      // Try to extract JSON if there's surrounding text
-      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsed = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No se pudo parsear la respuesta JSON. Raw: ' + rawText.slice(0, 200));
-      }
-    }
+    const rawCond = await groqCall([
+      { role:'user', content:[...imageParts, { type:'text', text:PROMPT_CONDITION }] }
+    ], 'PASO 2/2 — Análisis hipercrítico de condición...');
 
-    // Ensure required fields exist
-    parsed.id = Date.now();
-    parsed.game = parsed.game || 'Pokémon TCG';
-    parsed.auth = parsed.auth || { estado: 'autentica', confianza: 80, flags: [] };
-    parsed.auth.flags = parsed.auth.flags || [];
-    parsed.esquinas = parsed.esquinas || { TL:20, TR:20, BL:20, BR:20 };
-    parsed.bordes = parsed.bordes || { top:16, bottom:16, left:16, right:16 };
-    parsed.superficie = parsed.superficie || { scratches:'no evaluado', print_lines:'no evaluado', stains:'no evaluado', dents:'no evaluado' };
-    parsed.color = parsed.color || { saturacion:'buena', nitidez:'buena', fading:'ninguno' };
-    parsed.centering = parsed.centering || { h:'55/45', v:'55/45' };
-    parsed.mercado = parsed.mercado || { usd_nm:0, ars:0 };
-    if (!parsed.grading) parsed.grading = { rec:'depende', gv_class:'gv-dep' };
-    if (!parsed.grading.gv_class) {
-      parsed.grading.gv_class = parsed.grading.rec === 'si' ? 'gv-si' : parsed.grading.rec === 'no' ? 'gv-no' : 'gv-dep';
+    let cardCond;
+    try { cardCond = parseJSON(rawCond); } catch(e) { throw new Error('Error analizando condición: ' + e.message); }
+
+    // Merge both results
+    const parsed = {
+      id: Date.now(),
+      name: cardId.name || 'Carta TCG',
+      set: cardId.set || '',
+      game: cardId.game || 'Pokémon TCG',
+      variante: cardId.variante || '',
+      rareza: cardId.rareza || '',
+      auth: cardId.auth || { estado:'autentica', confianza:80, flags:[] },
+      centering: cardCond.centering || { h:'55/45', v:'55/45' },
+      esquinas: cardCond.esquinas || { TL:20, TR:20, BL:20, BR:20 },
+      bordes: cardCond.bordes || { top:15, bottom:15, left:15, right:15 },
+      superficie: cardCond.superficie || { scratches:'no evaluado', print_lines:'ninguno', stains:'ninguno', dents:'ninguno' },
+      color: cardCond.color || { saturacion:'buena', nitidez:'buena', fading:'ninguno' },
+      condicion_texto: cardCond.condicion_texto || 'LP',
+      notas: cardCond.notas || '',
+      mercado: cardId.mercado || { usd_nm:0, ars:0 },
+      grading: cardCond.grading || { rec:'depende', gv_class:'gv-dep' }
+    };
+
+    // Fix ars if usd_nm was set but ars wasn't
+    if (parsed.mercado.usd_nm > 0 && (!parsed.mercado.ars || parsed.mercado.ars === 0)) {
+      parsed.mercado.ars = Math.round(parsed.mercado.usd_nm * 1500);
     }
 
     loading.style.display = 'none';
@@ -822,6 +812,17 @@ Reglas estrictas:
     liveResult.innerHTML = `<div class="error-block">❌ ${err.message}</div>`;
     console.error('Groq Vision error:', err);
   }
+}
+
+function condBadgeStyle(cond) {
+  const styles = {
+    'NM':  'background:rgba(46,184,154,0.2);color:#2eb89a;border:0.5px solid rgba(46,184,154,0.4)',
+    'LP':  'background:rgba(74,144,217,0.15);color:#4a90d9;border:0.5px solid rgba(74,144,217,0.35)',
+    'MP':  'background:rgba(245,158,11,0.15);color:#f59e0b;border:0.5px solid rgba(245,158,11,0.35)',
+    'HP':  'background:rgba(212,168,67,0.12);color:#d4a843;border:0.5px solid rgba(212,168,67,0.3)',
+    'DMG': 'background:rgba(224,82,82,0.15);color:#e05252;border:0.5px solid rgba(224,82,82,0.35)',
+  };
+  return styles[cond] || styles['LP'];
 }
 
 // ═══════════════════════════════════════════
@@ -840,11 +841,13 @@ function renderLiveResult(card) {
       <div class="report-card-id">
         <h1>${card.name || 'Carta TCG'}</h1>
         <div class="set-line">${card.set || ''} · ${card.game || ''}</div>
+        ${card.variante ? `<div class="set-line" style="margin-top:2px;color:var(--gold2)">${card.variante} · ${card.rareza || ''}</div>` : ''}
       </div>
       <div class="score-hero">
         <div class="score-gls ${isFake?'fake-score':''}">${isFake ? '0' : gls}</div>
         <div class="score-label">GEM LENS SCORE</div>
         <div class="score-glp">${isFake ? 'FALSIFICACIÓN' : `${glpTotal} GLP · ${glsLabel(gls)}`}</div>
+        ${card.condicion_texto ? `<div style="margin-top:6px;display:inline-block;padding:3px 10px;border-radius:3px;font-family:var(--FM);font-size:11px;background:${condBadgeStyle(card.condicion_texto)}">${card.condicion_texto}</div>` : ''}
       </div>
     </div>
 
