@@ -1,1267 +1,444 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gem Lens — Motor de Análisis v2.0</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #0b0b09; --bg2: #121210; --bg3: #1a1a17; --surface: #222220;
-  --gold: #d4a843; --gold2: #f0c96a; --gold3: #7a5f1a; --golddim: rgba(212,168,67,0.12);
-  --teal: #2eb89a; --tealdim: rgba(46,184,154,0.1);
-  --red: #e05252; --reddim: rgba(224,82,82,0.1);
-  --blue: #4a90d9; --bluedim: rgba(74,144,217,0.1);
-  --amber: #f59e0b;
-  --text: #f0ede6; --text2: rgba(240,237,230,0.55); --text3: rgba(240,237,230,0.28);
-  --border: rgba(240,237,230,0.07); --border2: rgba(240,237,230,0.14);
-  --goldborder: rgba(212,168,67,0.22);
-  --FD: 'Bebas Neue', sans-serif;
-  --FM: 'DM Mono', monospace;
-  --F: 'DM Sans', sans-serif;
-}
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:15px; line-height:1.6; }
-::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-track { background:var(--bg); } ::-webkit-scrollbar-thumb { background:var(--gold3); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEM LENS | Motor de Análisis Avanzado</title>
+    <style>
+        :root {
+            --bg-dark: #0a0b10;
+            --panel-bg: #14161f;
+            --gold: #d4af37;
+            --gold-dim: #997a1d;
+            --teal: #00f2ff;
+            --teal-dim: #008c94;
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --danger: #ff4b2b;
+            --success: #00ff88;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
-/* LAYOUT */
-.app { display:grid; grid-template-columns:280px 1fr; min-height:100vh; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-/* SIDEBAR */
-.sidebar {
-  background:var(--bg2); border-right:0.5px solid var(--border);
-  padding:20px 0; position:sticky; top:0; height:100vh; overflow-y:auto;
-  display:flex; flex-direction:column; gap:0;
-}
-.sidebar-logo {
-  display:flex; align-items:center; gap:8px; padding:0 20px 20px;
-  border-bottom:0.5px solid var(--border);
-}
-.sidebar-gem { width:16px; height:16px; background:var(--gold); clip-path:polygon(50% 0%,100% 35%,82% 100%,18% 100%,0% 35%); }
-.sidebar-logo-text { font-family:var(--FD); font-size:18px; letter-spacing:2px; }
+        /* SIDEBAR & LAYOUT */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #1a1d29 0%, #0a0b10 100%);
+            border-right: 1px solid rgba(212, 175, 55, 0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
 
-.sidebar-section { padding:14px 20px 4px; }
-.sidebar-section-title { font-size:9px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3); }
+        .logo-area {
+            text-align: center;
+            margin-bottom: 40px;
+        }
 
-.tab-btn {
-  display:block; width:100%; text-align:left;
-  padding:10px 20px; border:none; background:transparent; cursor:pointer;
-  font-family:var(--F); font-size:13px; color:var(--text2);
-  border-left:2px solid transparent;
-  transition:all .15s;
-}
-.tab-btn:hover { background:var(--bg3); color:var(--text); }
-.tab-btn.active { background:var(--golddim); color:var(--gold2); border-left-color:var(--gold); }
+        .logo-area h1 {
+            color: var(--gold);
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            margin: 0;
+            text-transform: uppercase;
+        }
 
-.card-item {
-  display:flex; align-items:center; gap:10px;
-  padding:8px 20px; cursor:pointer; transition:background .15s;
-  border-left:2px solid transparent;
-}
-.card-item:hover { background:var(--bg3); }
-.card-item.active { background:var(--golddim); border-left-color:var(--gold); }
-.card-item.fake { border-left-color:var(--red) !important; }
-.card-item.fake.active { background:var(--reddim); }
+        .nav-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-.ci-score {
-  font-family:var(--FD); font-size:18px; width:36px; text-align:center;
-  flex-shrink:0;
-}
-.ci-info { flex:1; min-width:0; }
-.ci-name { font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ci-grade { font-size:10px; color:var(--text3); }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--teal);
+        }
 
-/* MAIN */
-.main { padding:32px 40px; max-width:960px; }
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            position: relative;
+        }
 
-/* PANELS */
-.panel { display:none; }
-.panel.active { display:block; }
+        /* UPLOAD ZONE */
+        .upload-container {
+            background: var(--panel-bg);
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: 0.3s;
+            position: relative;
+        }
 
-/* ── REPORT PANEL ── */
-.report-header {
-  display:flex; align-items:flex-start; justify-content:space-between;
-  margin-bottom:28px; gap:20px; flex-wrap:wrap;
-}
-.report-card-id h1 { font-family:var(--FD); font-size:38px; letter-spacing:0.5px; line-height:1; }
-.report-card-id .set-line { font-size:13px; color:var(--text2); margin-top:6px; font-family:var(--FM); }
+        .upload-container.dragover {
+            border-color: var(--teal);
+            background: rgba(0, 242, 255, 0.05);
+        }
 
-.score-hero { text-align:center; }
-.score-gls {
-  font-family:var(--FD); font-size:72px; line-height:1;
-  background:linear-gradient(135deg, var(--gold), var(--gold2));
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.score-gls.fake-score { background: linear-gradient(135deg, var(--red), #ff8080); -webkit-background-clip:text; background-clip:text; }
-.score-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-top:4px; }
-.score-glp { font-family:var(--FM); font-size:13px; color:var(--text2); margin-top:4px; }
+        .upload-icon {
+            font-size: 48px;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
 
-/* AUTH BAR */
-.auth-block {
-  border-radius:8px; padding:14px 18px; margin-bottom:20px;
-  display:flex; align-items:flex-start; gap:12px;
-  border:0.5px solid;
-}
-.auth-block.ok { background:var(--tealdim); border-color:rgba(46,184,154,0.25); }
-.auth-block.warn { background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.3); }
-.auth-block.fail { background:var(--reddim); border-color:rgba(224,82,82,0.3); }
-.auth-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
-.ok .auth-dot { background:var(--teal); box-shadow:0 0 8px var(--teal); }
-.warn .auth-dot { background:var(--amber); box-shadow:0 0 8px var(--amber); }
-.fail .auth-dot { background:var(--red); box-shadow:0 0 8px var(--red); }
-.auth-title { font-family:var(--FD); font-size:16px; letter-spacing:0.5px; margin-bottom:4px; }
-.auth-detail { font-size:12px; color:var(--text2); font-weight:300; line-height:1.5; }
-.auth-conf { font-size:11px; font-family:var(--FM); margin-top:6px; }
-.ok .auth-conf { color:var(--teal); }
-.warn .auth-conf { color:var(--amber); }
-.fail .auth-conf { color:var(--red); }
-.auth-flags { margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; }
-.flag-chip {
-  font-size:10px; padding:2px 8px; border-radius:2px; font-family:var(--FM);
-  background:rgba(224,82,82,0.15); color:var(--red); border:0.5px solid rgba(224,82,82,0.3);
-}
+        .preview-grid {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
 
-/* BREAKDOWN GRID */
-.breakdown-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;
-}
-.breakdown-card {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; padding:14px 16px;
-}
-.bc-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.bc-title { font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); }
-.bc-score { font-family:var(--FD); font-size:20px; letter-spacing:0.5px; }
-.bc-score.full { color:var(--teal); }
-.bc-score.good { color:var(--gold2); }
-.bc-score.ok   { color:var(--text); }
-.bc-score.low  { color:var(--amber); }
-.bc-score.bad  { color:var(--red); }
+        .preview-img {
+            width: 100px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--gold);
+        }
 
-.bar-wrap { height:3px; background:var(--bg3); border-radius:2px; margin-bottom:10px; }
-.bar-fill { height:100%; border-radius:2px; background:var(--gold); transition:width .8s ease; }
-.bar-fill.full-bar { background:var(--teal); }
-.bar-fill.bad-bar  { background:var(--red); }
+        .btn-analyze {
+            background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
 
-.sub-items { display:flex; flex-direction:column; gap:4px; }
-.sub-item { display:flex; justify-content:space-between; font-size:11px; padding:3px 0; border-bottom:0.5px solid var(--border); }
-.sub-item:last-child { border-bottom:none; }
-.sub-label { color:var(--text2); }
-.sub-val { font-family:var(--FM); font-size:10px; }
-.sv-perfect { color:var(--teal); }
-.sv-good    { color:var(--gold2); }
-.sv-ok      { color:var(--text); }
-.sv-low     { color:var(--amber); }
-.sv-bad     { color:var(--red); }
+        .btn-analyze:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
 
-/* CORNER MAP */
-.corner-map {
-  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;
-}
-.corner-item {
-  background:var(--bg3); border:0.5px solid var(--border);
-  border-radius:6px; padding:8px 10px;
-  display:flex; align-items:center; justify-content:space-between;
-}
-.corner-pos { font-size:10px; color:var(--text3); font-family:var(--FM); }
-.corner-score { font-family:var(--FD); font-size:16px; }
+        /* LOADING SPINNER */
+        #loader {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
 
-/* GLP TABLE */
-.glp-table {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; overflow:hidden; margin-bottom:20px;
-}
-.glp-table-title {
-  padding:12px 16px; background:var(--bg3);
-  font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3);
-  border-bottom:0.5px solid var(--border);
-}
-.glp-row {
-  display:flex; align-items:center; padding:10px 16px;
-  border-bottom:0.5px solid var(--border);
-  gap:12px;
-}
-.glp-row:last-child { border-bottom:none; }
-.glp-row.total-row { background:var(--golddim); }
-.glp-row.total-row .glp-cat-name { color:var(--gold2); font-weight:500; }
-.glp-cat-n { font-family:var(--FM); font-size:10px; color:var(--text3); width:20px; flex-shrink:0; }
-.glp-cat-name { font-size:13px; flex:1; }
-.glp-bar-cell { width:120px; flex-shrink:0; }
-.glp-mini-bar { height:4px; background:var(--bg3); border-radius:2px; }
-.glp-mini-fill { height:100%; border-radius:2px; background:var(--gold); }
-.glp-pts { font-family:var(--FD); font-size:18px; letter-spacing:0.5px; color:var(--gold2); width:60px; text-align:right; flex-shrink:0; }
-.glp-pts.max-pts { color:var(--text3); font-size:12px; font-family:var(--FM); }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 242, 255, 0.1);
+            border-top: 5px solid var(--teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
 
-/* VERDICT BLOCKS */
-.verdict-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
-.verdict-block {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; padding:16px;
-}
-.vb-title { font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
-.vb-item { display:flex; gap:8px; margin-bottom:7px; font-size:12px; font-weight:300; }
-.vb-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; margin-top:6px; }
-.positive .vb-dot { background:var(--teal); }
-.negative .vb-dot { background:var(--red); }
-.neutral  .vb-dot { background:var(--gold); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* GRADING BLOCK */
-.grading-block {
-  background:var(--bg2); border:0.5px solid var(--goldborder);
-  border-radius:8px; padding:18px; margin-bottom:20px;
-}
-.grading-verdict {
-  display:flex; align-items:center; gap:12px; margin-bottom:14px;
-}
-.gv-badge {
-  font-family:var(--FD); font-size:13px; letter-spacing:1px;
-  padding:6px 14px; border-radius:4px; border:0.5px solid;
-}
-.gv-si    { background:var(--tealdim); color:var(--teal); border-color:rgba(46,184,154,0.3); }
-.gv-no    { background:var(--reddim); color:var(--red); border-color:rgba(224,82,82,0.3); }
-.gv-dep   { background:var(--golddim); color:var(--gold2); border-color:var(--goldborder); }
-.gv-text  { font-size:13px; color:var(--text2); font-weight:300; line-height:1.5; }
+        /* REPORT STYLES */
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
 
-.roi-table { width:100%; border-collapse:collapse; }
-.roi-table th {
-  font-size:9px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase;
-  color:var(--text3); padding:8px 10px; text-align:left;
-  border-bottom:0.5px solid var(--border);
-}
-.roi-table td { padding:8px 10px; font-size:12px; border-bottom:0.5px solid var(--border); font-family:var(--FM); }
-.roi-table tr:last-child td { border-bottom:none; }
-.roi-positive { color:var(--teal); }
-.roi-negative { color:var(--red); }
-.roi-neutral  { color:var(--text2); }
+        .card-preview-panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
 
-/* INVESTMENT BLOCK */
-.invest-block {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; padding:18px; margin-bottom:20px;
-}
-.invest-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-.invest-label { font-size:12px; color:var(--text2); }
-.invest-pill {
-  font-size:11px; padding:3px 10px; border-radius:20px; border:0.5px solid;
-  font-weight:500;
-}
-.pill-alta  { background:rgba(224,82,82,0.1); color:#ff8080; border-color:rgba(224,82,82,0.3); }
-.pill-media { background:var(--golddim); color:var(--gold2); border-color:var(--goldborder); }
-.pill-baja  { background:var(--tealdim); color:var(--teal); border-color:rgba(46,184,154,0.3); }
-.pill-alc   { background:var(--tealdim); color:var(--teal); border-color:rgba(46,184,154,0.3); }
-.pill-baj   { background:var(--reddim); color:var(--red); border-color:rgba(224,82,82,0.3); }
-.pill-est   { background:var(--bg3); color:var(--text2); border-color:var(--border2); }
-.pill-vend  { background:var(--reddim); color:var(--red); border-color:rgba(224,82,82,0.3); }
-.pill-hold  { background:var(--golddim); color:var(--gold2); border-color:var(--goldborder); }
-.pill-neg   { background:var(--tealdim); color:var(--teal); border-color:rgba(46,184,154,0.3); }
-.invest-context { font-size:12px; color:var(--text2); font-weight:300; line-height:1.6; margin-top:10px; padding-top:10px; border-top:0.5px solid var(--border); }
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
 
-/* CONFIDENCE + RISKS */
-.conf-block {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; padding:16px; margin-bottom:20px;
-}
-.conf-bar-outer { height:8px; background:var(--bg3); border-radius:4px; margin-bottom:6px; }
-.conf-bar-inner { height:100%; border-radius:4px; }
-.conf-label-row { display:flex; justify-content:space-between; font-size:11px; }
-.risk-list { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
-.risk-item { display:flex; gap:8px; font-size:12px; font-weight:300; color:var(--text2); }
-.risk-icon { color:var(--amber); flex-shrink:0; }
+        .score-val { font-size: 2.5rem; font-weight: bold; color: var(--gold); }
+        .score-label { font-size: 0.7rem; color: var(--text-dim); }
 
-/* DISCLAIMER */
-.disclaimer {
-  background:var(--bg3); border:0.5px solid var(--border);
-  border-radius:6px; padding:12px 16px;
-  font-size:11px; color:var(--text3); font-weight:300; line-height:1.6;
-}
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
 
-/* ── BATCH PANEL ── */
-.batch-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-.mini-card {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; padding:14px 16px; cursor:pointer;
-  transition:border-color .2s, background .2s;
-}
-.mini-card:hover { border-color:var(--border2); background:var(--bg3); }
-.mini-card.is-fake { border-color:rgba(224,82,82,0.3); }
-.mc-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; gap:8px; }
-.mc-name { font-family:var(--FD); font-size:16px; letter-spacing:0.3px; line-height:1.1; }
-.mc-score { font-family:var(--FD); font-size:28px; }
-.mc-score.s10 { color:var(--gold2); } .mc-score.s9 { color:var(--teal); }
-.mc-score.s8 { color:rgba(46,184,154,0.8); } .mc-score.s7 { color:var(--text); }
-.mc-score.s6 { color:var(--text2); } .mc-score.s5 { color:var(--amber); }
-.mc-score.sfake { color:var(--red); }
-.mc-set { font-size:11px; color:var(--text3); margin-bottom:8px; font-family:var(--FM); }
-.mc-bars { display:flex; flex-direction:column; gap:3px; }
-.mc-bar-row { display:flex; align-items:center; gap:6px; }
-.mc-bar-lbl { font-size:9px; color:var(--text3); width:40px; flex-shrink:0; }
-.mc-bar-wrap { flex:1; height:3px; background:var(--bg3); border-radius:1px; }
-.mc-bar-fill { height:100%; border-radius:1px; }
-.mc-glp { font-size:10px; color:var(--text3); font-family:var(--FM); margin-top:8px; text-align:right; }
-.mc-flags { margin-top:8px; display:flex; flex-wrap:wrap; gap:4px; }
-.mc-flag { font-size:9px; padding:1px 6px; border-radius:2px; font-family:var(--FM);
-  background:var(--reddim); color:var(--red); border:0.5px solid rgba(224,82,82,0.25); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-/* ── VISION PANEL ── */
-.vision-input-area {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; padding:20px; margin-bottom:20px;
-}
-.vision-label { font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:10px; display:block; }
-.vision-textarea {
-  width:100%; min-height:120px;
-  background:var(--bg3); border:0.5px solid var(--border2);
-  border-radius:6px; padding:14px; color:var(--text);
-  font-family:var(--F); font-size:13px; font-weight:300;
-  resize:vertical; line-height:1.6;
-  transition:border-color .2s;
-}
-.vision-textarea:focus { outline:none; border-color:var(--goldborder); }
-.vision-btn {
-  margin-top:12px;
-  display:inline-flex; align-items:center; gap:8px;
-  background:var(--gold); color:var(--bg);
-  font-family:var(--FD); font-size:16px; letter-spacing:1px;
-  padding:10px 22px; border-radius:3px; border:none; cursor:pointer;
-  transition:background .2s;
-}
-.vision-btn:hover { background:var(--gold2); }
-.vision-output {
-  background:var(--bg2); border:0.5px solid var(--border);
-  border-radius:8px; padding:20px; font-family:var(--FM);
-  font-size:12px; line-height:1.8; color:var(--text2);
-  white-space:pre-wrap;
-}
-.vision-section-title { color:var(--gold2); font-weight:500; font-size:13px; }
+        .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
 
-/* PAGE TITLE */
-.page-title { font-family:var(--FD); font-size:32px; letter-spacing:0.5px; margin-bottom:6px; }
-.page-sub { font-size:13px; color:var(--text2); font-weight:300; margin-bottom:28px; }
+        .batch-card {
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
 
-/* SECTION DIVIDER */
-.sdiv { height:0.5px; background:var(--border); margin:20px 0; }
-
-/* RESPONSIVE */
-@media(max-width:900px) {
-  .app { grid-template-columns:1fr; }
-  .sidebar { position:static; height:auto; flex-direction:row; flex-wrap:wrap; overflow-x:auto; padding:12px; }
-  .sidebar-logo { padding:0 12px 12px; }
-  .breakdown-grid { grid-template-columns:1fr; }
-  .verdict-row { grid-template-columns:1fr; }
-  .batch-grid { grid-template-columns:1fr; }
-  .main { padding:20px; }
-}
-</style>
+        .tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .tag-authentic { background: rgba(0, 255, 136, 0.2); color: var(--success); }
+        .tag-investment { background: rgba(0, 242, 255, 0.2); color: var(--teal); }
+    </style>
 </head>
 <body>
-<div class="app">
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="sidebar-gem"></div>
-    <span class="sidebar-logo-text">GEM LENS</span>
-  </div>
-
-  <div class="sidebar-section"><div class="sidebar-section-title">Módulos</div></div>
-  <button class="tab-btn active" onclick="switchTab('report')">⬛ Motor de Análisis</button>
-  <button class="tab-btn" onclick="switchTab('batch')">📦 10 Casos de Ejemplo</button>
-  <button class="tab-btn" onclick="switchTab('vision')">👁 Sistema de Visión Textual</button>
-
-  <div class="sidebar-section" style="margin-top:8px;"><div class="sidebar-section-title">Casos de ejemplo</div></div>
-  <div id="cardList"></div>
-</aside>
-
-<!-- MAIN -->
-<main class="main">
-
-  <!-- REPORT PANEL -->
-  <div class="panel active" id="panel-report">
-    <div id="reportContainer"></div>
-  </div>
-
-  <!-- BATCH PANEL -->
-  <div class="panel" id="panel-batch">
-    <div class="page-title">10 CASOS DE EJEMPLO</div>
-    <p class="page-sub">Cartas Pokémon en diferentes condiciones. Hacé clic en cualquiera para ver el informe completo. Incluye 1 falsificación detectada.</p>
-    <div class="batch-grid" id="batchGrid"></div>
-  </div>
-
-  <!-- VISION PANEL -->
-  <div class="panel" id="panel-vision">
-    <div class="page-title">SISTEMA DE VISIÓN TEXTUAL</div>
-    <p class="page-sub">Describí la carta con palabras y el motor infiere los parámetros estructurados para Gem Lens.</p>
-    <div class="vision-input-area">
-      <label class="vision-label">Descripción de la carta</label>
-      <textarea class="vision-textarea" id="visionInput" placeholder="Ej: Tengo un Charizard EX de XY. Las esquinas están bastante gastadas, se nota el blanco en las puntas. Los bordes tienen algunas marcas. La superficie del holo tiene rayaduras visibles en ángulo. El centering parece estar corrido para el lado derecho. Es en inglés..."></textarea>
-      <button class="vision-btn" onclick="runVision()">▶ ANALIZAR DESCRIPCIÓN</button>
+<div class="sidebar">
+    <div class="logo-area">
+        <h1>GEM LENS</h1>
+        <small style="color: var(--teal); letter-spacing: 1px;">PREMIUM GRADING AI</small>
     </div>
-    <div class="vision-output" id="visionOutput" style="display:none;"></div>
-  </div>
+    <div class="nav-item active" onclick="switchTab('report')">Motor de Análisis</div>
+    <div class="nav-item" onclick="switchTab('batch')">10 Casos (Batch)</div>
+    <div class="nav-item" onclick="switchTab('vision')">Visión Textual</div>
+</div>
 
-</main>
+<div class="main-content">
+    
+    <div id="tab-report" class="tab-content active">
+        <div class="upload-container" id="drop-zone">
+            <div class="upload-icon">📸</div>
+            <h3>Subí las fotos de tu carta</h3>
+            <p>Arrastrá de 1 a 4 imágenes (Frente, Dorso, Detalles) para un análisis profesional.</p>
+            <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+            <div class="preview-grid" id="preview-grid"></div>
+            <button class="btn-analyze" id="btn-analyze" disabled>Analizar con Gemini</button>
+        </div>
+
+        <div id="loader">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: var(--teal);">Procesando con Gemini 1.5 Flash... Escaneando autenticidad y centrado.</p>
+        </div>
+
+        <div id="report-output">
+            </div>
+    </div>
+
+    <div id="tab-batch" class="tab-content">
+        <h2 style="color: var(--gold);">Ejemplos del Sistema (Batch v1.2)</h2>
+        <div class="batch-grid" id="batch-container"></div>
+    </div>
+
+    <div id="tab-vision" class="tab-content">
+        <div style="background: var(--panel-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--teal);">
+            <h2 style="color: var(--teal);">Log de Visión por Computadora</h2>
+            <pre id="raw-json-log" style="color: var(--text-dim); white-space: pre-wrap;">Esperando análisis...</pre>
+        </div>
+    </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  DATA — 10 SAMPLE CARDS
-// ═══════════════════════════════════════════════
-const CARDS = [
-  {
-    id: 1,
-    name: "Charizard VMAX — Rainbow Rare",
-    set: "Darkness Ablaze · 074/189 · EN · 2020",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:97, flags:[] },
-    centering: { h:"54/46", v:"52/48" },
-    esquinas: { TL:30, TR:28, BL:30, BR:29 },
-    bordes: { top:20, bottom:20, left:19, right:20 },
-    superficie: { scratches:"ninguno", print_lines:"ninguno", stains:"ninguno", dents:"ninguno" },
-    color: { saturacion:"excelente", nitidez:"excelente", fading:"ninguno" },
-    notas: "Carta prácticamente perfecta. Apenas manipulada. Candidata clara a PSA 10.",
-    mercado: { usd_nm:420, ars: 630000 },
-    grading: { rec:"si", gv_class:"gv-si" }
-  },
-  {
-    id: 2,
-    name: "Umbreon VMAX — Alt Art",
-    set: "Evolving Skies · 215/203 · EN · 2021",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:96, flags:[] },
-    centering: { h:"55/45", v:"57/43" },
-    esquinas: { TL:26, TR:26, BL:28, BR:26 },
-    bordes: { top:19, bottom:18, left:19, right:20 },
-    superficie: { scratches:"micro-scratches solo visibles en ángulo", print_lines:"ninguno", stains:"ninguno", dents:"ninguno" },
-    color: { saturacion:"excelente", nitidez:"excelente", fading:"ninguno" },
-    notas: "Muy buena carta. Centering vertical ligeramente descentrado puede limitar a PSA 9.",
-    mercado: { usd_nm:295, ars: 442500 },
-    grading: { rec:"si", gv_class:"gv-si" }
-  },
-  {
-    id: 3,
-    name: "Pikachu VMAX — Rainbow Rare",
-    set: "Vivid Voltage · 188/185 · EN · 2020",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:95, flags:[] },
-    centering: { h:"60/40", v:"58/42" },
-    esquinas: { TL:20, TR:26, BL:26, BR:20 },
-    bordes: { top:17, bottom:20, left:17, right:18 },
-    superficie: { scratches:"scratches leves en holo", print_lines:"una línea de impresión horizontal leve", stains:"ninguno", dents:"ninguno" },
-    color: { saturacion:"buena", nitidez:"buena", fading:"ninguno" },
-    notas: "Centering justo en el límite LP/NM. TL y BR con whitening moderado. El print line es defecto de fábrica.",
-    mercado: { usd_nm:58, ars: 87000 },
-    grading: { rec:"depende", gv_class:"gv-dep" }
-  },
-  {
-    id: 4,
-    name: "Charizard V — Alternate Art",
-    set: "Brilliant Stars · 174/172 · EN · 2022",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:98, flags:[] },
-    centering: { h:"58/42", v:"55/45" },
-    esquinas: { TL:26, TR:30, BL:28, BR:20 },
-    bordes: { top:20, bottom:19, left:18, right:20 },
-    superficie: { scratches:"ninguno", print_lines:"ninguno", stains:"ninguno", dents:"ninguno" },
-    color: { saturacion:"excelente", nitidez:"excelente", fading:"ninguno" },
-    notas: "Esquina BR con whitening moderado visible. El resto impecable. Borderline PSA 9.",
-    mercado: { usd_nm:88, ars: 132000 },
-    grading: { rec:"si", gv_class:"gv-si" }
-  },
-  {
-    id: 5,
-    name: "Blissey V — Special Art",
-    set: "Lost Origin · 186/196 · EN · 2022",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:94, flags:[] },
-    centering: { h:"65/35", v:"60/40" },
-    esquinas: { TL:12, TR:20, BL:20, BR:12 },
-    bordes: { top:13, bottom:17, left:13, right:17 },
-    superficie: { scratches:"scratches moderados en holo", print_lines:"ninguno", stains:"mancha leve en reverso", dents:"ninguno" },
-    color: { saturacion:"buena", nitidez:"leve reducción", fading:"ninguno" },
-    notas: "Centering severo hacia la derecha. Esquinas TL y BR con whitening moderado-alto. MP claro.",
-    mercado: { usd_nm:22, ars: 33000 },
-    grading: { rec:"no", gv_class:"gv-no" }
-  },
-  {
-    id: 6,
-    name: "Rayquaza VMAX — Alt Art",
-    set: "Evolving Skies · 218/203 · EN · 2021",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:97, flags:[] },
-    centering: { h:"52/48", v:"53/47" },
-    esquinas: { TL:30, TR:30, BL:28, BR:30 },
-    bordes: { top:20, bottom:20, left:20, right:19 },
-    superficie: { scratches:"micro-scratches solo visibles con lupa", print_lines:"ninguno", stains:"ninguno", dents:"ninguno" },
-    color: { saturacion:"excelente", nitidez:"excelente", fading:"ninguno" },
-    notas: "Centering casi perfecto. Condición excelente. Un candidato fuerte a PSA 10 si el reverso confirma.",
-    mercado: { usd_nm:580, ars: 870000 },
-    grading: { rec:"si", gv_class:"gv-si" }
-  },
-  {
-    id: 7,
-    name: "Comfey — Special Illustration",
-    set: "Lost Origin · 196/196 · EN · 2022",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:93, flags:[] },
-    centering: { h:"57/43", v:"56/44" },
-    esquinas: { TL:26, TR:26, BL:26, BR:26 },
-    bordes: { top:17, bottom:17, left:18, right:17 },
-    superficie: { scratches:"ninguno", print_lines:"ninguno", stains:"ninguno", dents:"ninguno" },
-    color: { saturacion:"excelente", nitidez:"excelente", fading:"ninguno" },
-    notas: "Whitening leve y homogéneo en las 4 esquinas. Bordes con mínimo roughness. Caso borderline NM/Mint.",
-    mercado: { usd_nm:49, ars: 73500 },
-    grading: { rec:"depende", gv_class:"gv-dep" }
-  },
-  {
-    id: 8,
-    name: "Gengar VMAX — Alt Art",
-    set: "Fusion Strike · 271/264 · EN · 2021",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:92, flags:[] },
-    centering: { h:"70/30", v:"68/32" },
-    esquinas: { TL:5, TR:12, BL:12, BR:5 },
-    bordes: { top:6, bottom:9, left:9, right:6 },
-    superficie: { scratches:"scratches severos en toda la capa holo", print_lines:"múltiples líneas visibles", stains:"mancha de humedad en esquina inferior", dents:"dent visible en superficie frente" },
-    color: { saturacion:"reducida (15% bajo referencia)", nitidez:"reducida", fading:"amarillamiento leve en bordes blancos" },
-    notas: "Carta severamente dañada. HP/DMG. No vale la pena gradear. Valor residual solo como carta jugable.",
-    mercado: { usd_nm:95, ars: 142500 },
-    grading: { rec:"no", gv_class:"gv-no" }
-  },
-  {
-    id: 9,
-    name: "Mew VMAX — Alt Art",
-    set: "Fusion Strike · 269/264 · EN · 2021",
-    game: "Pokémon TCG",
-    auth: { estado:"autentica", confianza:96, flags:[] },
-    centering: { h:"56/44", v:"59/41" },
-    esquinas: { TL:28, TR:30, BL:28, BR:28 },
-    bordes: { top:20, bottom:18, left:19, right:20 },
-    superficie: { scratches:"ninguno visible", print_lines:"ninguno", stains:"ninguno", dents:"ninguno" },
-    color: { saturacion:"excelente", nitidez:"excelente", fading:"ninguno" },
-    notas: "Estado excelente. Centering vertical en el límite. Caso borderline NM-Mint/Mint. Muy probable PSA 9.",
-    mercado: { usd_nm:185, ars: 277500 },
-    grading: { rec:"si", gv_class:"gv-si" }
-  },
-  {
-    id: 10,
-    name: "Charizard — Base Set Holo ⚠ FALSA",
-    set: "Base Set · 4/102 · EN · 1999",
-    game: "Pokémon TCG",
-    auth: {
-      estado:"falsificacion_detectada",
-      confianza:91,
-      flags: [
-        "TIPOGRAFÍA: kerning 18% fuera de spec. Base Set usa Gill Sans modificada.",
-        "ROSETTE: patrón de puntos irregular (tipo inkjet), no offset.",
-        "COLORES: amarillo de borde HSV(45,88,92) vs referencia (45,95,96). Desviación 4.2%.",
-        "DIMENSIONES: relación de aspecto 0.714 vs 0.716 esperado (carta ligeramente más ancha).",
-        "REVERSO: saturación del azul 12% por debajo del valor de referencia 1999."
-      ]
-    },
-    centering: { h:"N/A", v:"N/A" },
-    esquinas: { TL:0, TR:0, BL:0, BR:0 },
-    bordes: { top:0, bottom:0, left:0, right:0 },
-    superficie: { scratches:"N/A", print_lines:"N/A", stains:"N/A", dents:"N/A" },
-    color: { saturacion:"N/A", nitidez:"N/A", fading:"N/A" },
-    notas: "GLS = 0 automático. Falsificación detectada con alta confianza. No se puntúa.",
-    mercado: { usd_nm:0, ars: 0 },
-    grading: { rec:"no", gv_class:"gv-no" },
-    isFake: true
-  }
-];
+    /** * CONFIGURACIÓN DEL MOTOR 
+     */
+    const CONFIG = {
+        GEMINI_API_KEY: "TU_CLAVE_AQUI", // Placeholder para el usuario
+        MODEL: "gemini-1.5-flash"
+    };
 
-// ═══════════════════════════════════════════════
-//  SCORING ENGINE
-// ═══════════════════════════════════════════════
-function parseCentering(str) {
-  if (!str || str === "N/A") return { left:0, right:0 };
-  const [a,b] = str.split('/').map(Number);
-  return { left:a, right:b };
-}
+    let uploadedFiles = [];
 
-function centeringGLP(ratio) {
-  // ratio = bigger/smaller e.g. 54/46 → max=54, min=46
-  if (!ratio || ratio === "N/A") return 0;
-  const [a,b] = ratio.split('/').map(Number);
-  const max = Math.max(a,b), min = Math.min(a,b);
-  const r = `${max}/${min}`;
-  if (max <= 52) return 60;
-  if (max <= 55) return 55;
-  if (max <= 58) return 45;
-  if (max <= 60) return 35;
-  if (max <= 65) return 20;
-  if (max <= 70) return 10;
-  return 0;
-}
+    // UI ELEMENTS
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const previewGrid = document.getElementById('preview-grid');
+    const btnAnalyze = document.getElementById('btn-analyze');
+    const loader = document.getElementById('loader');
+    const reportOutput = document.getElementById('report-output');
 
-function surfaceGLP(surf, color) {
-  let pts = 100;
-  // scratches (30)
-  if (surf.scratches === "ninguno") pts -= 0;
-  else if (surf.scratches.includes("micro")) pts -= 6;
-  else if (surf.scratches.includes("leve")) pts -= 14;
-  else if (surf.scratches.includes("moderado")) pts -= 22;
-  else if (surf.scratches.includes("severo") || surf.scratches.includes("toda")) pts -= 30;
-  // print lines (20)
-  if (surf.print_lines === "ninguno") ;
-  else if (surf.print_lines.includes("leve") || surf.print_lines.includes("una")) pts -= 8;
-  else if (surf.print_lines.includes("múltiples")) pts -= 16;
-  // stains (20)
-  if (surf.stains === "ninguno") ;
-  else if (surf.stains.includes("leve")) pts -= 8;
-  else if (surf.stains.includes("humedad") || surf.stains.includes("moderado")) pts -= 14;
-  // dents (15)
-  if (surf.dents === "ninguno") ;
-  else if (surf.dents.includes("leve")) pts -= 8;
-  else if (surf.dents.includes("visible")) pts -= 13;
-  // color (80 separate but simplify for surface block)
-  return Math.max(0, pts);
-}
-
-function colorGLP(color) {
-  let pts = 80;
-  if (color.saturacion === "N/A") return 0;
-  if (color.saturacion.includes("reducida") || color.saturacion.includes("bajo")) pts -= 20;
-  else if (color.saturacion === "buena") pts -= 5;
-  if (color.nitidez.includes("reducida") || color.nitidez.includes("leve")) pts -= 15;
-  if (color.fading !== "ninguno" && color.fading !== "N/A") pts -= 20;
-  return Math.max(0, pts);
-}
-
-function edgesGLP(b) {
-  return b.top + b.bottom + b.left + b.right;
-}
-
-function computeGLP(card) {
-  if (card.isFake) return 0;
-  const glp_c_h = centeringGLP(card.centering.h);
-  const glp_c_v = centeringGLP(card.centering.v);
-  const glp_centering = glp_c_h + glp_c_v;
-  const glp_corners = card.esquinas.TL + card.esquinas.TR + card.esquinas.BL + card.esquinas.BR;
-  const glp_edges = edgesGLP(card.bordes);
-  const glp_surface = surfaceGLP(card.superficie, card.color);
-  const glp_color = colorGLP(card.color);
-  const total = glp_centering + glp_corners + glp_edges + glp_surface + glp_color;
-  return { total, glp_centering, glp_c_h, glp_c_v, glp_corners, glp_edges, glp_surface, glp_color };
-}
-
-function glpToGLS(glp) {
-  if (glp >= 475) return 10;
-  if (glp >= 435) return 9;
-  if (glp >= 380) return 8;
-  if (glp >= 320) return 7;
-  if (glp >= 260) return 6;
-  if (glp >= 200) return 5;
-  if (glp >= 150) return 4;
-  if (glp >= 100) return 3;
-  if (glp >=  50) return 2;
-  if (glp >=   1) return 1;
-  return 0;
-}
-
-function glsLabel(gls) {
-  const labels = { 10:"GEM MINT", 9:"MINT", 8:"NEAR MINT-MINT", 7:"NEAR MINT",
-    6:"EXCELLENT-MINT", 5:"EXCELLENT", 4:"VERY GOOD-EX", 3:"VERY GOOD", 2:"GOOD", 1:"POOR", 0:"—" };
-  return labels[gls] || "—";
-}
-
-function glsToCondition(gls) {
-  if (gls >= 9) return "NM / Mint";
-  if (gls >= 7) return "Near Mint (NM)";
-  if (gls >= 5) return "Excellent / EX";
-  if (gls >= 3) return "Very Good (VG)";
-  if (gls >= 1) return "Good / Poor";
-  return "Damaged / N/A";
-}
-
-function barColor(pct) {
-  if (pct >= 90) return '#2eb89a';
-  if (pct >= 70) return '#d4a843';
-  if (pct >= 40) return '#f59e0b';
-  return '#e05252';
-}
-
-function cornerClass(pts) {
-  if (pts >= 29) return 'sv-perfect';
-  if (pts >= 24) return 'sv-good';
-  if (pts >= 18) return 'sv-ok';
-  if (pts >= 10) return 'sv-low';
-  return 'sv-bad';
-}
-
-function scoreClass(pct) {
-  if (pct >= 90) return 'full';
-  if (pct >= 70) return 'good';
-  if (pct >= 50) return 'ok';
-  if (pct >= 30) return 'low';
-  return 'bad';
-}
-
-// ═══════════════════════════════════════════════
-//  RENDER REPORT
-// ═══════════════════════════════════════════════
-function renderReport(card) {
-  const s = computeGLP(card);
-  const gls = card.isFake ? 0 : glpToGLS(s.total);
-  const glsLbl = glsLabel(gls);
-  const isFake = card.isFake;
-
-  // confidence
-  const confPct = card.auth.confianza;
-  const confColor = confPct >= 90 ? '#2eb89a' : confPct >= 70 ? '#f59e0b' : '#e05252';
-
-  // grading ROI
-  let roiRows = '';
-  if (!isFake) {
-    const nm = card.mercado.usd_nm;
-    if (nm >= 80) {
-      const costoPSA = 80; // regular
-      const psa9val = nm * 1.4;
-      const psa8val = nm * 1.15;
-      const psa10val = nm * 2.2;
-      roiRows = `
-        <tr><td>PSA 8 (probable)</td><td>USD ${costoPSA}</td><td>~USD ${Math.round(psa8val)}</td>
-          <td class="${(psa8val-costoPSA-nm)>0?'roi-positive':'roi-negative'}">
-            ${(psa8val-costoPSA-nm)>0?'+':''}USD ${Math.round(psa8val-costoPSA-nm)}</td></tr>
-        <tr><td>PSA 9</td><td>USD ${costoPSA}</td><td>~USD ${Math.round(psa9val)}</td>
-          <td class="${(psa9val-costoPSA-nm)>0?'roi-positive':'roi-negative'}">
-            ${(psa9val-costoPSA-nm)>0?'+':''}USD ${Math.round(psa9val-costoPSA-nm)}</td></tr>
-        <tr><td>PSA 10</td><td>USD ${costoPSA}</td><td>~USD ${Math.round(psa10val)}</td>
-          <td class="${(psa10val-costoPSA-nm)>0?'roi-positive':'roi-negative'}">
-            ${(psa10val-costoPSA-nm)>0?'+':''}USD ${Math.round(psa10val-costoPSA-nm)}</td></tr>`;
-    } else {
-      roiRows = `<tr><td colspan="4" class="roi-neutral" style="text-align:center; padding:14px;">
-        Valor de carta insuficiente para justificar grading (USD ${nm} &lt; umbral USD 80)</td></tr>`;
+    // NAVEGACIÓN
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
     }
-  }
 
-  // fortalezas y defectos
-  const strengths = [];
-  const weaknesses = [];
-  if (!isFake) {
-    if ((s.glp_c_h + s.glp_c_v) >= 100) strengths.push("Centering excelente — ambos ejes dentro del 55/45");
-    if (s.glp_corners >= 108) strengths.push("Esquinas en condición superior — whitening mínimo o nulo");
-    if (s.glp_edges >= 72) strengths.push("Bordes sólidos — roughness prácticamente nulo");
-    if (s.glp_surface >= 90) strengths.push("Superficie holo limpia — sin scratches detectables");
-    if (s.glp_color >= 75) strengths.push("Color y saturación en referencia — carta visualmente fresca");
-    if (card.auth.confianza >= 95) strengths.push(`Autenticidad de alta confianza (${card.auth.confianza}%)`);
-    if (gls >= 9) strengths.push("Candidata fuerte a PSA 9 o superior");
+    // MANEJO DE ARCHIVOS
+    dropZone.onclick = () => fileInput.click();
+    
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('dragover'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('dragover');
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    };
 
-    if ((s.glp_c_h + s.glp_c_v) <= 70) weaknesses.push("Centering deficiente — puede limitar la nota PSA significativamente");
-    const cornerMin = Math.min(card.esquinas.TL, card.esquinas.TR, card.esquinas.BL, card.esquinas.BR);
-    if (cornerMin <= 12) weaknesses.push("Al menos una esquina con whitening moderado-severo o doblez detectado");
-    if (s.glp_edges <= 55) weaknesses.push("Bordes con desgaste notable — roughness o cuts detectados");
-    if (s.glp_surface <= 70) weaknesses.push("Superficie con scratches o stains que reducen el atractivo visual");
-    if (s.glp_color <= 55) weaknesses.push("Saturación de color o nitidez por debajo de la referencia NM");
-  }
+    fileInput.onchange = (e) => handleFiles(e.target.files);
 
-  // investment pills
-  const demandPill = (d) => {
-    if (d.includes("Alta") || d.includes("alta")) return '<span class="invest-pill pill-alta">🔥 ALTA</span>';
-    if (d.includes("Media") || d.includes("media")) return '<span class="invest-pill pill-media">⚡ MEDIA</span>';
-    return '<span class="invest-pill pill-baja">🧊 BAJA</span>';
-  };
+    function handleFiles(files) {
+        const fileList = Array.from(files).slice(0, 4);
+        uploadedFiles = fileList;
+        previewGrid.innerHTML = '';
+        
+        fileList.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'preview-img';
+                previewGrid.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
 
-  const demand = card.mercado.usd_nm >= 200 ? "Alta" : card.mercado.usd_nm >= 50 ? "Media" : "Baja";
-  const tendencia = card.mercado.usd_nm >= 150 ? "alcista" : card.mercado.usd_nm >= 40 ? "estable" : "bajista";
-  const tendPill = tendencia === "alcista"
-    ? '<span class="invest-pill pill-alc">↑ ALCISTA</span>'
-    : tendencia === "bajista"
-    ? '<span class="invest-pill pill-baj">↓ BAJISTA</span>'
-    : '<span class="invest-pill pill-est">→ ESTABLE</span>';
-  const recAccion = gls >= 8 ? "holdear" : gls >= 6 ? "negociar" : "vender";
-  const recPill = recAccion === "holdear"
-    ? '<span class="invest-pill pill-hold">HOLDEAR</span>'
-    : recAccion === "vender"
-    ? '<span class="invest-pill pill-vend">VENDER YA</span>'
-    : '<span class="invest-pill pill-neg">NEGOCIAR</span>';
+        btnAnalyze.disabled = fileList.length === 0;
+    }
 
-  const context = isFake
-    ? "Carta no auténtica. Sin valor de mercado como coleccionable. No apta para grading."
-    : card.notas;
+    // LLAMADA A GEMINI 1.5 FLASH
+    btnAnalyze.onclick = async () => {
+        if (uploadedFiles.length === 0) return;
+        
+        loader.style.display = 'flex';
+        reportOutput.style.opacity = '0.3';
+        btnAnalyze.disabled = true;
 
-  // risks
-  const risks = [];
-  if (!isFake) {
-    risks.push("Análisis basado en parámetros declarados. La foto real puede revelar defectos no incluidos en este input.");
-    if (card.auth.confianza < 95) risks.push(`Confianza de autenticidad al ${card.auth.confianza}% — recomendamos verificación adicional.`);
-    if (s.glp_centering <= 80) risks.push("El centering descentrado puede impactar fuertemente la nota PSA final.");
-    const cornerMin = Math.min(card.esquinas.TL, card.esquinas.TR, card.esquinas.BL, card.esquinas.BR);
-    if (cornerMin <= 20) risks.push("Esquina(s) con desgaste moderado-severo — el grader físico puede penalizar más que la IA visual.");
-  } else {
-    risks.push("FALSIFICACIÓN: no enviar a ningún servicio de grading — será rechazada y puede haber implicancias legales.");
-    risks.push("Si la compraste como auténtica, contactá al vendedor e iniciá una disputa.");
-  }
+        try {
+            const imagesData = await Promise.all(uploadedFiles.map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
+            }));
 
-  document.getElementById('reportContainer').innerHTML = `
-  <div class="report-header">
-    <div class="report-card-id">
-      <h1>${isFake ? '⚠ ' : ''}${card.name}</h1>
-      <div class="set-line">${card.set} · ${card.game}</div>
-    </div>
-    <div class="score-hero">
-      <div class="score-gls ${isFake ? 'fake-score' : ''}">${isFake ? '0' : gls}</div>
-      <div class="score-label">GLS SCORE</div>
-      <div class="score-glp">${isFake ? 'FALSIFICACIÓN' : `${s.total} GLP · ${glsLbl}`}</div>
-    </div>
-  </div>
+            const prompt = `Actuá como un experto Lead Grader de cartas TCG (Pokémon, Magic, YuGiOh) con estilo rioplatense.
+            Analizá estas fotos y devolvé un JSON estricto con:
+            - cardName: nombre exacto
+            - authenticity: {status: "Original"|"Dudosa", details: "explicación técnica"}
+            - scores: {centering: N, corners: N, edges: N, surface: N, color: N} (0-10)
+            - gls: global score (promedio ponderado)
+            - glp: gem lens premium score (ajuste por rareza)
+            - investment: {ars_blue: "valor en pesos", roi_estimate: "porcentaje", advice: "consejo breve"}
+            
+            Contexto: Mirá bien el centrado H/V y el desgaste de bordes. No inventes si no ves bien.`;
 
-  <!-- AUTH -->
-  <div class="auth-block ${isFake ? 'fail' : card.auth.confianza >= 90 ? 'ok' : 'warn'}">
-    <div class="auth-dot"></div>
-    <div>
-      <div class="auth-title">${isFake ? '🚫 FALSIFICACIÓN DETECTADA' : card.auth.confianza >= 90 ? '✓ AUTENTICIDAD VERIFICADA' : '⚠ AUTENTICIDAD DUDOSA'}</div>
-      <div class="auth-detail">
-        ${isFake
-          ? 'Se detectaron múltiples indicadores inconsistentes con cartas oficiales. El GLS se asigna automáticamente en 0 y no se procede con el scoring. Recomendamos verificación presencial con un experto certificado.'
-          : `Sin indicadores de falsificación detectados. Tipografía, patrón de impresión, colores de referencia, dimensiones y reverso dentro de los rangos oficiales esperados para este set y año.`}
-      </div>
-      <div class="auth-conf">Confianza del análisis: ${card.auth.confianza}%</div>
-      ${card.auth.flags.length > 0 ? `<div class="auth-flags">${card.auth.flags.map(f => `<span class="flag-chip">${f}</span>`).join('')}</div>` : ''}
-    </div>
-  </div>
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.MODEL}:generateContent?key=${CONFIG.GEMINI_API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            ...imagesData.map(data => ({ inline_data: { mime_type: "image/jpeg", data } }))
+                        ]
+                    }]
+                })
+            });
 
-  ${!isFake ? `
-  <!-- BREAKDOWN -->
-  <div class="breakdown-grid">
+            const result = await response.json();
+            const textResponse = result.candidates[0].content.parts[0].text;
+            const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+            
+            if (jsonMatch) {
+                const data = JSON.parse(jsonMatch[0]);
+                renderReport(data);
+                document.getElementById('raw-json-log').innerText = JSON.stringify(data, null, 2);
+            }
 
-    <div class="breakdown-card">
-      <div class="bc-header">
-        <div class="bc-title">01 · Centering</div>
-        <div class="bc-score ${scoreClass((s.glp_centering/120)*100)}">${s.glp_centering}<span style="font-size:12px; color:var(--text3);">/120</span></div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.glp_centering/120)*100}%; background:${barColor((s.glp_centering/120)*100)};"></div></div>
-      <div class="sub-items">
-        <div class="sub-item">
-          <span class="sub-label">Horizontal (${card.centering.h})</span>
-          <span class="sub-val ${cornerClass(s.glp_c_h/2)}">${s.glp_c_h} GLP</span>
-        </div>
-        <div class="sub-item">
-          <span class="sub-label">Vertical (${card.centering.v})</span>
-          <span class="sub-val ${cornerClass(s.glp_c_v/2)}">${s.glp_c_v} GLP</span>
-        </div>
-      </div>
-    </div>
+        } catch (error) {
+            console.error(error);
+            alert("Error al conectar con el Motor Gemini. Verificá tu API Key.");
+        } finally {
+            loader.style.display = 'none';
+            reportOutput.style.opacity = '1';
+            btnAnalyze.disabled = false;
+        }
+    };
 
-    <div class="breakdown-card">
-      <div class="bc-header">
-        <div class="bc-title">02 · Esquinas</div>
-        <div class="bc-score ${scoreClass((s.glp_corners/120)*100)}">${s.glp_corners}<span style="font-size:12px; color:var(--text3);">/120</span></div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.glp_corners/120)*100}%; background:${barColor((s.glp_corners/120)*100)};"></div></div>
-      <div class="corner-map">
-        <div class="corner-item">
-          <span class="corner-pos">TL ↖</span>
-          <span class="corner-score ${cornerClass(card.esquinas.TL)}">${card.esquinas.TL}</span>
-        </div>
-        <div class="corner-item">
-          <span class="corner-pos">TR ↗</span>
-          <span class="corner-score ${cornerClass(card.esquinas.TR)}">${card.esquinas.TR}</span>
-        </div>
-        <div class="corner-item">
-          <span class="corner-pos">BL ↙</span>
-          <span class="corner-score ${cornerClass(card.esquinas.BL)}">${card.esquinas.BL}</span>
-        </div>
-        <div class="corner-item">
-          <span class="corner-pos">BR ↘</span>
-          <span class="corner-score ${cornerClass(card.esquinas.BR)}">${card.esquinas.BR}</span>
-        </div>
-      </div>
-    </div>
+    // FUNCIÓN DE RENDERIZADO (MANTIENE DISEÑO PREMIUM)
+    function renderReport(data) {
+        reportOutput.innerHTML = `
+            <div class="report-grid">
+                <div class="card-preview-panel">
+                    <div class="score-circle">
+                        <span class="score-val">${data.gls}</span>
+                        <span class="score-label">GLS SCORE</span>
+                    </div>
+                    <h3 style="text-align:center; color: var(--teal);">${data.cardName}</h3>
+                    <div class="tag tag-authentic" style="display:block; text-align:center; margin-bottom:15px;">
+                        ${data.authenticity.status.toUpperCase()}
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--text-dim);">${data.authenticity.details}</p>
+                </div>
 
-    <div class="breakdown-card">
-      <div class="bc-header">
-        <div class="bc-title">03 · Bordes</div>
-        <div class="bc-score ${scoreClass((s.glp_edges/80)*100)}">${s.glp_edges}<span style="font-size:12px; color:var(--text3);">/80</span></div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.glp_edges/80)*100}%; background:${barColor((s.glp_edges/80)*100)};"></div></div>
-      <div class="sub-items">
-        <div class="sub-item"><span class="sub-label">Superior</span><span class="sub-val ${cornerClass(card.bordes.top/1.5)}">${card.bordes.top}/20</span></div>
-        <div class="sub-item"><span class="sub-label">Inferior</span><span class="sub-val ${cornerClass(card.bordes.bottom/1.5)}">${card.bordes.bottom}/20</span></div>
-        <div class="sub-item"><span class="sub-label">Izquierdo</span><span class="sub-val ${cornerClass(card.bordes.left/1.5)}">${card.bordes.left}/20</span></div>
-        <div class="sub-item"><span class="sub-label">Derecho</span><span class="sub-val ${cornerClass(card.bordes.right/1.5)}">${card.bordes.right}/20</span></div>
-      </div>
-    </div>
-
-    <div class="breakdown-card">
-      <div class="bc-header">
-        <div class="bc-title">04 · Superficie</div>
-        <div class="bc-score ${scoreClass((s.glp_surface/100)*100)}">${s.glp_surface}<span style="font-size:12px; color:var(--text3);">/100</span></div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${s.glp_surface}%; background:${barColor(s.glp_surface)};"></div></div>
-      <div class="sub-items">
-        <div class="sub-item"><span class="sub-label">Scratches holo</span><span class="sub-val" style="max-width:140px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${card.superficie.scratches}</span></div>
-        <div class="sub-item"><span class="sub-label">Print lines</span><span class="sub-val">${card.superficie.print_lines}</span></div>
-        <div class="sub-item"><span class="sub-label">Manchas</span><span class="sub-val">${card.superficie.stains}</span></div>
-        <div class="sub-item"><span class="sub-label">Dents</span><span class="sub-val">${card.superficie.dents}</span></div>
-      </div>
-    </div>
-
-    <div class="breakdown-card" style="grid-column: 1 / -1;">
-      <div class="bc-header">
-        <div class="bc-title">05 · Color & Frescura</div>
-        <div class="bc-score ${scoreClass((s.glp_color/80)*100)}">${s.glp_color}<span style="font-size:12px; color:var(--text3);">/80</span></div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.glp_color/80)*100}%; background:${barColor((s.glp_color/80)*100)};"></div></div>
-      <div class="sub-items">
-        <div class="sub-item"><span class="sub-label">Saturación de colores</span><span class="sub-val">${card.color.saturacion}</span></div>
-        <div class="sub-item"><span class="sub-label">Nitidez texto/arte</span><span class="sub-val">${card.color.nitidez}</span></div>
-        <div class="sub-item"><span class="sub-label">Fading / amarillamiento</span><span class="sub-val">${card.color.fading}</span></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- GLP SUMMARY -->
-  <div class="glp-table">
-    <div class="glp-table-title">Resumen GLP — Puntuación Granular</div>
-    <div class="glp-row">
-      <span class="glp-cat-n">00</span>
-      <span class="glp-cat-name">Autenticidad</span>
-      <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:100%; background:var(--teal);"></div></div></div>
-      <span class="glp-pts" style="color:var(--teal);">PASS</span>
-      <span class="glp-pts max-pts">Gate</span>
-    </div>
-    <div class="glp-row">
-      <span class="glp-cat-n">01</span>
-      <span class="glp-cat-name">Centering (H + V)</span>
-      <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.glp_centering/120)*100}%;"></div></div></div>
-      <span class="glp-pts">${s.glp_centering}</span>
-      <span class="glp-pts max-pts">/120</span>
-    </div>
-    <div class="glp-row">
-      <span class="glp-cat-n">02</span>
-      <span class="glp-cat-name">Esquinas (4 × 30)</span>
-      <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.glp_corners/120)*100}%; background:${barColor((s.glp_corners/120)*100)};"></div></div></div>
-      <span class="glp-pts">${s.glp_corners}</span>
-      <span class="glp-pts max-pts">/120</span>
-    </div>
-    <div class="glp-row">
-      <span class="glp-cat-n">03</span>
-      <span class="glp-cat-name">Bordes (4 × 20)</span>
-      <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.glp_edges/80)*100}%; background:${barColor((s.glp_edges/80)*100)};"></div></div></div>
-      <span class="glp-pts">${s.glp_edges}</span>
-      <span class="glp-pts max-pts">/80</span>
-    </div>
-    <div class="glp-row">
-      <span class="glp-cat-n">04</span>
-      <span class="glp-cat-name">Superficie</span>
-      <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${s.glp_surface}%; background:${barColor(s.glp_surface)};"></div></div></div>
-      <span class="glp-pts">${s.glp_surface}</span>
-      <span class="glp-pts max-pts">/100</span>
-    </div>
-    <div class="glp-row">
-      <span class="glp-cat-n">05</span>
-      <span class="glp-cat-name">Color & Frescura</span>
-      <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.glp_color/80)*100}%; background:${barColor((s.glp_color/80)*100)};"></div></div></div>
-      <span class="glp-pts">${s.glp_color}</span>
-      <span class="glp-pts max-pts">/80</span>
-    </div>
-    <div class="glp-row total-row">
-      <span class="glp-cat-n">Σ</span>
-      <span class="glp-cat-name" style="font-weight:500;">TOTAL GLP → GLS ${gls} · ${glsLbl}</span>
-      <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.total/500)*100}%; background:var(--gold);"></div></div></div>
-      <span class="glp-pts" style="font-size:22px;">${s.total}</span>
-      <span class="glp-pts max-pts">/500</span>
-    </div>
-  </div>
-
-  <!-- STRENGTHS / WEAKNESSES -->
-  <div class="verdict-row">
-    <div class="verdict-block positive">
-      <div class="vb-title">Puntos fuertes</div>
-      ${strengths.length > 0
-        ? strengths.map(s => `<div class="vb-item"><div class="vb-dot"></div><span>${s}</span></div>`).join('')
-        : '<div style="font-size:12px; color:var(--text3);">No se identificaron puntos fuertes destacables.</div>'}
-    </div>
-    <div class="verdict-block negative">
-      <div class="vb-title">Defectos críticos</div>
-      ${weaknesses.length > 0
-        ? weaknesses.map(w => `<div class="vb-item"><div class="vb-dot"></div><span>${w}</span></div>`).join('')
-        : '<div style="font-size:12px; color:var(--text3);">No se detectaron defectos críticos.</div>'}
-    </div>
-  </div>
-
-  <!-- GRADING -->
-  <div class="grading-block">
-    <div style="font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:12px;">Recomendación de Grading</div>
-    <div class="grading-verdict">
-      <span class="gv-badge ${card.grading.gv_class}">${card.grading.rec.toUpperCase()}</span>
-      <span class="gv-text">${context}</span>
-    </div>
-    <table class="roi-table">
-      <thead><tr><th>Escenario</th><th>Costo est.</th><th>Valor post</th><th>ROI est.</th></tr></thead>
-      <tbody>${roiRows}</tbody>
-    </table>
-  </div>
-
-  <!-- INVESTMENT -->
-  <div class="invest-block">
-    <div style="font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:12px;">Consejo de Inversión Local · Argentina</div>
-    <div class="invest-row"><span class="invest-label">Demanda actual</span>${demandPill(demand)}</div>
-    <div class="invest-row"><span class="invest-label">Tendencia del set</span>${tendPill}</div>
-    <div class="invest-row"><span class="invest-label">Precio ARS estimado</span><span style="font-family:var(--FM); font-size:13px; color:var(--gold2);">ARS ${card.mercado.ars.toLocaleString('es-AR')}</span></div>
-    <div class="invest-row"><span class="invest-label">Recomendación</span>${recPill}</div>
-    <div class="invest-context">${context}</div>
-  </div>
-  ` : ''}
-
-  <!-- CONFIDENCE + RISKS -->
-  <div class="conf-block">
-    <div style="font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:10px;">Nivel de confianza del análisis</div>
-    <div class="conf-bar-outer">
-      <div class="conf-bar-inner" style="width:${confPct}%; background:${confColor};"></div>
-    </div>
-    <div class="conf-label-row">
-      <span style="color:var(--text2);">${confPct >= 90 ? 'ALTO' : confPct >= 70 ? 'MEDIO' : 'BAJO'} — ${confPct}%</span>
-      <span style="color:var(--text3);">Input: ${isFake ? '1 foto' : card.esquinas.TL === 30 && card.esquinas.TR === 30 ? '4 fotos' : '2-3 fotos'}</span>
-    </div>
-    <div class="risk-list">
-      ${risks.map(r => `<div class="risk-item"><span class="risk-icon">⚠</span><span>${r}</span></div>`).join('')}
-    </div>
-  </div>
-
-  <div class="disclaimer">
-    <strong>DISCLAIMER:</strong> Este análisis es una estimación generada por inteligencia artificial con fines informativos únicamente. No constituye un grading oficial ni asesoramiento financiero. Los precios son estimativos y pueden variar. Para grading oficial consultá PSA, CGC o BGS. Gem Lens no se responsabiliza por decisiones comerciales basadas en este informe. · Ley 25.326 Argentina.
-  </div>
-  `;
-}
-
-// ═══════════════════════════════════════════════
-//  RENDER BATCH GRID
-// ═══════════════════════════════════════════════
-function renderBatch() {
-  const grid = document.getElementById('batchGrid');
-  grid.innerHTML = CARDS.map(card => {
-    const s = computeGLP(card);
-    const gls = card.isFake ? 0 : glpToGLS(s.total);
-    const cats = [
-      { lbl:'Center', val:s.glp_centering, max:120 },
-      { lbl:'Esq.', val:s.glp_corners, max:120 },
-      { lbl:'Bordes', val:s.glp_edges, max:80 },
-      { lbl:'Sup.', val:s.glp_surface, max:100 },
-      { lbl:'Color', val:s.glp_color, max:80 },
-    ];
-    const glsClass = card.isFake ? 'sfake' : gls >= 9 ? 's9' : gls >= 8 ? 's8' : gls >= 7 ? 's7' : gls >= 6 ? 's6' : 's5';
-    return `
-    <div class="mini-card ${card.isFake ? 'is-fake' : ''}" onclick="selectCard(${card.id})">
-      <div class="mc-header">
-        <div>
-          <div class="mc-name">${card.name.replace(' ⚠ FALSA','')}</div>
-          <div class="mc-set">${card.set}</div>
-        </div>
-        <div class="mc-score ${glsClass}">${card.isFake ? '0' : gls}</div>
-      </div>
-      <div class="mc-bars">
-        ${cats.map(c => `
-          <div class="mc-bar-row">
-            <span class="mc-bar-lbl">${c.lbl}</span>
-            <div class="mc-bar-wrap">
-              <div class="mc-bar-fill" style="width:${card.isFake?0:(c.val/c.max)*100}%; background:${barColor(card.isFake?0:(c.val/c.max)*100)};"></div>
+                <div class="card-preview-panel">
+                    <h4 style="color:var(--gold); border-bottom:1px solid var(--gold-dim); padding-bottom:10px;">Sub-Grades Detail</h4>
+                    <div class="stat-row"><span>Centering H/V</span> <strong>${data.scores.centering}/10</strong></div>
+                    <div class="stat-row"><span>Corners</span> <strong>${data.scores.corners}/10</strong></div>
+                    <div class="stat-row"><span>Edges</span> <strong>${data.scores.edges}/10</strong></div>
+                    <div class="stat-row"><span>Surface/Holo</span> <strong>${data.scores.surface}/10</strong></div>
+                    
+                    <div style="margin-top:25px; padding:15px; background: rgba(0,242,255,0.05); border-radius:8px;">
+                        <h4 style="color:var(--teal); margin:0 0 10px 0;">Proyección de Inversión (Arg)</h4>
+                        <div class="stat-row"><span>Valor Est. (Blue)</span> <strong style="color:var(--success);">${data.investment.ars_blue}</strong></div>
+                        <div class="stat-row"><span>ROI Esperado</span> <strong>${data.investment.roi_estimate}</strong></div>
+                        <p style="font-size:0.85rem; margin-top:10px; font-style:italic;">"${data.investment.advice}"</p>
+                    </div>
+                </div>
             </div>
-          </div>`).join('')}
-      </div>
-      <div class="mc-glp">${card.isFake ? 'GLS 0 · FALSIFICACIÓN' : `GLP: ${s.total}/500 · ${glsLabel(gls)}`}</div>
-      ${card.auth.flags.length > 0 ? `<div class="mc-flags">${card.auth.flags.slice(0,2).map(f => `<span class="mc-flag">${f.split(':')[0]}</span>`).join('')}</div>` : ''}
-    </div>`;
-  }).join('');
-}
+        `;
+    }
 
-// ═══════════════════════════════════════════════
-//  RENDER SIDEBAR CARD LIST
-// ═══════════════════════════════════════════════
-function renderSidebarList(activeId) {
-  const list = document.getElementById('cardList');
-  list.innerHTML = CARDS.map(card => {
-    const s = computeGLP(card);
-    const gls = card.isFake ? 0 : glpToGLS(s.total);
-    const col = card.isFake ? 'var(--red)' : gls >= 9 ? 'var(--teal)' : gls >= 7 ? 'var(--gold2)' : gls >= 5 ? 'var(--amber)' : 'var(--red)';
-    return `
-    <div class="card-item ${card.isFake ? 'fake' : ''} ${activeId===card.id ? 'active' : ''}" onclick="selectCard(${card.id})">
-      <div class="ci-score" style="color:${col};">${card.isFake ? '!' : gls}</div>
-      <div class="ci-info">
-        <div class="ci-name">${card.name.replace(' ⚠ FALSA','⚠')}</div>
-        <div class="ci-grade">${card.isFake ? 'FALSIFICACIÓN' : `GLS ${gls} · GLP ${s.total}`}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+    // CÓDIGO PARA CASOS DE EJEMPLO (BATCH)
+    const exampleCases = [
+        { name: "Charizard Base Set", gls: 8.5, status: "Auténtico", tag: "Holding" },
+        { name: "Pikachu Illustrator", gls: 9.0, status: "Auténtico", tag: "High ROI" },
+        { name: "Black Lotus Alpha", gls: 7.0, status: "Dudoso", tag: "Red Flag" }
+    ];
 
-// ═══════════════════════════════════════════════
-//  VISION SYSTEM
-// ═══════════════════════════════════════════════
-function runVision() {
-  const input = document.getElementById('visionInput').value.trim();
-  if (!input) return;
-  const out = document.getElementById('visionOutput');
-  out.style.display = 'block';
+    function initBatch() {
+        const container = document.getElementById('batch-container');
+        exampleCases.forEach(c => {
+            container.innerHTML += `
+                <div class="batch-card">
+                    <div style="color:var(--gold); font-weight:bold;">${c.name}</div>
+                    <div style="font-size:1.5rem; margin:10px 0;">${c.gls} <small style="font-size:0.7rem;">GLS</small></div>
+                    <div class="tag tag-investment">${c.tag}</div>
+                </div>
+            `;
+        });
+    }
 
-  // Heuristic inference engine
-  const lower = input.toLowerCase();
+    // Init
+    initBatch();
 
-  // Centering
-  let cH = "55/45", cV = "55/45";
-  if (lower.includes('muy centrada') || lower.includes('centering perfecto')) { cH="51/49"; cV="52/48"; }
-  else if (lower.includes('corrido') || lower.includes('descentrad')) {
-    if (lower.includes('derecho') || lower.includes('derecha')) cH="66/34";
-    else if (lower.includes('izquierdo') || lower.includes('izquierda')) cH="66/34";
-    else cH="63/37";
-    if (lower.includes('arriba') || lower.includes('superior')) cV="65/35";
-  }
-  else if (lower.includes('poco corrido') || lower.includes('ligeramente')) { cH="58/42"; cV="57/43"; }
-
-  // Corners
-  const cornerBase = () => {
-    if (lower.includes('blanco en las puntas') || lower.includes('whitening') || lower.includes('esquinas gastadas')) return 12;
-    if (lower.includes('esquinas perfectas') || lower.includes('esquinas inmaculadas')) return 30;
-    if (lower.includes('leve') && (lower.includes('esquina') || lower.includes('punta'))) return 20;
-    if (lower.includes('doblez')) return 10;
-    if (lower.includes('muy gastadas') || lower.includes('severamente')) return 5;
-    return 26;
-  };
-  const cb = cornerBase();
-  const corners = { TL:cb, TR:cb, BL:cb, BR:cb };
-  if (lower.includes('esquina inferior derecha') || lower.includes('br') || lower.includes('inferior derech')) corners.BR = Math.max(5, cb-8);
-  if (lower.includes('esquina superior izquierda') || lower.includes('tl') || lower.includes('superior izquierda')) corners.TL = Math.max(5, cb-6);
-
-  // Edges
-  const eBase = () => {
-    if (lower.includes('bordes impecables') || lower.includes('bordes perfectos')) return 20;
-    if (lower.includes('bordes marcas') || lower.includes('marcas en los bordes') || lower.includes('bordes tienen')) return 14;
-    if (lower.includes('bordes muy dañados') || lower.includes('bordes destruidos')) return 6;
-    if (lower.includes('borde leve') || lower.includes('mínimo desgaste')) return 18;
-    return 17;
-  };
-  const eb = eBase();
-
-  // Surface
-  let scratches = "ninguno", print_lines = "ninguno", stains = "ninguno", dents = "ninguno";
-  if (lower.includes('rayaduras') || lower.includes('scratches')) {
-    if (lower.includes('severa') || lower.includes('muchas') || lower.includes('bastante')) scratches = "scratches severos";
-    else if (lower.includes('visible') || lower.includes('notar') || lower.includes('moderado')) scratches = "scratches moderados visibles en ángulo";
-    else scratches = "micro-scratches solo visibles en ángulo";
-  }
-  if (lower.includes('línea de impresión') || lower.includes('print line') || lower.includes('defecto de fabricación')) print_lines = "una línea de impresión leve (defecto de fábrica)";
-  if (lower.includes('mancha') || lower.includes('stain')) stains = "mancha leve visible";
-  if (lower.includes('abolladura') || lower.includes('dent') || lower.includes('hundimiento')) dents = "dent leve en superficie";
-
-  // Auth
-  let authEstado = "autentica", authConf = 88, authFlags = [];
-  if (lower.includes('falsa') || lower.includes('fake') || lower.includes('pirata')) {
-    authEstado = "falsificacion_sospechosa"; authConf = 55;
-    authFlags.push("SOSPECHA declarada por el usuario");
-  }
-  if (lower.includes('tipografía rara') || lower.includes('letras raras') || lower.includes('fuente extraña')) {
-    authEstado = "posible_falsificacion"; authConf = 40;
-    authFlags.push("TIPOGRAFÍA: irregularidad detectada en descripción");
-  }
-  if (lower.includes('colores apagados') || lower.includes('color raro')) {
-    authFlags.push("COLORES: descripción sugiere desvío de referencia");
-    if (authConf > 60) authConf = 62;
-  }
-
-  // Color
-  let saturacion = "buena", nitidez = "buena", fading = "ninguno";
-  if (lower.includes('colores vivos') || lower.includes('colores brillantes') || lower.includes('muy saturada')) saturacion = "excelente";
-  if (lower.includes('colores apagados') || lower.includes('decolorada')) { saturacion = "reducida (~15% bajo referencia)"; fading = "leve amarillamiento detectado"; }
-  if (lower.includes('texto nítido') || lower.includes('bien definido')) nitidez = "excelente";
-  if (lower.includes('texto borroso') || lower.includes('texto difuso')) nitidez = "reducida";
-  if (lower.includes('amarillado') || lower.includes('amarillo') || lower.includes('envejecida')) fading = "amarillamiento moderado detectado";
-
-  const output = `╔═══════════════════════════════════════════════════╗
-║     GEM LENS — VISIÓN COMPUTACIONAL INFERIDA       ║
-║     Motor v2.0 · Análisis desde descripción textual ║
-╚═══════════════════════════════════════════════════╝
-
-INPUT RECIBIDO:
-"${input.slice(0,120)}${input.length > 120 ? '...' : ''}"
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[AUTENTICIDAD]
-  estado:    ${authEstado}
-  confianza: ${authConf}%
-  flags:     ${authFlags.length > 0 ? authFlags.join(' | ') : 'ninguno detectado desde descripción'}
-
-[CENTERING]
-  horizontal: ${cH}
-  vertical:   ${cV}
-
-[ESQUINAS]
-  TL (sup-izq): ${corners.TL}/30
-  TR (sup-der): ${corners.TR}/30
-  BL (inf-izq): ${corners.BL}/30
-  BR (inf-der): ${corners.BR}/30
-
-[BORDES]
-  top:    ${eb}/20
-  bottom: ${eb}/20
-  left:   ${Math.max(6, eb-1)}/20
-  right:  ${eb}/20
-
-[SUPERFICIE]
-  scratches:   ${scratches}
-  print_lines: ${print_lines}
-  stains:      ${stains}
-  dents:       ${dents}
-
-[COLOR]
-  saturacion: ${saturacion}
-  nitidez:    ${nitidez}
-  fading:     ${fading}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-GLP ESTIMADO (cálculo aproximado desde inferencia):
-  Centering: ~${(() => { const h = cH.split('/').map(Number); const m=Math.max(...h); return m<=52?120:m<=55?110:m<=58?90:m<=60?70:m<=65?40:20; })()}
-  Esquinas:  ~${corners.TL + corners.TR + corners.BL + corners.BR}
-  Bordes:    ~${eb*4 - 2}
-  Superficie:~${scratches.includes('severo')?50:scratches.includes('moderado')?70:scratches.includes('micro')?88:96}
-  Color:     ~${saturacion.includes('excelente')?78:saturacion.includes('reducida')?50:68}
-
-NOTA: Esta estructura está lista para ingresar como INPUT
-al motor de análisis GLS/GLP de Gem Lens.
-La confianza del análisis textual es menor que con foto real.
-Se recomienda subir fotografías para análisis definitivo.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠ DISCLAIMER: Inferencia desde descripción textual.
-  Confianza reducida respecto a análisis fotográfico.
-  Para resultado oficial subí las fotos reales.`;
-
-  out.innerHTML = output.replace(/(╔.*╗|╚.*╝|║.*║)/g, s => `<span style="color:var(--gold2);">${s}</span>`)
-    .replace(/\[(.*?)\]/g, s => `<span class="vision-section-title">${s}</span>`)
-    .replace(/(GLP ESTIMADO.*:)/g, s => `<span class="vision-section-title">${s}</span>`)
-    .replace(/(⚠ DISCLAIMER.*)/g, s => `<span style="color:var(--amber);">${s}</span>`);
-}
-
-// ═══════════════════════════════════════════════
-//  NAVIGATION
-// ═══════════════════════════════════════════════
-let activeCardId = 1;
-
-function selectCard(id) {
-  activeCardId = id;
-  const card = CARDS.find(c => c.id === id);
-  renderReport(card);
-  renderSidebarList(id);
-  switchTab('report');
-  document.querySelector('.main').scrollTop = 0;
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`panel-${tab}`).classList.add('active');
-  const btns = { report:0, batch:1, vision:2 };
-  document.querySelectorAll('.tab-btn')[btns[tab]].classList.add('active');
-}
-
-// INIT
-renderSidebarList(1);
-renderReport(CARDS[0]);
-renderBatch();
 </script>
+
 </body>
 </html>
