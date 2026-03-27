@@ -1,10 +1,11 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gem Lens — Motor de Análisis v2.2</title>
+<title>Gem Lens — Motor de Análisis v2.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://js.puter.com/v2/"></script>
 <style>
 :root {
   --bg: #0b0b09; --bg2: #121210; --bg3: #1a1a17; --surface: #222220;
@@ -459,37 +460,9 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
 
 <script>
 // ═══════════════════════════════════════════════
-//  MOTOR: Gemini 2.0 Flash Vision (Google AI)
-//  CORS-compatible · Gratuito 1500 req/día
-//  API Key ingresada por el usuario · localStorage
+//  MOTOR: Gemini 2.5 Flash Vision via Puter.js
+//  Sin API key · Sin backend · Sin CORS · Gratis
 // ═══════════════════════════════════════════════
-
-let GEMINI_API_KEY = localStorage.getItem('gem_lens_apikey') || 'AIzaSyBQHZbd6NhbR6ADGYa0T7s6v715dpiy2hY';
-
-function saveApiKey() {
-  const input = document.getElementById('apikeyInput');
-  const val = input.value.trim();
-  if (!val) return;
-  GEMINI_API_KEY = val;
-  localStorage.setItem('gem_lens_apikey', val);
-  updateApiKeyUI(true);
-  input.value = '';
-}
-
-function updateApiKeyUI(connected) {
-  const dot = document.getElementById('apikeyDot');
-  const lbl = document.getElementById('apikeyStatusLabel');
-  if (!dot || !lbl) return;
-  if (connected) {
-    dot.classList.add('connected');
-    lbl.textContent = 'CLAVE GUARDADA';
-    lbl.className = 'apikey-status ok';
-  } else {
-    dot.classList.remove('connected');
-    lbl.textContent = 'Sin clave';
-    lbl.className = 'apikey-status off';
-  }
-}
 
 // ═══════════════════════════════════════════════
 //  DATA — 10 SAMPLE CARDS
@@ -760,27 +733,23 @@ function renderReport(card) {
 
     <div class="apikey-block" id="apikeyBlock">
       <div class="apikey-header">
-        <div class="apikey-dot" id="apikeyDot"></div>
-        <span class="apikey-label">Motor · Gemini 2.0 Flash Vision</span>
-        <span class="apikey-status off" id="apikeyStatusLabel">Sin clave</span>
+        <div class="apikey-dot connected" id="apikeyDot"></div>
+        <span class="apikey-label">Motor · Gemini 2.5 Flash Vision via Puter.js</span>
+        <span class="apikey-status ok" id="apikeyStatusLabel">GRATUITO · SIN API KEY</span>
       </div>
-      <div class="apikey-row">
-        <input class="apikey-input" type="password" id="apikeyInput" placeholder="AIza... · Pegá tu Gemini API Key" autocomplete="off">
-        <button class="apikey-save" onclick="saveApiKey()">GUARDAR</button>
-      </div>
-      <div class="apikey-hint">
-        Clave gratuita en <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> — 1500 req/día sin costo. Se guarda localmente en tu navegador.
+      <div class="apikey-hint" style="margin-top:0">
+        Powered by <a href="https://puter.com" target="_blank">Puter.js</a> — acceso gratuito a IA de visión directamente desde el browser. Sin límites de requests para testing. El primer uso puede pedir login con cuenta Puter (gratuita).
       </div>
     </div>
 
     <div class="upload-zone" id="dropZone">
       <h2>Subí fotos de tu carta (frente, reverso, esquinas)</h2>
-      <p>Soportamos JPG, PNG y WEBP. Máx. 4 fotos. Motor: Gemini 2.0 Flash Vision.</p>
+      <p>Soportamos JPG, PNG y WEBP. Máx. 4 fotos. Motor: Gemini 2.5 Flash Vision (gratis).</p>
       <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
       <div class="btn-select" onclick="document.getElementById('fileInput').click()">Seleccionar fotos</div>
       <div class="preview-row" id="previewRow"></div>
-      <button class="btn-analyze" id="btnAnalyze" disabled onclick="analyzeImages()">ANALIZAR CON GEMINI VISION</button>
-      <div id="loadingStatus" class="loading-overlay" style="display:none">PROCESANDO CON GEMINI 2.0 FLASH</div>
+      <button class="btn-analyze" id="btnAnalyze" disabled onclick="analyzeImages()">ANALIZAR CON GROQ VISION</button>
+      <div id="loadingStatus" class="loading-overlay" style="display:none">ANALIZANDO CON GEMINI 2.5 FLASH</div>
     </div>
 
     <div class="auth-block ${isFake?'fail':'ok'}">
@@ -905,7 +874,7 @@ function renderReport(card) {
     </div>
 
     <div class="disclaimer">
-      Este análisis es una inferencia computacional basada en visión artificial (Gemini 2.0 Flash Vision) y datos de mercado. Gem Lens no es una entidad oficial de grading.
+      Este análisis es una inferencia computacional basada en visión artificial (Gemini 2.5 Flash via Puter.js) y datos de mercado. Gem Lens no es una entidad oficial de grading.
     </div>
   `;
 
@@ -913,9 +882,6 @@ function renderReport(card) {
 }
 
 function setupUploadLogic() {
-  // Restaurar estado visual de la API key tras cada re-render
-  if (GEMINI_API_KEY) updateApiKeyUI(true);
-
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
   const previewRow = document.getElementById('previewRow');
@@ -923,7 +889,7 @@ function setupUploadLogic() {
 
   if(!dropZone) return;
 
-  // Reset previews if already filled
+  // Restaurar previews si ya hay imágenes cargadas
   if(uploadedImages.length > 0) {
     uploadedImages.forEach(src => {
         const img = document.createElement('img');
@@ -962,108 +928,95 @@ function setupUploadLogic() {
 }
 
 async function analyzeImages() {
-  const btnAnalyze  = document.getElementById('btnAnalyze');
+  const btnAnalyze    = document.getElementById('btnAnalyze');
   const loadingStatus = document.getElementById('loadingStatus');
 
-  if (!GEMINI_API_KEY) {
-    alert('⚠️ Necesitás una Gemini API Key.\n\nIngresala en el campo de arriba. Es gratis en aistudio.google.com');
+  if (!GROQ_API_KEY) {
+    alert('\u26a0\ufe0f Necesit\u00e1s una Groq API Key (gratuita).\n\n1. Entr\u00e1 a console.groq.com\n2. Cre\u00e1 una cuenta gratis (sin tarjeta)\n3. Ve a API Keys y generá una key\n4. Peg\u00e1la en el campo de arriba y presion\u00e1 GUARDAR');
     return;
   }
   if (uploadedImages.length === 0) {
-    alert('⚠️ Primero subí al menos una foto de la carta.');
+    alert('\u26a0\ufe0f Primero sub\u00ed al menos una foto de la carta.');
     return;
   }
 
   btnAnalyze.disabled = true;
   loadingStatus.style.display = 'block';
 
-  const prompt = `Actuá como un Lead Grading Specialist de PSA. Analizá estas fotos de una carta TCG.
-Extraé los datos técnicos con máxima precisión visual.
-IMPORTANTE: Respondé ÚNICAMENTE con un JSON puro, sin markdown, sin bloques de código, sin texto antes ni después. Solo el objeto JSON:
-{
-  "name": "Nombre Exacto de la Carta",
-  "set": "Set · Numero · Idioma · Año",
-  "game": "Pokémon TCG",
-  "auth": {"estado": "autentica", "confianza": 95, "flags": []},
-  "centering": {"h": "52/48", "v": "51/49"},
-  "esquinas": {"TL": 28, "TR": 28, "BL": 28, "BR": 28},
-  "bordes": {"top": 19, "bottom": 19, "left": 19, "right": 19},
-  "superficie": {"scratches": "ninguno", "print_lines": "ninguno", "stains": "ninguno", "dents": "ninguno"},
-  "color": {"saturacion": "excelente", "nitidez": "excelente", "fading": "ninguno"},
-  "notas": "Párrafo en español rioplatense sobre el estado físico y si conviene gradear.",
-  "mercado": {"usd_nm": 100, "ars": 150000},
-  "grading": {"rec": "si", "gv_class": "gv-si"}
-}
-Si es falsificación: auth.estado = "falsificacion_detectada" y listá los flags técnicos.
-Los valores de esquinas son 0–30, bordes son 0–20. Sé preciso analizando la imagen.`;
+  const prompt = `Sos un Lead Grading Specialist de PSA. Analizá estas fotos de una carta TCG coleccionable.
+Extraé todos los datos técnicos con máxima precisión visual inspeccionando la imagen.
+
+RESPONDÉ ÚNICAMENTE con JSON puro. Sin markdown. Sin bloques de código. Sin texto antes ni después. Solo el objeto JSON exactamente con estos campos:
+{"name":"Nombre completo de la carta","set":"Set · Numero/Total · Idioma · Año","game":"Pokémon TCG","auth":{"estado":"autentica","confianza":95,"flags":[]},"centering":{"h":"52/48","v":"51/49"},"esquinas":{"TL":28,"TR":28,"BL":28,"BR":28},"bordes":{"top":19,"bottom":19,"left":19,"right":19},"superficie":{"scratches":"ninguno","print_lines":"ninguno","stains":"ninguno","dents":"ninguno"},"color":{"saturacion":"excelente","nitidez":"excelente","fading":"ninguno"},"notas":"Párrafo en español rioplatense sobre estado físico y si conviene gradear.","mercado":{"usd_nm":100,"ars":150000},"grading":{"rec":"si","gv_class":"gv-si"}}
+
+Reglas estrictas:
+- esquinas: 0-30 por esquina (30=perfecta, 0=destruida)
+- bordes: 0-20 por borde (20=perfecto)
+- centering h y v: formato "55/45"
+- auth.estado: exactamente "autentica" o "falsificacion_detectada"
+- grading.rec: exactamente "si", "no" o "depende"
+- grading.gv_class: exactamente "gv-si", "gv-no" o "gv-dep"
+- mercado.usd_nm: número entero en dólares
+- mercado.ars: número entero en pesos (usd_nm * 1500 aprox)`;
 
   try {
-    // Gemini 2.0 Flash — CORS habilitado para browsers
-    const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 
-    const parts = [{ text: prompt }];
-
-    // Agregar imágenes como inline_data
+    const contentParts = [];
     for (const dataUrl of uploadedImages) {
-      const [header, data] = dataUrl.split(',');
+      const commaIdx = dataUrl.indexOf(',');
+      const header = dataUrl.substring(0, commaIdx);
+      const b64data = dataUrl.substring(commaIdx + 1);
       const mimeMatch = header.match(/data:([^;]+);/);
       const validMimes = ['image/jpeg','image/png','image/gif','image/webp'];
       const mime = (mimeMatch && validMimes.includes(mimeMatch[1])) ? mimeMatch[1] : 'image/jpeg';
-      parts.unshift({ inline_data: { mime_type: mime, data } });
+      contentParts.push({
+        type: 'image_url',
+        image_url: { url: `data:${mime};base64,${b64data}` }
+      });
     }
+    contentParts.push({ type: 'text', text: prompt });
 
     const response = await fetch(ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 1024 }
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        messages: [{ role: 'user', content: contentParts }],
+        temperature: 0.1,
+        max_tokens: 1024,
+        response_format: { type: 'json_object' }
       })
     });
 
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}));
       const msg = errBody?.error?.message || `HTTP ${response.status}`;
-      if (response.status === 400 && msg.includes('API_KEY')) {
-        throw new Error('API Key inválida. Verificá que copiaste la clave completa desde aistudio.google.com');
-      }
-      if (response.status === 403) {
-        throw new Error('API Key sin permisos para Gemini. Activá la API en Google AI Studio.');
-      }
-      if (response.status === 429) {
-        throw new Error('Límite de requests alcanzado. Esperá un momento e intentá de nuevo.');
-      }
+      if (response.status === 401) throw new Error('API Key inválida. Verificá en console.groq.com → API Keys.');
+      if (response.status === 429) throw new Error('Límite de requests alcanzado. Esperá 1 minuto e intentá de nuevo.');
+      if (response.status === 413) throw new Error('Imágenes demasiado grandes (máx 4MB). Reducí la resolución.');
       throw new Error(msg);
     }
 
     const data = await response.json();
 
-    // Guardia robusta: verificar estructura antes de acceder
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      const reason = data.promptFeedback?.blockReason || 'Sin candidatos en la respuesta';
-      throw new Error(`Gemini no devolvió análisis: ${reason}`);
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error('El modelo no devolvió respuesta válida. Intentá de nuevo.');
     }
 
-    const rawText = data.candidates[0].content.parts
-      .filter(p => p.text)
-      .map(p => p.text)
-      .join('');
-
-    // Limpiar markdown si el modelo lo puso igual
-    const cleanText = rawText
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim();
-
+    const rawText = data.choices[0].message.content;
+    const cleanText = rawText.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
     const parsed = JSON.parse(cleanText);
 
-    // Normalizar campos opcionales
     parsed.id   = Date.now();
     parsed.game = parsed.game || 'Pokémon TCG';
+    parsed.auth = parsed.auth || { estado: 'autentica', confianza: 85, flags: [] };
     parsed.auth.flags = parsed.auth.flags || [];
     if (!parsed.grading?.gv_class) {
-      parsed.grading = parsed.grading || {};
+      parsed.grading = parsed.grading || { rec: 'depende' };
       parsed.grading.gv_class = parsed.grading.rec === 'si' ? 'gv-si' : parsed.grading.rec === 'no' ? 'gv-no' : 'gv-dep';
     }
 
@@ -1071,14 +1024,13 @@ Los valores de esquinas son 0–30, bordes son 0–20. Sé preciso analizando la
     renderReport(parsed);
 
   } catch (err) {
-    console.error('Error Gemini Vision:', err);
-    alert(`❌ Error al analizar.\n\n${err.message}`);
+    console.error('Error Groq Vision:', err);
+    alert(`\u274c Error al analizar con Groq Vision.\n\n${err.message}`);
   } finally {
     loadingStatus.style.display = 'none';
     btnAnalyze.disabled = false;
   }
 }
-
 function renderSidebarList(activeId) {
   const list = document.getElementById('cardList');
   list.innerHTML = CARDS.map(c => {
@@ -1144,8 +1096,6 @@ let activeCardId = 1;
 renderSidebarList(1);
 renderBatch();
 renderReport(CARDS[0]);
-// Restaurar estado de API key
-if (GEMINI_API_KEY) { setTimeout(() => updateApiKeyUI(true), 50); }
 
 </script>
 </body>
