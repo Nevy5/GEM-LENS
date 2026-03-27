@@ -23,6 +23,7 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:15px; line-height:1.6; overflow:hidden; }
 
+/* LAYOUT */
 .app { display:grid; grid-template-columns:280px 1fr; height:100vh; }
 .sidebar { background:var(--bg2); border-right:0.5px solid var(--border); padding:20px 0; display:flex; flex-direction:column; overflow-y:auto; }
 .sidebar-logo { display:flex; align-items:center; gap:10px; padding:0 24px 24px; border-bottom:0.5px solid var(--border); }
@@ -36,26 +37,25 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
   display:flex; align-items:center; width:100%; padding:12px 24px; border:none; background:transparent; 
   cursor:pointer; font-family:var(--F); font-size:13px; color:var(--text2); border-left:2px solid transparent; transition:0.2s;
 }
+.tab-btn:hover { background:rgba(255,255,255,0.02); }
 .tab-btn.active { background:var(--golddim); color:var(--gold2); border-left-color:var(--gold); }
 
+/* MAIN */
 .main { padding:40px; overflow-y:auto; background:radial-gradient(circle at top right, #161614, #0b0b09); }
 .panel { display:none; max-width:1000px; margin:0 auto; animation: fadeIn 0.4s ease-out; }
 .panel.active { display:block; }
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-/* UPLOAD AREA */
+/* CARDS & UI */
 .upload-container { background:var(--bg2); border:1px dashed var(--goldborder); border-radius:12px; padding:40px; text-align:center; margin-bottom:32px; }
-.upload-title { font-family:var(--FD); font-size:28px; color:var(--gold); margin-bottom:8px; }
-.btn-upload { background:var(--surface); color:var(--text); padding:10px 24px; border-radius:6px; border:0.5px solid var(--border2); cursor:pointer; font-family:var(--FM); font-size:12px; }
+.btn-upload { background:var(--surface); color:var(--text); padding:10px 24px; border-radius:6px; border:0.5px solid var(--border2); cursor:pointer; font-size:12px; }
 .preview-strip { display:flex; justify-content:center; gap:12px; margin-top:24px; flex-wrap:wrap; }
 .preview-box { width:90px; height:125px; border-radius:6px; object-fit:cover; border:1px solid var(--border2); }
 .btn-run-ia { width:100%; max-width:400px; margin:32px auto 0; padding:16px; border:none; border-radius:8px; background:linear-gradient(135deg, var(--gold), var(--gold2)); color:var(--bg); font-family:var(--FD); font-size:20px; cursor:pointer; display:block; }
 .btn-run-ia:disabled { opacity:0.3; cursor:not-allowed; }
 
-/* REPORT ELEMENTS */
 .card-hero { background:var(--bg2); border:0.5px solid var(--border); border-radius:12px; padding:32px; margin-top:20px; }
-.hero-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; }
 .gls-value { font-family:var(--FD); font-size:80px; line-height:1; color:var(--gold2); }
 .metric-box { background:var(--bg3); padding:16px; border-radius:8px; border:0.5px solid var(--border); margin-bottom:10px; }
 .status-bar { height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; margin-top:8px; }
@@ -67,7 +67,8 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-logo"><div class="sidebar-gem"></div><span class="sidebar-logo-text">GEM LENS</span></div>
-    <div class="sidebar-section"><div class="sidebar-section-title">Análisis</div></div>
+    
+    <div class="sidebar-section"><div class="sidebar-section-title">Módulos</div></div>
     <button class="tab-btn active" onclick="switchTab('motor')">⚡ MOTOR DE IA</button>
     <button class="tab-btn" onclick="switchTab('vision')">👁️ VISIÓN DIRECTA</button>
   </aside>
@@ -75,13 +76,13 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
   <main class="main">
     <div class="panel active" id="panel-motor">
         <div class="upload-container">
-            <h2 class="upload-title">Laboratorio de Visión</h2>
-            <p style="color:var(--text3); margin-bottom:20px;">Subí las fotos para el análisis Gemini 1.5</p>
+            <h2 style="font-family:var(--FD); font-size:28px; color:var(--gold);">Laboratorio de Visión</h2>
+            <p style="color:var(--text3); margin-bottom:20px;">Subí tus fotos para el análisis Gemini 1.5 Flash</p>
             <input type="file" id="imageInput" multiple accept="image/*" style="display:none">
             <button class="btn-upload" onclick="document.getElementById('imageInput').click()">SELECCIONAR FOTOGRAFÍAS</button>
             <div class="preview-strip" id="previewStrip"></div>
             <button class="btn-run-ia" id="btnRun" disabled onclick="runGeminiAnalysis()">INICIAR ESCANEO</button>
-            <div id="loadingMsg" style="display:none; color:var(--gold2); margin-top:20px; font-family:var(--FM);">PROCESANDO...</div>
+            <div id="loadingMsg" style="display:none; color:var(--gold2); margin-top:20px; font-family:var(--FM);">CONECTANDO CON REDES NEURONALES...</div>
         </div>
         <div id="resultOutput"></div>
     </div>
@@ -89,16 +90,30 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
     <div class="panel" id="panel-vision">
         <div class="card-hero">
             <h2 style="font-family:var(--FD); color:var(--gold);">Visión Directa</h2>
-            <p>Módulo de inspección manual (Próximamente)</p>
+            <p>Módulo de inspección técnica manual (Próximamente).</p>
         </div>
     </div>
   </main>
 </div>
 
 <script>
-// CONFIGURACIÓN
+// CONFIGURACIÓN (API KEY)
 const GEMINI_API_KEY = "AIzaSyBQHZbd6NhbR6ADGYa0T7s6v715dpiy2hY"; 
 let currentImages = [];
+
+// NAVEGACIÓN
+function switchTab(tabId) {
+    // Quitar activos
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
+    // Activar seleccionado
+    document.getElementById('panel-' + tabId).classList.add('active');
+    
+    // Marcar botón como activo (buscamos el botón que disparó el evento)
+    const btn = event.currentTarget;
+    if (btn) btn.classList.add('active');
+}
 
 // MANEJO DE IMÁGENES
 document.getElementById('imageInput').addEventListener('change', function(e) {
@@ -108,7 +123,109 @@ document.getElementById('imageInput').addEventListener('change', function(e) {
         reader.onload = (ev) => {
             currentImages.push(ev.target.result);
             const img = document.createElement('img');
-            img.src =
-            <button class="btn-upload" onclick="document.getElementById('imageInput').click()">SELECCIONAR FOTOGRAFÍAS</button>
-            
-            <div class="preview
+            img.src = ev.target.result;
+            img.className = 'preview-box';
+            document.getElementById('previewStrip').appendChild(img);
+            document.getElementById('btnRun').disabled = false;
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+// MOTOR DE ANÁLISIS
+async function runGeminiAnalysis() {
+    const btn = document.getElementById('btnRun');
+    const loader = document.getElementById('loadingMsg');
+    btn.disabled = true;
+    loader.style.display = 'block';
+
+    const prompt = `Analizá estas fotos de una carta TCG. Respondé ÚNICAMENTE en JSON puro (sin texto extra ni markdown) con esta estructura exacta:
+    {
+        "name": "Nombre",
+        "set": "Set",
+        "gls": 9.5,
+        "glp": 480,
+        "metrics": {"centering": 9, "corners": 9.5, "edges": 10, "surface": 9},
+        "report": "Comentario en español rioplatense (che, impecable, etc)",
+        "ars": 50000
+    }`;
+
+    try {
+        const imageParts = currentImages.map(img => ({
+            inline_data: { mime_type: "image/jpeg", data: img.split(',')[1] }
+        }));
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }, ...imageParts] }]
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const rawText = data.candidates[0].content.parts[0].text;
+        
+        // Limpiar el JSON por si Gemini manda Markdown
+        const jsonStart = rawText.indexOf('{');
+        const jsonEnd = rawText.lastIndexOf('}') + 1;
+        const res = JSON.parse(rawText.substring(jsonStart, jsonEnd));
+
+        displayResult(res);
+
+    } catch (err) {
+        alert("Error de motor: " + err.message);
+    } finally {
+        btn.disabled = false;
+        loader.style.display = 'none';
+    }
+}
+
+function displayResult(res) {
+    const out = document.getElementById('resultOutput');
+    out.innerHTML = `
+        <div class="card-hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
+                <div>
+                    <h1 style="font-family:var(--FD); font-size:42px;">${res.name}</h1>
+                    <div style="color:var(--gold2); font-family:var(--FM); font-size:14px;">${res.set}</div>
+                </div>
+                <div style="text-align:right">
+                    <div class="gls-value">${res.gls}</div>
+                    <div style="font-size:10px; color:var(--text3); letter-spacing:2px;">GEM LENS SCORE</div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:24px;">
+                <div>
+                    ${Object.entries(res.metrics).map(([key, val]) => `
+                        <div class="metric-box">
+                            <div style="display:flex; justify-content:space-between; font-size:12px;">
+                                <span style="text-transform:uppercase; color:var(--text3);">${key}</span>
+                                <span style="font-family:var(--FM);">${val}</span>
+                            </div>
+                            <div class="status-bar"><div class="status-fill" style="width:${val * 10}%"></div></div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="background:var(--bg3); padding:24px; border-radius:8px; border:0.5px solid var(--border);">
+                    <div style="font-size:10px; color:var(--gold2); margin-bottom:12px; letter-spacing:1px;">ANÁLISIS TÉCNICO IA</div>
+                    <p style="font-size:13px; color:var(--text2); line-height:1.7; margin-bottom:20px;">${res.report}</p>
+                    <div style="border-top:1px solid var(--border); padding-top:15px;">
+                        <span style="font-size:11px; color:var(--text3);">VALOR ESTIMADO</span>
+                        <div style="font-family:var(--FD); font-size:28px; color:var(--gold);">$${res.ars.toLocaleString('es-AR')} ARS</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Limpiar para el siguiente
+    currentImages = [];
+    document.getElementById('previewStrip').innerHTML = '';
+}
+</script>
+</body>
+</html>
