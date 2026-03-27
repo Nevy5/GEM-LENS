@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gem Lens — Motor de Análisis v2.1</title>
+<title>Gem Lens — Motor de Análisis v2.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -369,6 +369,38 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
 .loading-overlay::after { content: ''; animation: dots 1.4s steps(4,end) infinite; }
 @keyframes dots { 0%,20%{content:'.'} 40%{content:'..'} 60%,80%{content:'...'} 100%{content:''} }
 
+/* ── API KEY BLOCK ── */
+.apikey-block {
+  background:var(--bg2); border:0.5px solid var(--goldborder);
+  border-radius:8px; padding:16px 18px; margin-bottom:20px;
+  display:flex; flex-direction:column; gap:10px;
+}
+.apikey-header { display:flex; align-items:center; gap:8px; }
+.apikey-dot { width:7px; height:7px; border-radius:50%; background:var(--gold3); flex-shrink:0; transition:background .3s, box-shadow .3s; }
+.apikey-dot.connected { background:var(--teal); box-shadow:0 0 8px var(--teal); }
+.apikey-label { font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text3); }
+.apikey-status { font-size:10px; font-family:var(--FM); margin-left:auto; }
+.apikey-status.ok  { color:var(--teal); }
+.apikey-status.off { color:var(--text3); }
+.apikey-row { display:flex; gap:8px; }
+.apikey-input {
+  flex:1; background:var(--bg3); border:0.5px solid var(--border2);
+  border-radius:4px; padding:9px 12px; color:var(--text);
+  font-family:var(--FM); font-size:12px; letter-spacing:0.5px;
+  outline:none; transition:border-color .2s;
+}
+.apikey-input:focus { border-color:var(--goldborder); }
+.apikey-input::placeholder { color:var(--text3); letter-spacing:0; }
+.apikey-save {
+  background:var(--gold3); color:var(--gold2); border:0.5px solid var(--goldborder);
+  border-radius:4px; padding:9px 14px; font-family:var(--FD); font-size:13px;
+  letter-spacing:1px; cursor:pointer; transition:background .2s; white-space:nowrap;
+}
+.apikey-save:hover { background:var(--gold); color:var(--bg); }
+.apikey-hint { font-size:11px; color:var(--text3); font-weight:300; line-height:1.5; }
+.apikey-hint a { color:var(--gold2); text-decoration:none; }
+.apikey-hint a:hover { text-decoration:underline; }
+
 /* RESPONSIVE */
 @media(max-width:900px) {
   .app { grid-template-columns:1fr; }
@@ -427,9 +459,37 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
 
 <script>
 // ═══════════════════════════════════════════════
-//  MOTOR: Claude Vision API (Anthropic)
-//  Modelo: claude-sonnet-4-20250514
+//  MOTOR: Gemini 2.0 Flash Vision (Google AI)
+//  CORS-compatible · Gratuito 1500 req/día
+//  API Key ingresada por el usuario · localStorage
 // ═══════════════════════════════════════════════
+
+let GEMINI_API_KEY = localStorage.getItem('gem_lens_apikey') || '';
+
+function saveApiKey() {
+  const input = document.getElementById('apikeyInput');
+  const val = input.value.trim();
+  if (!val) return;
+  GEMINI_API_KEY = val;
+  localStorage.setItem('gem_lens_apikey', val);
+  updateApiKeyUI(true);
+  input.value = '';
+}
+
+function updateApiKeyUI(connected) {
+  const dot = document.getElementById('apikeyDot');
+  const lbl = document.getElementById('apikeyStatusLabel');
+  if (!dot || !lbl) return;
+  if (connected) {
+    dot.classList.add('connected');
+    lbl.textContent = 'CLAVE GUARDADA';
+    lbl.className = 'apikey-status ok';
+  } else {
+    dot.classList.remove('connected');
+    lbl.textContent = 'Sin clave';
+    lbl.className = 'apikey-status off';
+  }
+}
 
 // ═══════════════════════════════════════════════
 //  DATA — 10 SAMPLE CARDS
@@ -698,14 +758,29 @@ function renderReport(card) {
       </div>
     </div>
 
+    <div class="apikey-block" id="apikeyBlock">
+      <div class="apikey-header">
+        <div class="apikey-dot" id="apikeyDot"></div>
+        <span class="apikey-label">Motor · Gemini 2.0 Flash Vision</span>
+        <span class="apikey-status off" id="apikeyStatusLabel">Sin clave</span>
+      </div>
+      <div class="apikey-row">
+        <input class="apikey-input" type="password" id="apikeyInput" placeholder="AIza... · Pegá tu Gemini API Key" autocomplete="off">
+        <button class="apikey-save" onclick="saveApiKey()">GUARDAR</button>
+      </div>
+      <div class="apikey-hint">
+        Clave gratuita en <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> — 1500 req/día sin costo. Se guarda localmente en tu navegador.
+      </div>
+    </div>
+
     <div class="upload-zone" id="dropZone">
       <h2>Subí fotos de tu carta (frente, reverso, esquinas)</h2>
-      <p>Soportamos JPG, PNG y WEBP. Máx. 4 fotos. Motor: Claude Vision AI.</p>
+      <p>Soportamos JPG, PNG y WEBP. Máx. 4 fotos. Motor: Gemini 2.0 Flash Vision.</p>
       <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
       <div class="btn-select" onclick="document.getElementById('fileInput').click()">Seleccionar fotos</div>
       <div class="preview-row" id="previewRow"></div>
-      <button class="btn-analyze" id="btnAnalyze" disabled onclick="analyzeImages()">ANALIZAR CON CLAUDE VISION</button>
-      <div id="loadingStatus" class="loading-overlay" style="display:none">CONECTANDO CON CLAUDE VISION · PROCESANDO IMÁGENES...</div>
+      <button class="btn-analyze" id="btnAnalyze" disabled onclick="analyzeImages()">ANALIZAR CON GEMINI VISION</button>
+      <div id="loadingStatus" class="loading-overlay" style="display:none">PROCESANDO CON GEMINI 2.0 FLASH</div>
     </div>
 
     <div class="auth-block ${isFake?'fail':'ok'}">
@@ -830,7 +905,7 @@ function renderReport(card) {
     </div>
 
     <div class="disclaimer">
-      Este análisis es una inferencia computacional basada en visión artificial (Claude Vision AI) y datos de mercado. Gem Lens no es una entidad oficial de grading.
+      Este análisis es una inferencia computacional basada en visión artificial (Gemini 2.0 Flash Vision) y datos de mercado. Gem Lens no es una entidad oficial de grading.
     </div>
   `;
 
@@ -838,6 +913,9 @@ function renderReport(card) {
 }
 
 function setupUploadLogic() {
+  // Restaurar estado visual de la API key tras cada re-render
+  if (GEMINI_API_KEY) updateApiKeyUI(true);
+
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
   const previewRow = document.getElementById('previewRow');
@@ -884,105 +962,120 @@ function setupUploadLogic() {
 }
 
 async function analyzeImages() {
-  const btnAnalyze = document.getElementById('btnAnalyze');
+  const btnAnalyze  = document.getElementById('btnAnalyze');
   const loadingStatus = document.getElementById('loadingStatus');
+
+  if (!GEMINI_API_KEY) {
+    alert('⚠️ Necesitás una Gemini API Key.\n\nIngresala en el campo de arriba. Es gratis en aistudio.google.com');
+    return;
+  }
+  if (uploadedImages.length === 0) {
+    alert('⚠️ Primero subí al menos una foto de la carta.');
+    return;
+  }
 
   btnAnalyze.disabled = true;
   loadingStatus.style.display = 'block';
-  loadingStatus.innerHTML = 'CONECTANDO CON CLAUDE VISION · PROCESANDO IMÁGENES...';
 
   const prompt = `Actuá como un Lead Grading Specialist de PSA. Analizá estas fotos de una carta TCG.
 Extraé los datos técnicos con máxima precisión visual.
-IMPORTANTE: Respondé ÚNICAMENTE con un JSON puro (sin markdown, sin bloques de código, sin texto antes ni después) con esta estructura exacta:
+IMPORTANTE: Respondé ÚNICAMENTE con un JSON puro, sin markdown, sin bloques de código, sin texto antes ni después. Solo el objeto JSON:
 {
   "name": "Nombre Exacto de la Carta",
   "set": "Set · Numero · Idioma · Año",
   "game": "Pokémon TCG",
-  "auth": {"estado": "autentica", "confianza": 0-100, "flags": []},
-  "centering": {"h": "XX/XX", "v": "XX/XX"},
-  "esquinas": {"TL": 0-30, "TR": 0-30, "BL": 0-30, "BR": 0-30},
-  "bordes": {"top": 0-20, "bottom": 0-20, "left": 0-20, "right": 0-20},
-  "superficie": {"scratches": "descripción breve o ninguno", "print_lines": "descripción o ninguno", "stains": "descripción o ninguno", "dents": "descripción o ninguno"},
-  "color": {"saturacion": "excelente|buena|reducida", "nitidez": "excelente|buena|reducida", "fading": "ninguno|descripción"},
-  "notas": "Un párrafo corto en español rioplatense analizando el estado físico y si conviene gradear.",
-  "mercado": {"usd_nm": valor_numerico_en_dolares, "ars": valor_numerico_en_pesos},
-  "grading": {"rec": "si|no|depende", "gv_class": "gv-si|gv-no|gv-dep"}
+  "auth": {"estado": "autentica", "confianza": 95, "flags": []},
+  "centering": {"h": "52/48", "v": "51/49"},
+  "esquinas": {"TL": 28, "TR": 28, "BL": 28, "BR": 28},
+  "bordes": {"top": 19, "bottom": 19, "left": 19, "right": 19},
+  "superficie": {"scratches": "ninguno", "print_lines": "ninguno", "stains": "ninguno", "dents": "ninguno"},
+  "color": {"saturacion": "excelente", "nitidez": "excelente", "fading": "ninguno"},
+  "notas": "Párrafo en español rioplatense sobre el estado físico y si conviene gradear.",
+  "mercado": {"usd_nm": 100, "ars": 150000},
+  "grading": {"rec": "si", "gv_class": "gv-si"}
 }
-Si detectás una falsificación, usá "falsificacion_detectada" en auth.estado y listá los flags técnicos detectados.`;
+Si es falsificación: auth.estado = "falsificacion_detectada" y listá los flags técnicos.
+Los valores de esquinas son 0–30, bordes son 0–20. Sé preciso analizando la imagen.`;
 
   try {
-    // Construir bloques de imagen para la API de Anthropic
-    const imageBlocks = uploadedImages.map(base64DataUrl => {
-      const [header, data] = base64DataUrl.split(',');
-      // Detectar MIME type real desde el data URL
-      const mimeMatch = header.match(/data:([^;]+);/);
-      const mimeType = (mimeMatch && mimeMatch[1]) ? mimeMatch[1] : 'image/jpeg';
-      // Anthropic solo acepta jpeg, png, gif, webp
-      const validMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      const finalMime = validMimes.includes(mimeType) ? mimeType : 'image/jpeg';
-      return {
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: finalMime,
-          data: data
-        }
-      };
-    });
+    // Gemini 2.0 Flash — CORS habilitado para browsers
+    const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+    const parts = [{ text: prompt }];
+
+    // Agregar imágenes como inline_data
+    for (const dataUrl of uploadedImages) {
+      const [header, data] = dataUrl.split(',');
+      const mimeMatch = header.match(/data:([^;]+);/);
+      const validMimes = ['image/jpeg','image/png','image/gif','image/webp'];
+      const mime = (mimeMatch && validMimes.includes(mimeMatch[1])) ? mimeMatch[1] : 'image/jpeg';
+      parts.unshift({ inline_data: { mime_type: mime, data } });
+    }
+
+    const response = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [
-          {
-            role: "user",
-            content: [
-              ...imageBlocks,
-              { type: "text", text: prompt }
-            ]
-          }
-        ]
+        contents: [{ parts }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 1024 }
       })
     });
 
     if (!response.ok) {
-      const errBody = await response.text();
-      throw new Error(`API error ${response.status}: ${errBody}`);
+      const errBody = await response.json().catch(() => ({}));
+      const msg = errBody?.error?.message || `HTTP ${response.status}`;
+      if (response.status === 400 && msg.includes('API_KEY')) {
+        throw new Error('API Key inválida. Verificá que copiaste la clave completa desde aistudio.google.com');
+      }
+      if (response.status === 403) {
+        throw new Error('API Key sin permisos para Gemini. Activá la API en Google AI Studio.');
+      }
+      if (response.status === 429) {
+        throw new Error('Límite de requests alcanzado. Esperá un momento e intentá de nuevo.');
+      }
+      throw new Error(msg);
     }
 
     const data = await response.json();
 
-    // Extraer texto de la respuesta con manejo robusto
-    const rawText = data.content
-      .filter(block => block.type === "text")
-      .map(block => block.text)
-      .join("");
+    // Guardia robusta: verificar estructura antes de acceder
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      const reason = data.promptFeedback?.blockReason || 'Sin candidatos en la respuesta';
+      throw new Error(`Gemini no devolvió análisis: ${reason}`);
+    }
 
-    // Limpiar posibles bloques markdown y parsear JSON
-    const cleanText = rawText.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+    const rawText = data.candidates[0].content.parts
+      .filter(p => p.text)
+      .map(p => p.text)
+      .join('');
+
+    // Limpiar markdown si el modelo lo puso igual
+    const cleanText = rawText
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+
     const parsed = JSON.parse(cleanText);
 
-    // Asignar ID temporal y campos opcionales faltantes
-    parsed.id = Date.now();
-    if (!parsed.game) parsed.game = "Pokémon TCG";
-    if (!parsed.auth.flags) parsed.auth.flags = [];
+    // Normalizar campos opcionales
+    parsed.id   = Date.now();
+    parsed.game = parsed.game || 'Pokémon TCG';
+    parsed.auth.flags = parsed.auth.flags || [];
+    if (!parsed.grading?.gv_class) {
+      parsed.grading = parsed.grading || {};
+      parsed.grading.gv_class = parsed.grading.rec === 'si' ? 'gv-si' : parsed.grading.rec === 'no' ? 'gv-no' : 'gv-dep';
+    }
 
-    // Limpiar imágenes subidas y renderizar reporte
     uploadedImages = [];
     renderReport(parsed);
 
-  } catch (error) {
-    console.error("Error Claude Vision:", error);
-    const msg = error.message || "Error desconocido";
-    alert(`❌ Error al analizar con Claude Vision.\n\n${msg}\n\nVerificá la consola para más detalles.`);
+  } catch (err) {
+    console.error('Error Gemini Vision:', err);
+    alert(`❌ Error al analizar.\n\n${err.message}`);
   } finally {
     loadingStatus.style.display = 'none';
-    btnAnalyze.disabled = uploadedImages.length === 0;
+    btnAnalyze.disabled = false;
   }
 }
 
@@ -1051,6 +1144,8 @@ let activeCardId = 1;
 renderSidebarList(1);
 renderBatch();
 renderReport(CARDS[0]);
+// Restaurar estado de API key
+if (AIzaSyBQHZbd6NhbR6ADGYa0T7s6v715dpiy2hY) { setTimeout(() => updateApiKeyUI(true), 50); }
 
 </script>
 </body>
