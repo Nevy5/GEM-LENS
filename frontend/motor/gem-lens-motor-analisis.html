@@ -750,73 +750,119 @@ Para mercado.usd_nm: precio aproximado NM en dólares en TCGPlayer/eBay. Si no l
     //  PASO 2 — Análisis hipercrítico de condición
     // ══════════════════════════════════════════════
     const cardName = cardId.name || 'esta carta TCG';
-    const PROMPT_CONDITION = `Sos el grader más riguroso y honesto de PSA. Estás analizando: "${cardName}" (${cardId.variante || ''}).
+    Revisando el sistema de scoring del documento maestro para entender los criterios exactos:
+El problema es claro — el PROMPT_CONDITION le dice al modelo cómo puntuar pero no le da suficiente contexto de por qué debe ser estricto. Los modelos de visión tienden al optimismo por defecto, hay que contrarrestarlo explícitamente.
+El fix principal está en tres cosas:
+1. El modelo necesita anclas visuales concretas, no solo rangos numéricos
+"whitening leve visible a 20cm" es subjetivo. Necesitás decirle comportamientos específicos.
+2. Falta una penalización explícita por "beneficio de la duda"
+Actualmente si no ve claro un defecto, asume que no existe. Hay que invertir eso.
+3. Los rangos de condición final son demasiado amplios y permisivos
+NM está definido muy fácil de alcanzar.
+Reemplazá solo PROMPT_CONDITION por esto:
+javascriptconst PROMPT_CONDITION = `Sos un grader certificado PSA con criterio extremadamente estricto. Estás analizando: "${cardName}" (${cardId.variante || ''}).
 
-ANALISIS ZONA POR ZONA — seguí este orden exacto:
+MENTALIDAD CORRECTA ANTES DE EMPEZAR:
+- PSA rechaza el 60-70% de las cartas que los coleccionistas creen que son NM.
+- Una carta "perfecta a simple vista" casi siempre tiene whitening en al menos 1 esquina bajo buena luz.
+- Tu trabajo es encontrar defectos, no confirmar que la carta está bien.
+- Si tenés dudas sobre si hay un defecto o no → asumí que SÍ hay defecto y penalizá.
+- Una carta genuinamente NM es rarísima. LP es lo más común en cartas manejadas con cuidado.
 
-━━ ESQUINAS (las más importantes en grading) ━━
-Mirá cada una de las 4 esquinas individualmente y describí lo que ves:
-- ¿Hay whitening? (decoloración blanca en la punta) → leve/moderado/severo
-- ¿Hay doblez o quiebre visible?
-- ¿Falta algún fragmento (chip)?
+ANÁLISIS ZONA POR ZONA (obligatorio, en este orden):
 
-Puntuación por esquina (0-30):
-30 = perfecta bajo cualquier luz
-27-29 = micro-whitening solo visible con lupa o en ángulo
-22-26 = whitening leve visible a 20cm
-15-21 = whitening moderado claramente visible
-8-14 = whitening severo o doblez leve
-0-7 = doblez marcado, chip o esquina rota
+━━ 1. ESQUINAS — las más críticas ━━
+Mirá cada esquina con máxima atención. Buscás activamente:
+→ Whitening: ¿el borde de la punta se ve más claro/blanco que el resto del borde negro? Hasta el más mínimo es penalizable.
+→ Doblez: ¿hay una línea diagonal cerca de la esquina?
+→ Chip: ¿falta un fragmento?
+→ Aplastamiento: ¿la punta se ve achatada en vez de puntiaguda?
 
-━━ BORDES (4 bordes por separado) ━━
-- ¿Hay roughness (aspereza/irregularidad en el corte)?
-- ¿Whitening lineal a lo largo del borde?
-- ¿Cuts o abolladuras puntuales?
+ESCALA ESTRICTA por esquina (0-30):
+30 = absolutamente perfecta, punta afilada, sin ningún blanco extra, imposible de mejorar
+28-29 = micro-whitening SOLO detectable con lupa 10x, invisible a ojo desnudo
+24-27 = whitening muy leve pero visible si mirás directo a la esquina con buena luz
+18-23 = whitening claramente visible, la punta no es negra pura
+10-17 = whitening obvio o doblez leve
+3-9 = doblez marcado, chip o whitening severo
+0-2 = esquina destruida
 
-Puntuación por borde (0-20):
-20 = perfectamente liso
-17-19 = roughness mínimo solo táctil
-13-16 = roughness leve visible
-8-12 = whitening lineal o roughness moderado
-0-7 = whitening severo, cuts o daño claro
+REGLA: Si la foto no te permite ver la esquina con claridad → ponés 20 máximo (no le das el beneficio de la duda).
 
-━━ SUPERFICIE FRENTE ━━
-- Zona holográfica: ¿scratches visibles a simple vista? ¿solo en ángulo? ¿severos?
-- Arte/texto: ¿print lines (líneas de impresión de fábrica)? ¿manchas? ¿indentaciones?
-- Nota: los print lines son defectos de fábrica, no de uso, pero igualmente bajan el score
+━━ 2. BORDES — los 4 por separado ━━
+Buscás activamente:
+→ Roughness: ¿el borde se ve irregular, áspero, no perfectamente liso?
+→ Whitening lineal: ¿hay zonas claras a lo largo del borde negro?
+→ Cuts: ¿hay indentaciones puntuales?
 
-━━ SUPERFICIE REVERSO (si hay foto, sino escribí "no disponible") ━━
-- Mismos criterios que el frente
+ESCALA por borde (0-20):
+20 = perfectamente liso y negro puro en toda su extensión
+18-19 = mínimo roughness táctil, invisible en foto
+14-17 = roughness leve visible en la foto
+9-13 = whitening lineal o roughness moderado visible
+4-8 = daño claro
+0-3 = borde muy dañado
 
-━━ CENTERING ━━
-Estimá visualmente qué porcentaje del borde total ocupa cada lado:
-- Horizontal: borde izquierdo vs borde derecho (ej: 55/45 significa izq tiene 55% del espacio de borde)
-- Vertical: borde superior vs borde inferior
-- Perfecto sería 50/50. Más de 65/35 es penalizante para grading.
+REGLA: Si la foto muestra el borde borroso o en ángulo → ponés 14 máximo.
 
-━━ COLOR Y FRESCURA ━━
-- ¿Los colores se ven vivos y saturados o apagados/decolorados?
-- ¿El texto y el arte se ven nítidos?
-- ¿Hay amarillamiento (especialmente en cartas antiguas)?
+━━ 3. SUPERFICIE FRENTE ━━
+(0-100 puntos totales, empezás en 100 y restás)
 
-━━ REGLA DE HONESTIDAD ━━
-Sé hipercrítico. Los graders de PSA rechazan cartas que parecen NM a primera vista.
-Si la foto no tiene suficiente resolución o ángulo para evaluar una zona específica, escribí "foto insuficiente" en ese campo y bajá el nivel de confianza.
-NO inventes una evaluación positiva para compensar una foto mala.
+Scratches en zona holo/foil:
+- Ninguno visible en ningún ángulo → 0 puntos menos
+- Solo visibles en ángulo extremo → -6
+- Visibles con iluminación normal → -16
+- Claramente visibles a simple vista → -26
+- Scratches severos o abundantes → -35 a -50
 
-━━ CONDICIÓN FINAL ━━
-Solo después de analizar todas las zonas, asigná:
-- NM: prácticamente perfecta, cualquier defecto imperceptible a simple vista
-- LP: desgaste leve visible, carta presentable para colección
-- MP: desgaste claramente visible, jugable pero no ideal para colección
-- HP: daño significativo y obvio
-- DMG: daño severo (rasgaduras, manchas de agua, quiebres)
+Print lines (líneas horizontales de impresión, defecto de fábrica):
+- Ninguno → 0
+- Uno o dos finos → -8
+- Múltiples o gruesos → -16
 
-Respondé SOLO con JSON puro, sin markdown:
+Manchas/stains:
+- Ninguna → 0
+- Mancha leve → -12
+- Mancha notable → -20
+
+Dents/indentaciones:
+- Ninguno → 0
+- Dent leve → -12
+- Dent notable → -20
+
+━━ 4. REVERSO ━━
+Si hay foto: aplicá los mismos criterios de superficie. Si no hay foto: escribí "no disponible" y anotalo como limitación.
+
+━━ 5. CENTERING ━━
+Estimá el ratio borde mayor / borde menor en cada eje.
+Horizontal: borde izquierdo vs derecho (ej: 55/45)
+Vertical: borde superior vs inferior
+Sé conservador: si parece 55/45 pero podría ser 58/42, escribí 58/42.
+
+━━ 6. COLOR Y FRESCURA ━━
+- Saturación: ¿los colores se ven vivos como una carta nueva?
+- Nitidez: ¿el texto y los bordes del arte están bien definidos?
+- Fading: especialmente en cartas antiguas, ¿hay amarillamiento?
+
+━━ CONDICIÓN FINAL — criterios estrictos ━━
+NM (Near Mint): TODAS las esquinas 26+, TODOS los bordes 17+, sin scratches visibles a simple vista, centering máximo 58/42. Muy pocas cartas califican.
+LP (Lightly Played): 1-2 esquinas con whitening leve (20-25), bordes con roughness leve, micro-scratches solo en ángulo. La condición más común en cartas "bien cuidadas".
+MP (Moderately Played): Whitening moderado en 2+ esquinas, roughness visible en bordes, scratches visibles sin ángulo especial.
+HP (Heavily Played): Whitening severo, dobleces visibles, scratches abundantes.
+DMG (Damaged): Quiebres, rasgaduras, manchas de agua severas.
+
+━━ NOTAS NARRATIVAS ━━
+Escribí 4-5 oraciones en español rioplatense describiendo:
+- Qué defectos específicos encontraste en cada zona
+- Por qué asignaste esa condición y no una mejor
+- Si hay alguna zona que no pudiste evaluar bien y por qué
+- Recomendación de grading honesta considerando condición y valor estimado
+
+Respondé SOLO con JSON puro, sin markdown ni texto extra:
 {
   "centering": { "h": "55/45", "v": "52/48" },
   "esquinas": {
-    "TL": 0, "TL_detalle": "descripción de qué viste en esta esquina",
+    "TL": 0, "TL_detalle": "descripción exacta de qué viste",
     "TR": 0, "TR_detalle": "",
     "BL": 0, "BL_detalle": "",
     "BR": 0, "BR_detalle": ""
@@ -828,7 +874,8 @@ Respondé SOLO con JSON puro, sin markdown:
     "right": 0, "right_detalle": ""
   },
   "superficie": {
-    "scratches": "descripción exacta — dónde, qué tan visibles, en qué ángulo",
+    "puntos": 0,
+    "scratches": "descripción exacta — dónde, visibilidad, ángulo necesario",
     "print_lines": "ninguno | descripción",
     "stains": "ninguno | descripción y ubicación",
     "dents": "ninguno | descripción"
@@ -840,12 +887,12 @@ Respondé SOLO con JSON puro, sin markdown:
     "fading": "ninguno|leve|moderado|severo"
   },
   "condicion_texto": "NM|LP|MP|HP|DMG",
-  "notas": "Análisis narrativo en español rioplatense: describí los defectos específicos que encontraste zona por zona, explicá por qué asignaste esa condición, y decí si conviene gradear basándote en lo que ves. 4-5 oraciones.",
-  "limitaciones_foto": "ninguna | descripción de qué no pudiste evaluar bien por calidad de foto",
+  "notas": "",
+  "limitaciones_foto": "ninguna | qué zonas no pudiste evaluar bien y por qué",
   "grading": {
     "rec": "si|no|depende",
     "gv_class": "gv-si|gv-no|gv-dep",
-    "nota_grading": "una oración explicando la recomendación de grading"
+    "nota_grading": "una oración honesta sobre si conviene gradear"
   }
 }`;
 
