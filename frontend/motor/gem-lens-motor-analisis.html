@@ -955,7 +955,7 @@ function condBadgeStyle(cond) {
 // ═══════════════════════════════════════════
 function renderLiveResult(card) {
   const liveResult = document.getElementById('liveResult');
-  const s = computeGLP(card);
+  const s = computeGLPFromAI(card);
   const glpTotal = typeof s === 'object' ? s.total : s;
   const gls = getGLS(glpTotal);
   const isFake = card.isFake || (card.auth && card.auth.estado === 'falsificacion_detectada');
