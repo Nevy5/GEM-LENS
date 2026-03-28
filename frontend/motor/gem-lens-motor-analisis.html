@@ -387,7 +387,7 @@ body { font-family:var(--F); background:var(--bg); color:var(--text); font-size:
 
 <script>
 // ═══════════════════════════════════════════
-//  SAMPLE CARDS DATA
+//  SAMPLE CARDS DATA — no tocar
 // ═══════════════════════════════════════════
 const CARDS = [
   { id:1, name:"Charizard VMAX — Rainbow Rare", set:"Darkness Ablaze · 074/189 · EN · 2020", game:"Pokémon TCG",
@@ -471,6 +471,8 @@ const CARDS = [
 // ═══════════════════════════════════════════
 //  SCORING ENGINE
 // ═══════════════════════════════════════════
+
+// Usado solo para los cards de ejemplo (datos fijos estructurados)
 function centeringGLP(ratio) {
   if (!ratio || ratio === "N/A") return 0;
   const parts = ratio.split('/').map(Number);
@@ -512,6 +514,7 @@ function edgesGLP(b) {
   return (b.top || 0) + (b.bottom || 0) + (b.left || 0) + (b.right || 0);
 }
 
+// Para los cards de ejemplo con datos fijos
 function computeGLP(card) {
   if (card.isFake || (card.auth && card.auth.estado === "falsificacion_detectada")) return 0;
   const cH = centeringGLP(card.centering ? card.centering.h : null);
@@ -523,37 +526,101 @@ function computeGLP(card) {
   return { total: cH+cV+corn+edge+surf+col, cH, cV, corn, edge, surf, col };
 }
 
-function computeGLPFromAI(card) {
+// ─────────────────────────────────────────────────────────────
+//  SCORING DESDE CONDICIÓN TEXTUAL DE LA IA
+//  En vez de confiar en números que Groq puede inflar,
+//  calculamos el GLP a partir de la condición que declaró
+//  el modelo + los datos de centering que sí son confiables.
+// ─────────────────────────────────────────────────────────────
+function computeGLPFromCondicion(card) {
   if (card.isFake || (card.auth && card.auth.estado === 'falsificacion_detectada')) {
     return { total: 0, cH: 0, cV: 0, corn: 0, edge: 0, surf: 0, col: 0 };
   }
 
+  // 1. Centering — sigue siendo calculado matemáticamente, es confiable
   const cH = centeringGLP(card.centering ? card.centering.h : null);
   const cV = centeringGLP(card.centering ? card.centering.v : null);
 
-  const corn = card.esquinas
-    ? (card.esquinas.TL || 0) + (card.esquinas.TR || 0) +
-      (card.esquinas.BL || 0) + (card.esquinas.BR || 0)
-    : 0;
+  // 2. Scores base por condición declarada
+  //    Mapeamos la condición a rangos realistas de GLP
+  const condicion = (card.condicion_texto || 'LP').toUpperCase();
+  let corn, edge, surf, col;
 
-  const edge = card.bordes
-    ? (card.bordes.top || 0) + (card.bordes.bottom || 0) +
-      (card.bordes.left || 0) + (card.bordes.right || 0)
-    : 0;
-
-  let surf = 0;
-  if (card.superficie && card.superficie.puntos !== undefined && card.superficie.puntos > 0) {
-    surf = card.superficie.puntos;
-  } else {
-    surf = surfaceGLP(card.superficie);
+  switch (condicion) {
+    case 'NM':
+      // Near Mint: esquinas casi perfectas, bordes muy limpios
+      corn = 104; // ~26/30 por esquina promedio
+      edge = 68;  // ~17/20 por borde promedio
+      surf = 88;
+      col  = 76;
+      break;
+    case 'LP':
+      // Lightly Played: whitening leve en 1-2 esquinas
+      corn = 84;  // ~21/30 promedio
+      edge = 58;  // ~14.5/20 promedio
+      surf = 72;
+      col  = 70;
+      break;
+    case 'MP':
+      // Moderately Played: whitening moderado, roughness visible
+      corn = 60;  // ~15/30 promedio
+      edge = 44;  // ~11/20 promedio
+      surf = 55;
+      col  = 60;
+      break;
+    case 'HP':
+      // Heavily Played: daño severo
+      corn = 32;  // ~8/30 promedio
+      edge = 24;  // ~6/20 promedio
+      surf = 30;
+      col  = 45;
+      break;
+    case 'DMG':
+      // Damaged: carta destruida
+      corn = 10;
+      edge = 8;
+      surf = 10;
+      col  = 20;
+      break;
+    default:
+      corn = 84; edge = 58; surf = 72; col = 70; // LP por defecto
   }
 
-  const col = colorGLP(card.color);
+  // 3. Ajuste fino por detalles de superficie reportados por la IA
+  //    Penalizaciones adicionales si el modelo describió problemas específicos
+  if (card.superficie) {
+    const sc = (card.superficie.scratches || '').toLowerCase();
+    const st = (card.superficie.stains || '').toLowerCase();
+    const pl = (card.superficie.print_lines || '').toLowerCase();
+    const dn = (card.superficie.dents || '').toLowerCase();
+
+    if (sc.includes('severo') || sc.includes('abundante')) surf = Math.max(0, surf - 20);
+    else if (sc.includes('moderado') || sc.includes('claramente')) surf = Math.max(0, surf - 10);
+    else if (sc.includes('micro') || sc.includes('ángulo')) surf = Math.max(0, surf - 3);
+
+    if (st !== 'ninguno' && st !== '' && !st.includes('no disponible')) surf = Math.max(0, surf - 10);
+    if (pl !== 'ninguno' && pl !== '' && !pl.includes('no disponible')) surf = Math.max(0, surf - 6);
+    if (dn !== 'ninguno' && dn !== '' && !dn.includes('no disponible')) surf = Math.max(0, surf - 8);
+  }
+
+  // 4. Ajuste por color
+  if (card.color) {
+    if ((card.color.saturacion || '').includes('reducida')) col = Math.max(0, col - 15);
+    if ((card.color.fading || '') === 'moderado') col = Math.max(0, col - 10);
+    if ((card.color.fading || '') === 'severo') col = Math.max(0, col - 20);
+  }
+
+  // 5. Ajuste por limitaciones de foto (si la foto era mala, penalizamos levemente)
+  const limitaciones = (card.limitaciones_foto || '').toLowerCase();
+  if (limitaciones && limitaciones !== 'ninguna' && limitaciones.length > 5) {
+    corn = Math.max(0, corn - 8);
+    edge = Math.max(0, edge - 4);
+  }
 
   const total = cH + cV + corn + edge + surf + col;
   return { total, cH, cV, corn, edge, surf, col };
 }
-  
+
 function getGLS(glp) {
   if (typeof glp === 'object') glp = glp.total;
   if (glp >= 480) return 10;
@@ -731,67 +798,53 @@ async function analyzeWithGroq() {
     //  PASO 1 — Identificación de la carta
     // ══════════════════════════════════════════════
 const PROMPT_ID = `Sos un experto certificado en TCG coleccionables. Año: 2026.
-
 Tu tarea es IDENTIFICAR la carta en la imagen con máxima precisión.
 
 INSTRUCCIONES GENERALES:
 1. Mirá el nombre, set, número de colección y símbolo de rareza.
-3. Detectá el idioma por tipografía: EN / JP / ES / PT / KR
-4. Estimá el precio NM en USD basándote en tu conocimiento de mercado TCG 2025-2026.
-   - Si es una carta conocida y podés dar un número confiable, ponelo.
-   - Si no estás seguro, usá -1 en usd_nm y explicá en una nota.
+2. Detectá el idioma por tipografía: EN / JP / ES / PT / KR
+3. Estimá el precio NM en USD basándote en tu conocimiento de mercado TCG 2025-2026.
+   Si es una carta conocida y podés dar un número confiable, ponelo. Si no, usá -1.
 
 IDENTIFICACIÓN DE VARIANTES POKÉMON — MUY IMPORTANTE:
 Antes de definir la variante, respondete estas preguntas mirando la carta:
 
-A) ¿Tiene número de set impreso? (ej: 4/102, 025/025, SWSH001)
-   → Si tiene barra diagonal es numerada. Si tiene solo número o código especial, es promo.
+A) ¿Qué símbolo de set tiene en la parte inferior derecha?
+   → Cada set tiene su propio símbolo. El de Celebrations es un globo/diamante especial.
+   → El Base Set original no tiene símbolo o tiene el símbolo de Wizards.
 
-B) ¿Qué símbolo de set tiene en la parte inferior derecha?
-   → Cada set tiene su propio símbolo. Identificalo con cuidado.
-   → El símbolo de Celebrations es un globo/diamante especial. El de Base Set no tiene símbolo o tiene el símbolo original de Wizards.
+B) ¿Tiene algún logo o ícono adicional en el borde o esquina de la ilustración?
+   → Un Pikachu dorado pequeño en el borde = carta de Celebrations (25th Anniversary), NO Base Set
+   → Un sello "1st Edition" en el lado izquierdo = primera edición, valor completamente distinto
+   → Sin sombra en el recuadro de imagen = Shadowless, versión temprana del Base Set
+   → Con sombra normal = Base Set estándar
 
-C) ¿Tiene algún logo o ícono adicional en el borde o esquina de la ilustración?
-   → Un Pikachu dorado pequeño en el borde = carta de Celebrations (25th Anniversary)
-   → Un sello "1st Edition" en el lado izquierdo = primera edición, cambia el valor completamente
-   → Un sello "Shadowless" = sin sombra en el recuadro, versión temprana del Base Set
-   → Borde negro normal con sombra = Base Set estándar (con sombra)
-   → Estampilla o sello especial de torneo = carta promo de evento
+C) ¿El arte llena toda la carta o tiene marco de color?
+   → Arte full bleed sin marco = Full Art / Illustration Rare / Special Illustration Rare
+   → Arte con marco de color por tipo = carta estándar
 
-D) ¿El arte llena toda la carta o tiene marco?
-   → Arte que llena todo el borde = Full Art / Illustration Rare / Special Illustration Rare
-   → Arte con marco de color según tipo = carta estándar
+D) Para sets modernos (2020+):
+   → 1 estrella ✦ = Illustration Rare
+   → 2 estrellas ✦✦ = Special Illustration Rare
+   → Todo dorado = Hyper Rare
+   → 2 rombos ◆◆ = Double Rare (ex básico)
+   → 4 rombos ◆◆◆◆ = Ultra Rare (Full Art)
+   → Colores arcoíris = Rainbow Rare
 
-E) ¿El fondo del arte es holográfico o tiene patrón especial?
-   → Holo en el fondo del arte = Holo Rare
-   → Holo en todo el reverso pero no el frente = Reverse Holo
-   → Sin holo = Common o Uncommon
-
-F) Para sets modernos (2020 en adelante), diferenciá:
-   → Illustration Rare (1 estrella ✦) = arte extendido, 1 estrella en número
-   → Special Illustration Rare (2 estrellas ✦✦) = arte full bleed muy detallado
-   → Hyper Rare / Gold Card = todo dorado, texto dorado
-   → Double Rare (2 rombos ◆◆) = ex básico sin Full Art
-   → Ultra Rare (◆◆◆◆) = Full Art Trainer o Pokémon ex Full Art
-   → Rainbow Rare = colores arcoíris sobre toda la carta
-   → Special Art Rare / Alternate Art = arte alternativo del mismo Pokémon
-
-CASOS ESPECÍFICOS QUE CONFUNDEN:
-- Pikachu Base Set vs Pikachu Celebrations Classic Collection: el de Celebrations tiene un pequeño ícono de Pikachu dorado en el borde inferior del arte. Son cartas completamente distintas en valor.
-- Charizard Base Set con sombra vs sin sombra (Shadowless) vs 1st Edition: tres versiones distintas del mismo arte. La 1st Edition tiene el sello en el lado izquierdo. La Shadowless no tiene sombra en el recuadro de imagen. La estándar tiene sombra.
-- Cartas de sets aniversario (Celebrations, Classic Collection) reimprimen artes viejos pero con símbolos de set nuevos y a veces íconos adicionales.
-- Promos SWSH/SV tienen código SWSH### o SV### en lugar de número/total.
+CASO CRÍTICO: Pikachu Base Set vs Pikachu Celebrations Classic Collection
+El de Celebrations tiene un pequeño ícono de Pikachu dorado en el borde inferior del arte.
+Son cartas completamente distintas. El Base Set original NO tiene ese ícono.
 
 Respondé SOLO con JSON puro, sin texto ni markdown:
 {
-  "name": "Nombre exacto y completo de la carta",
+  "name": "Nombre exacto y completo",
   "set": "Nombre del set · Número/Total · Idioma · Año",
-  "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Flesh and Blood|Otro",
-  "variante": "variante exacta (ej: Special Illustration Rare, Alternate Art, Full Art, Holo Rare, 1st Edition Holo, Shadowless Holo, Celebrations Classic Collection)",
-  "rareza": "descripción de rareza con símbolo si es identificable",
-  "detalles_identificacion": "describí en 1-2 oraciones QUÉ elementos visuales específicos usaste para identificar esta variante exacta (símbolo de set, ícono adicional, sombra, sello, etc.)",
+  "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro",
+  "variante": "variante exacta",
+  "rareza": "descripción con símbolo si es identificable",
+  "detalles_identificacion": "qué elementos visuales usaste para identificar esta variante",
   "auth": {
-    "estado": "autentica|falsificacion_detectada|dudosa",
+    "estado": "autentica|falsificacion_detectada",
     "confianza": 95,
     "flags": []
   },
@@ -800,10 +853,7 @@ Respondé SOLO con JSON puro, sin texto ni markdown:
     "usd_nm_confianza": "alta|media|baja|desconocido",
     "nota_precio": ""
   }
-}
-
-Para auth.estado: solo "autentica" o "falsificacion_detectada".
-Para mercado.usd_nm: precio aproximado NM en dólares en TCGPlayer/eBay. Si no lo sabés, poné 0.`;
+}`;
 
     const rawId = await groqCall([
       { role:'user', content:[...imageParts, { type:'text', text:PROMPT_ID }] }
@@ -813,125 +863,70 @@ Para mercado.usd_nm: precio aproximado NM en dólares en TCGPlayer/eBay. Si no l
     try { cardId = parseJSON(rawId); } catch(e) { throw new Error('Error identificando la carta: ' + e.message); }
 
     // ══════════════════════════════════════════════
-    //  PASO 2 — Análisis hipercrítico de condición
+    //  PASO 2 — Análisis de condición
+    //  IMPORTANTE: Solo pedimos evaluación cualitativa.
+    //  Los números GLP los calculamos nosotros en JS
+    //  para evitar que el modelo infle los scores.
     // ══════════════════════════════════════════════
     const cardName = cardId.name || 'esta carta TCG';
-    const PROMPT_CONDITION = `Sos un grader certificado PSA con criterio extremadamente estricto. Estás analizando: "${cardName}" (${cardId.variante || ''}).
+    const PROMPT_CONDITION = `Sos un grader PSA con criterio estricto. Analizás: "${cardName}" (${cardId.variante || ''}).
 
-MENTALIDAD CORRECTA ANTES DE EMPEZAR:
+MENTALIDAD:
 - PSA rechaza el 60-70% de las cartas que los coleccionistas creen que son NM.
-- Una carta "perfecta a simple vista" casi siempre tiene whitening en al menos 1 esquina bajo buena luz.
 - Tu trabajo es encontrar defectos, no confirmar que la carta está bien.
-- Si tenés dudas sobre si hay un defecto o no → asumí que SÍ hay defecto y penalizá.
-- Una carta genuinamente NM es rarísima. LP es lo más común en cartas manejadas con cuidado.
+- Si tenés dudas → asumí que HAY defecto.
+- LP es la condición más común en cartas "bien cuidadas". NM es rarísima.
 
-ANÁLISIS ZONA POR ZONA (obligatorio, en este orden):
+ANALIZÁ ZONA POR ZONA en este orden:
 
-━━ 1. ESQUINAS — las más críticas ━━
-Mirá cada esquina con máxima atención. Buscás activamente:
-→ Whitening: ¿el borde de la punta se ve más claro/blanco que el resto del borde negro? Hasta el más mínimo es penalizable.
-→ Doblez: ¿hay una línea diagonal cerca de la esquina?
-→ Chip: ¿falta un fragmento?
-→ Aplastamiento: ¿la punta se ve achatada en vez de puntiaguda?
+1. ESQUINAS (las más críticas):
+   Describí qué ves en cada una. ¿Hay whitening (blanco en la punta)? ¿Doblez? ¿Chip?
+   → Perfecta: punta negra afilada sin ningún blanco
+   → Whitening leve: un poco de blanco visible con buena luz
+   → Whitening moderado: blanco claramente visible
+   → Whitening severo / doblez: daño obvio
 
-ESCALA ESTRICTA por esquina (0-30):
-30 = absolutamente perfecta, punta afilada, sin ningún blanco extra, imposible de mejorar
-28-29 = micro-whitening SOLO detectable con lupa 10x, invisible a ojo desnudo
-24-27 = whitening muy leve pero visible si mirás directo a la esquina con buena luz
-18-23 = whitening claramente visible, la punta no es negra pura
-10-17 = whitening obvio o doblez leve
-3-9 = doblez marcado, chip o whitening severo
-0-2 = esquina destruida
+2. BORDES (los 4 por separado):
+   ¿Roughness (aspereza)? ¿Whitening lineal? ¿Cortes?
 
-REGLA: Si la foto no te permite ver la esquina con claridad → ponés 20 máximo (no le das el beneficio de la duda).
+3. SUPERFICIE FRENTE:
+   Zona holo: ¿scratches? (¿solo en ángulo extremo, o visibles a simple vista, o severos?)
+   ¿Print lines (líneas de fábrica)? ¿Manchas? ¿Indentaciones?
 
-━━ 2. BORDES — los 4 por separado ━━
-Buscás activamente:
-→ Roughness: ¿el borde se ve irregular, áspero, no perfectamente liso?
-→ Whitening lineal: ¿hay zonas claras a lo largo del borde negro?
-→ Cuts: ¿hay indentaciones puntuales?
+4. REVERSO (si hay foto): mismos criterios. Si no hay foto: "no disponible".
 
-ESCALA por borde (0-20):
-20 = perfectamente liso y negro puro en toda su extensión
-18-19 = mínimo roughness táctil, invisible en foto
-14-17 = roughness leve visible en la foto
-9-13 = whitening lineal o roughness moderado visible
-4-8 = daño claro
-0-3 = borde muy dañado
+5. CENTERING:
+   Estimá el ratio borde izquierdo/derecho y superior/inferior. Sé conservador.
 
-REGLA: Si la foto muestra el borde borroso o en ángulo → ponés 14 máximo.
+6. COLOR: ¿Colores vivos o apagados? ¿Texto nítido? ¿Amarillamiento?
 
-━━ 3. SUPERFICIE FRENTE ━━
-(0-100 puntos totales, empezás en 100 y restás)
+CONDICIÓN FINAL (sé estricto):
+- NM: TODAS las esquinas perfectas o micro-whitening imperceptible, sin scratches visibles, centering máx 58/42
+- LP: 1-2 esquinas con whitening leve, micro-scratches solo en ángulo
+- MP: whitening moderado en 2+ esquinas, scratches visibles sin ángulo especial
+- HP: whitening severo, dobleces, scratches abundantes
+- DMG: quiebres, rasgaduras, manchas severas
 
-Scratches en zona holo/foil:
-- Ninguno visible en ningún ángulo → 0 puntos menos
-- Solo visibles en ángulo extremo → -6
-- Visibles con iluminación normal → -16
-- Claramente visibles a simple vista → -26
-- Scratches severos o abundantes → -35 a -50
+NOTAS: Escribí 3-4 oraciones en español rioplatense describiendo los defectos concretos que viste,
+por qué asignaste esa condición, y si conviene o no gradear.
 
-Print lines (líneas horizontales de impresión, defecto de fábrica):
-- Ninguno → 0
-- Uno o dos finos → -8
-- Múltiples o gruesos → -16
-
-Manchas/stains:
-- Ninguna → 0
-- Mancha leve → -12
-- Mancha notable → -20
-
-Dents/indentaciones:
-- Ninguno → 0
-- Dent leve → -12
-- Dent notable → -20
-
-━━ 4. REVERSO ━━
-Si hay foto: aplicá los mismos criterios de superficie. Si no hay foto: escribí "no disponible" y anotalo como limitación.
-
-━━ 5. CENTERING ━━
-Estimá el ratio borde mayor / borde menor en cada eje.
-Horizontal: borde izquierdo vs derecho (ej: 55/45)
-Vertical: borde superior vs inferior
-Sé conservador: si parece 55/45 pero podría ser 58/42, escribí 58/42.
-
-━━ 6. COLOR Y FRESCURA ━━
-- Saturación: ¿los colores se ven vivos como una carta nueva?
-- Nitidez: ¿el texto y los bordes del arte están bien definidos?
-- Fading: especialmente en cartas antiguas, ¿hay amarillamiento?
-
-━━ CONDICIÓN FINAL — criterios estrictos ━━
-NM (Near Mint): TODAS las esquinas 26+, TODOS los bordes 17+, sin scratches visibles a simple vista, centering máximo 58/42. Muy pocas cartas califican.
-LP (Lightly Played): 1-2 esquinas con whitening leve (20-25), bordes con roughness leve, micro-scratches solo en ángulo. La condición más común en cartas "bien cuidadas".
-MP (Moderately Played): Whitening moderado en 2+ esquinas, roughness visible en bordes, scratches visibles sin ángulo especial.
-HP (Heavily Played): Whitening severo, dobleces visibles, scratches abundantes.
-DMG (Damaged): Quiebres, rasgaduras, manchas de agua severas.
-
-━━ NOTAS NARRATIVAS ━━
-Escribí 4-5 oraciones en español rioplatense describiendo:
-- Qué defectos específicos encontraste en cada zona
-- Por qué asignaste esa condición y no una mejor
-- Si hay alguna zona que no pudiste evaluar bien y por qué
-- Recomendación de grading honesta considerando condición y valor estimado
-
-Respondé SOLO con JSON puro, sin markdown ni texto extra:
+Respondé SOLO con JSON puro, sin markdown:
 {
   "centering": { "h": "55/45", "v": "52/48" },
-  "esquinas": {
-    "TL": 0, "TL_detalle": "descripción exacta de qué viste",
-    "TR": 0, "TR_detalle": "",
-    "BL": 0, "BL_detalle": "",
-    "BR": 0, "BR_detalle": ""
+  "esquinas_descripcion": {
+    "TL": "descripción de lo que viste en esta esquina",
+    "TR": "descripción",
+    "BL": "descripción",
+    "BR": "descripción"
   },
-  "bordes": {
-    "top": 0, "top_detalle": "",
-    "bottom": 0, "bottom_detalle": "",
-    "left": 0, "left_detalle": "",
-    "right": 0, "right_detalle": ""
+  "bordes_descripcion": {
+    "top": "descripción",
+    "bottom": "descripción",
+    "left": "descripción",
+    "right": "descripción"
   },
   "superficie": {
-    "puntos": 0,
-    "scratches": "descripción exacta — dónde, visibilidad, ángulo necesario",
+    "scratches": "descripción: dónde, qué tan visibles",
     "print_lines": "ninguno | descripción",
     "stains": "ninguno | descripción y ubicación",
     "dents": "ninguno | descripción"
@@ -943,23 +938,23 @@ Respondé SOLO con JSON puro, sin markdown ni texto extra:
     "fading": "ninguno|leve|moderado|severo"
   },
   "condicion_texto": "NM|LP|MP|HP|DMG",
-  "notas": "",
-  "limitaciones_foto": "ninguna | qué zonas no pudiste evaluar bien y por qué",
+  "notas": "análisis narrativo honesto en español rioplatense",
+  "limitaciones_foto": "ninguna | qué no pudiste evaluar bien",
   "grading": {
     "rec": "si|no|depende",
     "gv_class": "gv-si|gv-no|gv-dep",
-    "nota_grading": "una oración honesta sobre si conviene gradear"
+    "nota_grading": "una oración sobre si conviene gradear"
   }
 }`;
 
     const rawCond = await groqCall([
       { role:'user', content:[...imageParts, { type:'text', text:PROMPT_CONDITION }] }
-    ], 'PASO 2/2 — Análisis hipercrítico de condición...');
+    ], 'PASO 2/2 — Evaluando condición...');
 
     let cardCond;
     try { cardCond = parseJSON(rawCond); } catch(e) { throw new Error('Error analizando condición: ' + e.message); }
 
-    // Merge both results
+    // Merge — esquinas y bordes ahora son descripciones, no números
     const parsed = {
       id: Date.now(),
       name: cardId.name || 'Carta TCG',
@@ -967,21 +962,23 @@ Respondé SOLO con JSON puro, sin markdown ni texto extra:
       game: cardId.game || 'Pokémon TCG',
       variante: cardId.variante || '',
       rareza: cardId.rareza || '',
+      detalles_identificacion: cardId.detalles_identificacion || '',
       auth: cardId.auth || { estado:'autentica', confianza:80, flags:[] },
       centering: cardCond.centering || { h:'55/45', v:'55/45' },
-      esquinas: cardCond.esquinas || { TL:20, TR:20, BL:20, BR:20 },
-      bordes: cardCond.bordes || { top:15, bottom:15, left:15, right:15 },
+      esquinas_descripcion: cardCond.esquinas_descripcion || { TL:'no evaluado', TR:'no evaluado', BL:'no evaluado', BR:'no evaluado' },
+      bordes_descripcion: cardCond.bordes_descripcion || { top:'no evaluado', bottom:'no evaluado', left:'no evaluado', right:'no evaluado' },
       superficie: cardCond.superficie || { scratches:'no evaluado', print_lines:'ninguno', stains:'ninguno', dents:'ninguno' },
+      superficie_reverso: cardCond.superficie_reverso || 'no disponible',
       color: cardCond.color || { saturacion:'buena', nitidez:'buena', fading:'ninguno' },
       condicion_texto: cardCond.condicion_texto || 'LP',
       notas: cardCond.notas || '',
+      limitaciones_foto: cardCond.limitaciones_foto || 'ninguna',
       mercado: cardId.mercado || { usd_nm:0, ars:0 },
-      grading: cardCond.grading || { rec:'depende', gv_class:'gv-dep' }
+      grading: cardCond.grading || { rec:'depende', gv_class:'gv-dep', nota_grading:'' }
     };
 
-    // Fix ars if usd_nm was set but ars wasn't
     if (parsed.mercado.usd_nm > 0 && (!parsed.mercado.ars || parsed.mercado.ars === 0)) {
-      parsed.mercado.ars = Math.round(parsed.mercado.usd_nm * 1500);
+      parsed.mercado.ars = Math.round(parsed.mercado.usd_nm * 1600);
     }
 
     loading.style.display = 'none';
@@ -1011,11 +1008,21 @@ function condBadgeStyle(cond) {
 // ═══════════════════════════════════════════
 function renderLiveResult(card) {
   const liveResult = document.getElementById('liveResult');
-  const s = computeGLPFromAI(card);
-  const glpTotal = typeof s === 'object' ? s.total : s;
+  const s = computeGLPFromCondicion(card);
+  const glpTotal = s.total;
   const gls = getGLS(glpTotal);
   const isFake = card.isFake || (card.auth && card.auth.estado === 'falsificacion_detectada');
   const authClass = isFake ? 'fail' : (card.auth.confianza >= 85 ? 'ok' : 'warn');
+
+  // Colores por condición
+  const condColors = {
+    'NM':  { bg:'rgba(46,184,154,0.15)', color:'#2eb89a', border:'rgba(46,184,154,0.35)' },
+    'LP':  { bg:'rgba(74,144,217,0.12)', color:'#4a90d9', border:'rgba(74,144,217,0.3)' },
+    'MP':  { bg:'rgba(245,158,11,0.12)', color:'#f59e0b', border:'rgba(245,158,11,0.3)' },
+    'HP':  { bg:'rgba(224,82,82,0.12)',  color:'#e05252', border:'rgba(224,82,82,0.3)' },
+    'DMG': { bg:'rgba(180,20,20,0.15)',  color:'#ff4444', border:'rgba(180,20,20,0.4)' },
+  };
+  const condStyle = condColors[card.condicion_texto] || condColors['LP'];
 
   liveResult.innerHTML = `
     <div class="report-header">
@@ -1023,12 +1030,15 @@ function renderLiveResult(card) {
         <h1>${card.name || 'Carta TCG'}</h1>
         <div class="set-line">${card.set || ''} · ${card.game || ''}</div>
         ${card.variante ? `<div class="set-line" style="margin-top:2px;color:var(--gold2)">${card.variante} · ${card.rareza || ''}</div>` : ''}
+        ${card.detalles_identificacion ? `<div class="set-line" style="margin-top:4px;color:var(--text3);font-size:11px;">🔍 ${card.detalles_identificacion}</div>` : ''}
       </div>
       <div class="score-hero">
         <div class="score-gls ${isFake?'fake-score':''}">${isFake ? '0' : gls}</div>
         <div class="score-label">GEM LENS SCORE</div>
-        <div class="score-glp">${isFake ? 'FALSIFICACIÓN' : `${glpTotal} GLP · ${glsLabel(gls)}`}</div>
-        ${card.condicion_texto ? `<div style="margin-top:6px;display:inline-block;padding:3px 10px;border-radius:3px;font-family:var(--FM);font-size:11px;background:${condBadgeStyle(card.condicion_texto)}">${card.condicion_texto}</div>` : ''}
+        <div class="score-glp">${isFake ? 'FALSIFICACIÓN' : `${glpTotal} GLP`}</div>
+        <div style="margin-top:8px;display:inline-block;padding:5px 14px;border-radius:4px;font-family:var(--FD);font-size:15px;letter-spacing:1px;background:${condStyle.bg};color:${condStyle.color};border:0.5px solid ${condStyle.border}">
+          ${card.condicion_texto || 'LP'}
+        </div>
       </div>
     </div>
 
@@ -1042,25 +1052,33 @@ function renderLiveResult(card) {
       </div>
     </div>
 
-    ${!isFake ? renderFullBreakdown(card, s, gls) : ''}
+    ${!isFake ? renderLiveBreakdown(card, s, gls) : ''}
 
     <div class="live-result-block">
       <div class="lrb-title">🔍 ANÁLISIS DEL ESPECIALISTA</div>
       <div class="lrb-verdict">${card.notas || 'Sin notas adicionales.'}</div>
+      ${card.limitaciones_foto && card.limitaciones_foto !== 'ninguna' && card.limitaciones_foto.length > 5 ?
+        `<div style="margin-top:10px;padding:8px 12px;background:rgba(245,158,11,0.08);border:0.5px solid rgba(245,158,11,0.25);border-radius:4px;font-size:11px;color:#f59e0b;">
+          ⚠ Limitación de foto: ${card.limitaciones_foto}
+        </div>` : ''}
+      ${card.grading && card.grading.nota_grading ?
+        `<div style="margin-top:10px;padding:8px 12px;background:var(--golddim);border:0.5px solid var(--goldborder);border-radius:4px;font-size:12px;color:var(--gold2);">
+          📋 Grading: ${card.grading.nota_grading}
+        </div>` : ''}
     </div>
 
     ${!isFake && card.mercado && card.mercado.usd_nm > 0 ? `
     <div class="invest-block">
       <div class="vb-title" style="margin-bottom:12px;">Mercado · Precios estimados</div>
       <div class="invest-row"><div class="invest-label">Precio NM (TCGPlayer/eBay)</div><span style="font-family:var(--FM);color:var(--text);">USD ${card.mercado.usd_nm}</span></div>
-      <div class="invest-row"><div class="invest-label">Estimado ARS (blue ~$1500)</div><span style="font-family:var(--FD);font-size:18px;color:var(--gold2);">$ ${(card.mercado.ars || 0).toLocaleString('es-AR')}</span></div>
+      <div class="invest-row"><div class="invest-label">Estimado ARS (blue ~$1.600)</div><span style="font-family:var(--FD);font-size:18px;color:var(--gold2);">$ ${(card.mercado.ars || 0).toLocaleString('es-AR')}</span></div>
       <div class="invest-row"><div class="invest-label">Recomendación grading</div>
         <div class="gv-badge ${card.grading.gv_class}" style="font-size:11px;padding:4px 10px;">${card.grading.rec === 'si' ? '✓ GRADEAR' : card.grading.rec === 'no' ? '✗ NO GRADEAR' : '~ EVALUAR'}</div>
       </div>
     </div>` : ''}
 
     <div class="disclaimer">
-      Análisis generado con Groq Vision (Llama 4 Scout) · Gem Lens v2.4 · Las valuaciones son estimativas y no constituyen asesoramiento financiero ni grading oficial. · Ley 25.326 Argentina.
+      Análisis generado con Groq Vision (Llama 4 Scout) · Gem Lens v2.5 · Score GLS calculado a partir de la condición evaluada por la IA. Las valuaciones son estimativas y no constituyen grading oficial ni asesoramiento financiero. · Ley 25.326 Argentina.
     </div>
 
     <div style="text-align:center;margin-bottom:20px;">
@@ -1071,10 +1089,19 @@ function renderLiveResult(card) {
   `;
 }
 
-function renderFullBreakdown(card, s, gls) {
-  if (typeof s !== 'object') s = { total:s, cH:0, cV:0, corn:0, edge:0, surf:0, col:0 };
+// Breakdown específico para análisis IA en vivo — muestra descripciones de texto
+function renderLiveBreakdown(card, s, gls) {
   const cT = s.cH + s.cV;
+  const eq = card.esquinas_descripcion || {};
+  const bo = card.bordes_descripcion || {};
+
+  const condLabel = {
+    'NM': 'Near Mint', 'LP': 'Lightly Played', 'MP': 'Moderately Played',
+    'HP': 'Heavily Played', 'DMG': 'Damaged'
+  };
+
   return `
+  <!-- CONDICIÓN + CENTERING -->
   <div class="breakdown-grid">
     <div class="breakdown-card">
       <div class="bc-header">
@@ -1089,30 +1116,62 @@ function renderFullBreakdown(card, s, gls) {
     </div>
     <div class="breakdown-card">
       <div class="bc-header">
-        <div class="bc-title">Esquinas</div>
-        <div class="bc-score">${s.corn}/120</div>
+        <div class="bc-title">Condición general</div>
+        <div class="bc-score">${s.corn + s.edge}/200</div>
       </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.corn/120)*100}%;background:${barColor((s.corn/120)*100)}"></div></div>
-      <div class="corner-map">
-        <div class="corner-item"><span class="corner-pos">TL ↖</span><span class="corner-score ${cornerClass(card.esquinas.TL,30)}">${card.esquinas.TL}</span></div>
-        <div class="corner-item"><span class="corner-pos">TR ↗</span><span class="corner-score ${cornerClass(card.esquinas.TR,30)}">${card.esquinas.TR}</span></div>
-        <div class="corner-item"><span class="corner-pos">BL ↙</span><span class="corner-score ${cornerClass(card.esquinas.BL,30)}">${card.esquinas.BL}</span></div>
-        <div class="corner-item"><span class="corner-pos">BR ↘</span><span class="corner-score ${cornerClass(card.esquinas.BR,30)}">${card.esquinas.BR}</span></div>
-      </div>
-    </div>
-    <div class="breakdown-card">
-      <div class="bc-header">
-        <div class="bc-title">Bordes</div>
-        <div class="bc-score">${s.edge}/80</div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.edge/80)*100}%;background:${barColor((s.edge/80)*100)}"></div></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${((s.corn+s.edge)/200)*100}%;background:${barColor(((s.corn+s.edge)/200)*100)}"></div></div>
       <div class="sub-items">
-        <div class="sub-item"><span class="sub-label">Superior</span><span class="sub-val ${cornerClass(card.bordes.top,20)}">${card.bordes.top}/20</span></div>
-        <div class="sub-item"><span class="sub-label">Inferior</span><span class="sub-val ${cornerClass(card.bordes.bottom,20)}">${card.bordes.bottom}/20</span></div>
-        <div class="sub-item"><span class="sub-label">Izquierdo</span><span class="sub-val ${cornerClass(card.bordes.left,20)}">${card.bordes.left}/20</span></div>
-        <div class="sub-item"><span class="sub-label">Derecho</span><span class="sub-val ${cornerClass(card.bordes.right,20)}">${card.bordes.right}/20</span></div>
+        <div class="sub-item"><span class="sub-label">Condición declarada</span><span class="sub-val">${card.condicion_texto} — ${condLabel[card.condicion_texto] || ''}</span></div>
+        <div class="sub-item"><span class="sub-label">Superficie</span><span class="sub-val">${s.surf}/100</span></div>
+        <div class="sub-item"><span class="sub-label">Color & Frescura</span><span class="sub-val">${s.col}/80</span></div>
       </div>
     </div>
+  </div>
+
+  <!-- ESQUINAS — descripciones de texto de la IA -->
+  <div class="breakdown-card" style="margin-bottom:12px;">
+    <div class="bc-header">
+      <div class="bc-title">Esquinas — evaluación zona por zona</div>
+      <div class="bc-score">${s.corn}/120</div>
+    </div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${(s.corn/120)*100}%;background:${barColor((s.corn/120)*100)}"></div></div>
+    <div class="corner-map" style="grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+      <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--FM);margin-bottom:4px;">TL ↖</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.4;">${eq.TL || 'No evaluado'}</div>
+      </div>
+      <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--FM);margin-bottom:4px;">TR ↗</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.4;">${eq.TR || 'No evaluado'}</div>
+      </div>
+      <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--FM);margin-bottom:4px;">BL ↙</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.4;">${eq.BL || 'No evaluado'}</div>
+      </div>
+      <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--FM);margin-bottom:4px;">BR ↘</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.4;">${eq.BR || 'No evaluado'}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BORDES — descripciones de texto -->
+  <div class="breakdown-card" style="margin-bottom:12px;">
+    <div class="bc-header">
+      <div class="bc-title">Bordes — evaluación zona por zona</div>
+      <div class="bc-score">${s.edge}/80</div>
+    </div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${(s.edge/80)*100}%;background:${barColor((s.edge/80)*100)}"></div></div>
+    <div class="sub-items" style="margin-top:8px;">
+      <div class="sub-item"><span class="sub-label">Superior</span><span class="sub-val" style="text-align:right;max-width:65%;">${bo.top || 'No evaluado'}</span></div>
+      <div class="sub-item"><span class="sub-label">Inferior</span><span class="sub-val" style="text-align:right;max-width:65%;">${bo.bottom || 'No evaluado'}</span></div>
+      <div class="sub-item"><span class="sub-label">Izquierdo</span><span class="sub-val" style="text-align:right;max-width:65%;">${bo.left || 'No evaluado'}</span></div>
+      <div class="sub-item"><span class="sub-label">Derecho</span><span class="sub-val" style="text-align:right;max-width:65%;">${bo.right || 'No evaluado'}</span></div>
+    </div>
+  </div>
+
+  <!-- SUPERFICIE Y COLOR -->
+  <div class="breakdown-grid" style="margin-bottom:12px;">
     <div class="breakdown-card">
       <div class="bc-header">
         <div class="bc-title">Superficie</div>
@@ -1120,13 +1179,14 @@ function renderFullBreakdown(card, s, gls) {
       </div>
       <div class="bar-wrap"><div class="bar-fill" style="width:${s.surf}%;background:${barColor(s.surf)}"></div></div>
       <div class="sub-items">
-        <div class="sub-item"><span class="sub-label">Scratches holo</span><span class="sub-val">${card.superficie.scratches}</span></div>
-        <div class="sub-item"><span class="sub-label">Print lines</span><span class="sub-val">${card.superficie.print_lines}</span></div>
-        <div class="sub-item"><span class="sub-label">Manchas</span><span class="sub-val">${card.superficie.stains}</span></div>
-        <div class="sub-item"><span class="sub-label">Dents</span><span class="sub-val">${card.superficie.dents}</span></div>
+        <div class="sub-item"><span class="sub-label">Scratches holo</span><span class="sub-val" style="text-align:right;max-width:60%;">${card.superficie.scratches || '—'}</span></div>
+        <div class="sub-item"><span class="sub-label">Print lines</span><span class="sub-val">${card.superficie.print_lines || '—'}</span></div>
+        <div class="sub-item"><span class="sub-label">Manchas</span><span class="sub-val">${card.superficie.stains || '—'}</span></div>
+        <div class="sub-item"><span class="sub-label">Dents</span><span class="sub-val">${card.superficie.dents || '—'}</span></div>
+        <div class="sub-item"><span class="sub-label">Reverso</span><span class="sub-val" style="text-align:right;max-width:60%;">${card.superficie_reverso || 'no disponible'}</span></div>
       </div>
     </div>
-    <div class="breakdown-card" style="grid-column:1/-1">
+    <div class="breakdown-card">
       <div class="bc-header">
         <div class="bc-title">Color & Frescura</div>
         <div class="bc-score">${s.col}/80</div>
@@ -1134,14 +1194,15 @@ function renderFullBreakdown(card, s, gls) {
       <div class="bar-wrap"><div class="bar-fill" style="width:${(s.col/80)*100}%;background:${barColor((s.col/80)*100)}"></div></div>
       <div class="sub-items">
         <div class="sub-item"><span class="sub-label">Saturación</span><span class="sub-val">${card.color.saturacion}</span></div>
-        <div class="sub-item"><span class="sub-label">Nitidez texto/arte</span><span class="sub-val">${card.color.nitidez}</span></div>
-        <div class="sub-item"><span class="sub-label">Fading/Amarillamiento</span><span class="sub-val">${card.color.fading}</span></div>
+        <div class="sub-item"><span class="sub-label">Nitidez</span><span class="sub-val">${card.color.nitidez}</span></div>
+        <div class="sub-item"><span class="sub-label">Fading</span><span class="sub-val">${card.color.fading}</span></div>
       </div>
     </div>
   </div>
 
-  <div class="glp-table">
-    <div class="glp-table-title">Resumen GLP — Puntuación Granular</div>
+  <!-- GLP TOTAL -->
+  <div class="glp-table" style="margin-bottom:20px;">
+    <div class="glp-table-title">Resumen GLP — Puntuación Final</div>
     <div class="glp-row">
       <span class="glp-cat-n">00</span><span class="glp-cat-name">Autenticidad</span>
       <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:100%;background:var(--teal)"></div></div></div>
@@ -1153,12 +1214,12 @@ function renderFullBreakdown(card, s, gls) {
       <span class="glp-pts">${cT}</span><span class="glp-pts max-pts">/120</span>
     </div>
     <div class="glp-row">
-      <span class="glp-cat-n">02</span><span class="glp-cat-name">Esquinas (4 × 30)</span>
+      <span class="glp-cat-n">02</span><span class="glp-cat-name">Esquinas (basado en condición ${card.condicion_texto})</span>
       <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.corn/120)*100}%;background:${barColor((s.corn/120)*100)}"></div></div></div>
       <span class="glp-pts">${s.corn}</span><span class="glp-pts max-pts">/120</span>
     </div>
     <div class="glp-row">
-      <span class="glp-cat-n">03</span><span class="glp-cat-name">Bordes (4 × 20)</span>
+      <span class="glp-cat-n">03</span><span class="glp-cat-name">Bordes (basado en condición ${card.condicion_texto})</span>
       <div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.edge/80)*100}%;background:${barColor((s.edge/80)*100)}"></div></div></div>
       <span class="glp-pts">${s.edge}</span><span class="glp-pts max-pts">/80</span>
     </div>
@@ -1188,6 +1249,71 @@ function clearAndReset() {
   document.getElementById('fileInput').value = '';
   checkAnalyzeButton();
   window.scrollTo(0, 0);
+}
+
+// Breakdown para los cards de ejemplo (datos numéricos fijos)
+function renderFullBreakdown(card, s, gls) {
+  if (typeof s !== 'object') s = { total:s, cH:0, cV:0, corn:0, edge:0, surf:0, col:0 };
+  const cT = s.cH + s.cV;
+  return `
+  <div class="breakdown-grid">
+    <div class="breakdown-card">
+      <div class="bc-header"><div class="bc-title">Centering</div><div class="bc-score">${cT}/120</div></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${(cT/120)*100}%;background:${barColor((cT/120)*100)}"></div></div>
+      <div class="sub-items">
+        <div class="sub-item"><span class="sub-label">Horizontal</span><span class="sub-val ${cornerClass(s.cH,60)}">${card.centering.h}</span></div>
+        <div class="sub-item"><span class="sub-label">Vertical</span><span class="sub-val ${cornerClass(s.cV,60)}">${card.centering.v}</span></div>
+      </div>
+    </div>
+    <div class="breakdown-card">
+      <div class="bc-header"><div class="bc-title">Esquinas</div><div class="bc-score">${s.corn}/120</div></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.corn/120)*100}%;background:${barColor((s.corn/120)*100)}"></div></div>
+      <div class="corner-map">
+        <div class="corner-item"><span class="corner-pos">TL ↖</span><span class="corner-score ${cornerClass(card.esquinas.TL,30)}">${card.esquinas.TL}</span></div>
+        <div class="corner-item"><span class="corner-pos">TR ↗</span><span class="corner-score ${cornerClass(card.esquinas.TR,30)}">${card.esquinas.TR}</span></div>
+        <div class="corner-item"><span class="corner-pos">BL ↙</span><span class="corner-score ${cornerClass(card.esquinas.BL,30)}">${card.esquinas.BL}</span></div>
+        <div class="corner-item"><span class="corner-pos">BR ↘</span><span class="corner-score ${cornerClass(card.esquinas.BR,30)}">${card.esquinas.BR}</span></div>
+      </div>
+    </div>
+    <div class="breakdown-card">
+      <div class="bc-header"><div class="bc-title">Bordes</div><div class="bc-score">${s.edge}/80</div></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.edge/80)*100}%;background:${barColor((s.edge/80)*100)}"></div></div>
+      <div class="sub-items">
+        <div class="sub-item"><span class="sub-label">Superior</span><span class="sub-val ${cornerClass(card.bordes.top,20)}">${card.bordes.top}/20</span></div>
+        <div class="sub-item"><span class="sub-label">Inferior</span><span class="sub-val ${cornerClass(card.bordes.bottom,20)}">${card.bordes.bottom}/20</span></div>
+        <div class="sub-item"><span class="sub-label">Izquierdo</span><span class="sub-val ${cornerClass(card.bordes.left,20)}">${card.bordes.left}/20</span></div>
+        <div class="sub-item"><span class="sub-label">Derecho</span><span class="sub-val ${cornerClass(card.bordes.right,20)}">${card.bordes.right}/20</span></div>
+      </div>
+    </div>
+    <div class="breakdown-card">
+      <div class="bc-header"><div class="bc-title">Superficie</div><div class="bc-score">${s.surf}/100</div></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${s.surf}%;background:${barColor(s.surf)}"></div></div>
+      <div class="sub-items">
+        <div class="sub-item"><span class="sub-label">Scratches holo</span><span class="sub-val">${card.superficie.scratches}</span></div>
+        <div class="sub-item"><span class="sub-label">Print lines</span><span class="sub-val">${card.superficie.print_lines}</span></div>
+        <div class="sub-item"><span class="sub-label">Manchas</span><span class="sub-val">${card.superficie.stains}</span></div>
+        <div class="sub-item"><span class="sub-label">Dents</span><span class="sub-val">${card.superficie.dents}</span></div>
+      </div>
+    </div>
+    <div class="breakdown-card" style="grid-column:1/-1">
+      <div class="bc-header"><div class="bc-title">Color & Frescura</div><div class="bc-score">${s.col}/80</div></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${(s.col/80)*100}%;background:${barColor((s.col/80)*100)}"></div></div>
+      <div class="sub-items">
+        <div class="sub-item"><span class="sub-label">Saturación</span><span class="sub-val">${card.color.saturacion}</span></div>
+        <div class="sub-item"><span class="sub-label">Nitidez texto/arte</span><span class="sub-val">${card.color.nitidez}</span></div>
+        <div class="sub-item"><span class="sub-label">Fading/Amarillamiento</span><span class="sub-val">${card.color.fading}</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="glp-table">
+    <div class="glp-table-title">Resumen GLP</div>
+    <div class="glp-row"><span class="glp-cat-n">01</span><span class="glp-cat-name">Centering</span><div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(cT/120)*100}%;background:${barColor((cT/120)*100)}"></div></div></div><span class="glp-pts">${cT}</span><span class="glp-pts max-pts">/120</span></div>
+    <div class="glp-row"><span class="glp-cat-n">02</span><span class="glp-cat-name">Esquinas</span><div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.corn/120)*100}%;background:${barColor((s.corn/120)*100)}"></div></div></div><span class="glp-pts">${s.corn}</span><span class="glp-pts max-pts">/120</span></div>
+    <div class="glp-row"><span class="glp-cat-n">03</span><span class="glp-cat-name">Bordes</span><div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.edge/80)*100}%;background:${barColor((s.edge/80)*100)}"></div></div></div><span class="glp-pts">${s.edge}</span><span class="glp-pts max-pts">/80</span></div>
+    <div class="glp-row"><span class="glp-cat-n">04</span><span class="glp-cat-name">Superficie</span><div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${s.surf}%;background:${barColor(s.surf)}"></div></div></div><span class="glp-pts">${s.surf}</span><span class="glp-pts max-pts">/100</span></div>
+    <div class="glp-row"><span class="glp-cat-n">05</span><span class="glp-cat-name">Color</span><div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.col/80)*100}%;background:${barColor((s.col/80)*100)}"></div></div></div><span class="glp-pts">${s.col}</span><span class="glp-pts max-pts">/80</span></div>
+    <div class="glp-row total-row"><span class="glp-cat-n">Σ</span><span class="glp-cat-name">TOTAL → GLS ${gls} · ${glsLabel(gls)}</span><div class="glp-bar-cell"><div class="glp-mini-bar"><div class="glp-mini-fill" style="width:${(s.total/500)*100}%;background:var(--gold)"></div></div></div><span class="glp-pts" style="font-size:22px">${s.total}</span><span class="glp-pts max-pts">/500</span></div>
+  </div>`;
 }
 
 // ═══════════════════════════════════════════
