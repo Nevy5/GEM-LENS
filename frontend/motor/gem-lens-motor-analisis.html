@@ -559,13 +559,14 @@ function getGLS(glp) {
   if (glp >= 480) return 10;
   if (glp >= 460) return 9.5;
   if (glp >= 440) return 9;
-  if (glp >= 410) return 8.5;
-  if (glp >= 380) return 8;
+  if (glp >= 415) return 8.5;
+  if (glp >= 385) return 8;
   if (glp >= 340) return 7;
-  if (glp >= 280) return 6;
-  if (glp >= 200) return 5;
+  if (glp >= 270) return 6;
+  if (glp >= 190) return 5;
   if (glp >= 120) return 4;
-  if (glp > 0) return 3;
+  if (glp >= 60)  return 3;
+  if (glp > 0)    return 2;
   return 0;
 }
 
