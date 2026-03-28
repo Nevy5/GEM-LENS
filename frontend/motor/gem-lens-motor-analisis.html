@@ -698,23 +698,43 @@ async function analyzeWithGroq() {
     // ══════════════════════════════════════════════
     //  PASO 1 — Identificación de la carta
     // ══════════════════════════════════════════════
-    const PROMPT_ID = `Sos un experto en TCG coleccionables. Mirá esta imagen de una carta.
-Tu única tarea ahora es IDENTIFICAR la carta. No evalúes la condición todavía.
+const PROMPT_ID = `Sos un experto certificado en TCG coleccionables. Año: 2026.
+
+Tu tarea es IDENTIFICAR la carta en la imagen con máxima precisión.
+
+INSTRUCCIONES:
+1. Mirá el nombre, set, número de colección y símbolo de rareza.
+2. Para Pokémon moderno, diferenciá con cuidado estas variantes (son distintas y tienen precios muy diferentes):
+   - Illustration Rare (1 estrella art card)
+   - Special Illustration Rare (2 estrellas, arte completo)
+   - Hyper Rare / Gold Card (dorada)
+   - Double Rare (2 rombos)
+   - Ultra Rare (Full Art Trainer / Pokémon ex Full Art)
+   - Special Art Rare (Alternate Art)
+   - Rainbow Rare
+3. Detectá el idioma por tipografía: EN / JP / ES / PT / KR
+4. Estimá el precio NM en USD basándote en tu conocimiento de mercado TCG 2025-2026.
+   - Si es una carta conocida y podés dar un número confiable, ponelo.
+   - Si no estás seguro, usá -1 en usd_nm y explicá en una nota.
 
 Respondé SOLO con JSON puro, sin texto ni markdown:
 {
-  "name": "Nombre completo de la carta",
-  "set": "Nombre del set · Numero/Total · Idioma · Año",
-  "game": "Pokémon TCG",
-  "variante": "ej: Alternate Art, Full Art, Holo Rare, Common, etc",
-  "rareza": "ej: Secret Rare, Ultra Rare, Common",
+  "name": "Nombre exacto y completo de la carta",
+  "set": "Nombre del set · Número/Total · Idioma · Año",
+  "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Flesh and Blood|Otro",
+  "variante": "variante exacta (ej: Special Illustration Rare, Alternate Art, Full Art, Holo Rare, Common)",
+  "rareza": "descripción de rareza (ej: Secret Rare ⭐⭐, Ultra Rare ◆◆◆◆, Common ●)",
   "auth": {
-    "estado": "autentica",
+    "estado": "autentica|falsificacion_detectada|dudosa",
     "confianza": 95,
     "flags": []
   },
-  "mercado": { "usd_nm": 0, "ars": 0 }
-}
+  "mercado": {
+    "usd_nm": 0,
+    "usd_nm_confianza": "alta|media|baja|desconocido",
+    "nota_precio": ""
+  }
+}`;
 
 Para auth.estado: solo "autentica" o "falsificacion_detectada".
 Para mercado.usd_nm: precio aproximado NM en dólares en TCGPlayer/eBay. Si no lo sabés, poné 0.`;
@@ -730,89 +750,104 @@ Para mercado.usd_nm: precio aproximado NM en dólares en TCGPlayer/eBay. Si no l
     //  PASO 2 — Análisis hipercrítico de condición
     // ══════════════════════════════════════════════
     const cardName = cardId.name || 'esta carta TCG';
-    const PROMPT_CONDITION = `Sos el grader más estricto y riguroso de PSA. Estás analizando: "${cardName}".
+    const PROMPT_CONDITION = `Sos el grader más riguroso y honesto de PSA. Estás analizando: "${cardName}" (${cardId.variante || ''}).
 
-INSTRUCCIÓN CLAVE: Sé HIPERCRÍTICO. Los coleccionistas te pagan para detectar hasta el defecto más pequeño. NO seas optimista. Si hay duda, penalizá. Una carta que parece NM a simple vista casi siempre tiene defectos cuando la mirás de cerca.
+ANALISIS ZONA POR ZONA — seguí este orden exacto:
 
-Examiná CADA zona de la carta en las fotos:
-1. ESQUINAS: buscá whitening (blanqueado en las puntas), dobleces, chips, aplastamiento. Mirá las 4 esquinas por separado.
-2. BORDES: roughness (aspereza), whitening lineal, cuts, chips, irregularidades. Mirá los 4 bordes.
-3. SUPERFICIE FRENTE: scratches en la capa holo/foil (especialmente en ángulo), print lines, manchas, dents, marcas de dedos.
-4. REVERSO (si hay foto): scratches, manchas, rayones, doblez de reverso.
-5. CENTERING: medí visualmente cuánto borde hay en cada lado. Sé preciso.
-6. COLOR: decoloración, fading, saturación.
+━━ ESQUINAS (las más importantes en grading) ━━
+Mirá cada una de las 4 esquinas individualmente y describí lo que ves:
+- ¿Hay whitening? (decoloración blanca en la punta) → leve/moderado/severo
+- ¿Hay doblez o quiebre visible?
+- ¿Falta algún fragmento (chip)?
 
-Escalas de puntuación ESTRICTA:
-- Esquinas (0-30): 30=sin defecto alguno bajo lupa, 27-29=micro-whitening solo bajo lupa, 24-26=whitening muy leve visible a 5cm, 18-23=whitening moderado visible claramente, 10-17=whitening severo o doblez leve, 0-9=doblez o chip visible
-- Bordes (0-20): 20=perfectos, 17-19=mínimo roughness, 13-16=roughness moderado, 8-12=whitening claro, 0-7=daño severo
-- Superficie (0-100): resta puntos agresivamente por scratches (hasta -30 si son severos), stains (-15), print lines (-10), dents (-15)
-- Centering: medí el ratio con precisión
+Puntuación por esquina (0-30):
+30 = perfecta bajo cualquier luz
+27-29 = micro-whitening solo visible con lupa o en ángulo
+22-26 = whitening leve visible a 20cm
+15-21 = whitening moderado claramente visible
+8-14 = whitening severo o doblez leve
+0-7 = doblez marcado, chip o esquina rota
 
-IMPORTANTE: Si la carta se ve usada, golpeada, manejada, es LP o peor. NO la graúes como NM si tiene cualquier señal de uso.
+━━ BORDES (4 bordes por separado) ━━
+- ¿Hay roughness (aspereza/irregularidad en el corte)?
+- ¿Whitening lineal a lo largo del borde?
+- ¿Cuts o abolladuras puntuales?
 
-Respondé SOLO con JSON puro, sin markdown ni texto:
+Puntuación por borde (0-20):
+20 = perfectamente liso
+17-19 = roughness mínimo solo táctil
+13-16 = roughness leve visible
+8-12 = whitening lineal o roughness moderado
+0-7 = whitening severo, cuts o daño claro
+
+━━ SUPERFICIE FRENTE ━━
+- Zona holográfica: ¿scratches visibles a simple vista? ¿solo en ángulo? ¿severos?
+- Arte/texto: ¿print lines (líneas de impresión de fábrica)? ¿manchas? ¿indentaciones?
+- Nota: los print lines son defectos de fábrica, no de uso, pero igualmente bajan el score
+
+━━ SUPERFICIE REVERSO (si hay foto, sino escribí "no disponible") ━━
+- Mismos criterios que el frente
+
+━━ CENTERING ━━
+Estimá visualmente qué porcentaje del borde total ocupa cada lado:
+- Horizontal: borde izquierdo vs borde derecho (ej: 55/45 significa izq tiene 55% del espacio de borde)
+- Vertical: borde superior vs borde inferior
+- Perfecto sería 50/50. Más de 65/35 es penalizante para grading.
+
+━━ COLOR Y FRESCURA ━━
+- ¿Los colores se ven vivos y saturados o apagados/decolorados?
+- ¿El texto y el arte se ven nítidos?
+- ¿Hay amarillamiento (especialmente en cartas antiguas)?
+
+━━ REGLA DE HONESTIDAD ━━
+Sé hipercrítico. Los graders de PSA rechazan cartas que parecen NM a primera vista.
+Si la foto no tiene suficiente resolución o ángulo para evaluar una zona específica, escribí "foto insuficiente" en ese campo y bajá el nivel de confianza.
+NO inventes una evaluación positiva para compensar una foto mala.
+
+━━ CONDICIÓN FINAL ━━
+Solo después de analizar todas las zonas, asigná:
+- NM: prácticamente perfecta, cualquier defecto imperceptible a simple vista
+- LP: desgaste leve visible, carta presentable para colección
+- MP: desgaste claramente visible, jugable pero no ideal para colección
+- HP: daño significativo y obvio
+- DMG: daño severo (rasgaduras, manchas de agua, quiebres)
+
+Respondé SOLO con JSON puro, sin markdown:
 {
   "centering": { "h": "55/45", "v": "52/48" },
-  "esquinas": { "TL": 22, "TR": 24, "BL": 20, "BR": 18 },
-  "bordes": { "top": 15, "bottom": 14, "left": 16, "right": 13 },
-  "superficie": {
-    "scratches": "descripción honesta y específica de scratches",
-    "print_lines": "ninguno o descripción",
-    "stains": "ninguno o descripción",
-    "dents": "ninguno o descripción"
+  "esquinas": {
+    "TL": 0, "TL_detalle": "descripción de qué viste en esta esquina",
+    "TR": 0, "TR_detalle": "",
+    "BL": 0, "BL_detalle": "",
+    "BR": 0, "BR_detalle": ""
   },
+  "bordes": {
+    "top": 0, "top_detalle": "",
+    "bottom": 0, "bottom_detalle": "",
+    "left": 0, "left_detalle": "",
+    "right": 0, "right_detalle": ""
+  },
+  "superficie": {
+    "scratches": "descripción exacta — dónde, qué tan visibles, en qué ángulo",
+    "print_lines": "ninguno | descripción",
+    "stains": "ninguno | descripción y ubicación",
+    "dents": "ninguno | descripción"
+  },
+  "superficie_reverso": "no disponible | descripción",
   "color": {
     "saturacion": "excelente|buena|regular|reducida",
     "nitidez": "excelente|buena|reducida",
-    "fading": "ninguno|leve|moderado"
+    "fading": "ninguno|leve|moderado|severo"
   },
   "condicion_texto": "NM|LP|MP|HP|DMG",
-  "notas": "Análisis detallado y honesto en español rioplatense, 3-4 oraciones. Describí defectos específicos que encontraste. Opiná si conviene gradear o no y por qué.",
-  "grading": { "rec": "si|no|depende", "gv_class": "gv-si|gv-no|gv-dep" }
-}`;
-
-    const rawCond = await groqCall([
-      { role:'user', content:[...imageParts, { type:'text', text:PROMPT_CONDITION }] }
-    ], 'PASO 2/2 — Análisis hipercrítico de condición...');
-
-    let cardCond;
-    try { cardCond = parseJSON(rawCond); } catch(e) { throw new Error('Error analizando condición: ' + e.message); }
-
-    // Merge both results
-    const parsed = {
-      id: Date.now(),
-      name: cardId.name || 'Carta TCG',
-      set: cardId.set || '',
-      game: cardId.game || 'Pokémon TCG',
-      variante: cardId.variante || '',
-      rareza: cardId.rareza || '',
-      auth: cardId.auth || { estado:'autentica', confianza:80, flags:[] },
-      centering: cardCond.centering || { h:'55/45', v:'55/45' },
-      esquinas: cardCond.esquinas || { TL:20, TR:20, BL:20, BR:20 },
-      bordes: cardCond.bordes || { top:15, bottom:15, left:15, right:15 },
-      superficie: cardCond.superficie || { scratches:'no evaluado', print_lines:'ninguno', stains:'ninguno', dents:'ninguno' },
-      color: cardCond.color || { saturacion:'buena', nitidez:'buena', fading:'ninguno' },
-      condicion_texto: cardCond.condicion_texto || 'LP',
-      notas: cardCond.notas || '',
-      mercado: cardId.mercado || { usd_nm:0, ars:0 },
-      grading: cardCond.grading || { rec:'depende', gv_class:'gv-dep' }
-    };
-
-    // Fix ars if usd_nm was set but ars wasn't
-    if (parsed.mercado.usd_nm > 0 && (!parsed.mercado.ars || parsed.mercado.ars === 0)) {
-      parsed.mercado.ars = Math.round(parsed.mercado.usd_nm * 1500);
-    }
-
-    loading.style.display = 'none';
-    renderLiveResult(parsed);
-
-  } catch(err) {
-    loading.style.display = 'none';
-    btn.disabled = false;
-    liveResult.innerHTML = `<div class="error-block">❌ ${err.message}</div>`;
-    console.error('Groq Vision error:', err);
+  "notas": "Análisis narrativo en español rioplatense: describí los defectos específicos que encontraste zona por zona, explicá por qué asignaste esa condición, y decí si conviene gradear basándote en lo que ves. 4-5 oraciones.",
+  "limitaciones_foto": "ninguna | descripción de qué no pudiste evaluar bien por calidad de foto",
+  "grading": {
+    "rec": "si|no|depende",
+    "gv_class": "gv-si|gv-no|gv-dep",
+    "nota_grading": "una oración explicando la recomendación de grading"
   }
-}
+}`;
 
 function condBadgeStyle(cond) {
   const styles = {
