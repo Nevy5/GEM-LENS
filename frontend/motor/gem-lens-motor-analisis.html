@@ -523,6 +523,37 @@ function computeGLP(card) {
   return { total: cH+cV+corn+edge+surf+col, cH, cV, corn, edge, surf, col };
 }
 
+function computeGLPFromAI(card) {
+  if (card.isFake || (card.auth && card.auth.estado === 'falsificacion_detectada')) {
+    return { total: 0, cH: 0, cV: 0, corn: 0, edge: 0, surf: 0, col: 0 };
+  }
+
+  const cH = centeringGLP(card.centering ? card.centering.h : null);
+  const cV = centeringGLP(card.centering ? card.centering.v : null);
+
+  const corn = card.esquinas
+    ? (card.esquinas.TL || 0) + (card.esquinas.TR || 0) +
+      (card.esquinas.BL || 0) + (card.esquinas.BR || 0)
+    : 0;
+
+  const edge = card.bordes
+    ? (card.bordes.top || 0) + (card.bordes.bottom || 0) +
+      (card.bordes.left || 0) + (card.bordes.right || 0)
+    : 0;
+
+  let surf = 0;
+  if (card.superficie && card.superficie.puntos !== undefined && card.superficie.puntos > 0) {
+    surf = card.superficie.puntos;
+  } else {
+    surf = surfaceGLP(card.superficie);
+  }
+
+  const col = colorGLP(card.color);
+
+  const total = cH + cV + corn + edge + surf + col;
+  return { total, cH, cV, corn, edge, surf, col };
+}
+  
 function getGLS(glp) {
   if (typeof glp === 'object') glp = glp.total;
   if (glp >= 480) return 10;
