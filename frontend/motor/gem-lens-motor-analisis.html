@@ -734,28 +734,62 @@ const PROMPT_ID = `Sos un experto certificado en TCG coleccionables. Año: 2026.
 
 Tu tarea es IDENTIFICAR la carta en la imagen con máxima precisión.
 
-INSTRUCCIONES:
+INSTRUCCIONES GENERALES:
 1. Mirá el nombre, set, número de colección y símbolo de rareza.
-2. Para Pokémon moderno, diferenciá con cuidado estas variantes (son distintas y tienen precios muy diferentes):
-   - Illustration Rare (1 estrella art card)
-   - Special Illustration Rare (2 estrellas, arte completo)
-   - Hyper Rare / Gold Card (dorada)
-   - Double Rare (2 rombos)
-   - Ultra Rare (Full Art Trainer / Pokémon ex Full Art)
-   - Special Art Rare (Alternate Art)
-   - Rainbow Rare
 3. Detectá el idioma por tipografía: EN / JP / ES / PT / KR
 4. Estimá el precio NM en USD basándote en tu conocimiento de mercado TCG 2025-2026.
    - Si es una carta conocida y podés dar un número confiable, ponelo.
    - Si no estás seguro, usá -1 en usd_nm y explicá en una nota.
+
+IDENTIFICACIÓN DE VARIANTES POKÉMON — MUY IMPORTANTE:
+Antes de definir la variante, respondete estas preguntas mirando la carta:
+
+A) ¿Tiene número de set impreso? (ej: 4/102, 025/025, SWSH001)
+   → Si tiene barra diagonal es numerada. Si tiene solo número o código especial, es promo.
+
+B) ¿Qué símbolo de set tiene en la parte inferior derecha?
+   → Cada set tiene su propio símbolo. Identificalo con cuidado.
+   → El símbolo de Celebrations es un globo/diamante especial. El de Base Set no tiene símbolo o tiene el símbolo original de Wizards.
+
+C) ¿Tiene algún logo o ícono adicional en el borde o esquina de la ilustración?
+   → Un Pikachu dorado pequeño en el borde = carta de Celebrations (25th Anniversary)
+   → Un sello "1st Edition" en el lado izquierdo = primera edición, cambia el valor completamente
+   → Un sello "Shadowless" = sin sombra en el recuadro, versión temprana del Base Set
+   → Borde negro normal con sombra = Base Set estándar (con sombra)
+   → Estampilla o sello especial de torneo = carta promo de evento
+
+D) ¿El arte llena toda la carta o tiene marco?
+   → Arte que llena todo el borde = Full Art / Illustration Rare / Special Illustration Rare
+   → Arte con marco de color según tipo = carta estándar
+
+E) ¿El fondo del arte es holográfico o tiene patrón especial?
+   → Holo en el fondo del arte = Holo Rare
+   → Holo en todo el reverso pero no el frente = Reverse Holo
+   → Sin holo = Common o Uncommon
+
+F) Para sets modernos (2020 en adelante), diferenciá:
+   → Illustration Rare (1 estrella ✦) = arte extendido, 1 estrella en número
+   → Special Illustration Rare (2 estrellas ✦✦) = arte full bleed muy detallado
+   → Hyper Rare / Gold Card = todo dorado, texto dorado
+   → Double Rare (2 rombos ◆◆) = ex básico sin Full Art
+   → Ultra Rare (◆◆◆◆) = Full Art Trainer o Pokémon ex Full Art
+   → Rainbow Rare = colores arcoíris sobre toda la carta
+   → Special Art Rare / Alternate Art = arte alternativo del mismo Pokémon
+
+CASOS ESPECÍFICOS QUE CONFUNDEN:
+- Pikachu Base Set vs Pikachu Celebrations Classic Collection: el de Celebrations tiene un pequeño ícono de Pikachu dorado en el borde inferior del arte. Son cartas completamente distintas en valor.
+- Charizard Base Set con sombra vs sin sombra (Shadowless) vs 1st Edition: tres versiones distintas del mismo arte. La 1st Edition tiene el sello en el lado izquierdo. La Shadowless no tiene sombra en el recuadro de imagen. La estándar tiene sombra.
+- Cartas de sets aniversario (Celebrations, Classic Collection) reimprimen artes viejos pero con símbolos de set nuevos y a veces íconos adicionales.
+- Promos SWSH/SV tienen código SWSH### o SV### en lugar de número/total.
 
 Respondé SOLO con JSON puro, sin texto ni markdown:
 {
   "name": "Nombre exacto y completo de la carta",
   "set": "Nombre del set · Número/Total · Idioma · Año",
   "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Flesh and Blood|Otro",
-  "variante": "variante exacta (ej: Special Illustration Rare, Alternate Art, Full Art, Holo Rare, Common)",
-  "rareza": "descripción de rareza (ej: Secret Rare ⭐⭐, Ultra Rare ◆◆◆◆, Common ●)",
+  "variante": "variante exacta (ej: Special Illustration Rare, Alternate Art, Full Art, Holo Rare, 1st Edition Holo, Shadowless Holo, Celebrations Classic Collection)",
+  "rareza": "descripción de rareza con símbolo si es identificable",
+  "detalles_identificacion": "describí en 1-2 oraciones QUÉ elementos visuales específicos usaste para identificar esta variante exacta (símbolo de set, ícono adicional, sombra, sello, etc.)",
   "auth": {
     "estado": "autentica|falsificacion_detectada|dudosa",
     "confianza": 95,
