@@ -781,17 +781,7 @@ Para mercado.usd_nm: precio aproximado NM en dólares en TCGPlayer/eBay. Si no l
     //  PASO 2 — Análisis hipercrítico de condición
     // ══════════════════════════════════════════════
     const cardName = cardId.name || 'esta carta TCG';
-    Revisando el sistema de scoring del documento maestro para entender los criterios exactos:
-El problema es claro — el PROMPT_CONDITION le dice al modelo cómo puntuar pero no le da suficiente contexto de por qué debe ser estricto. Los modelos de visión tienden al optimismo por defecto, hay que contrarrestarlo explícitamente.
-El fix principal está en tres cosas:
-1. El modelo necesita anclas visuales concretas, no solo rangos numéricos
-"whitening leve visible a 20cm" es subjetivo. Necesitás decirle comportamientos específicos.
-2. Falta una penalización explícita por "beneficio de la duda"
-Actualmente si no ve claro un defecto, asume que no existe. Hay que invertir eso.
-3. Los rangos de condición final son demasiado amplios y permisivos
-NM está definido muy fácil de alcanzar.
-Reemplazá solo PROMPT_CONDITION por esto:
-javascriptconst PROMPT_CONDITION = `Sos un grader certificado PSA con criterio extremadamente estricto. Estás analizando: "${cardName}" (${cardId.variante || ''}).
+    const PROMPT_CONDITION = `Sos un grader certificado PSA con criterio extremadamente estricto. Estás analizando: "${cardName}" (${cardId.variante || ''}).
 
 MENTALIDAD CORRECTA ANTES DE EMPEZAR:
 - PSA rechaza el 60-70% de las cartas que los coleccionistas creen que son NM.
