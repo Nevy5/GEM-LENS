@@ -58,6 +58,8 @@ h1.hero-title .gold-word{color:var(--gold2);}
 .mock-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:14px;overflow:hidden;position:relative;animation:float 5s ease-in-out infinite;}
 .mock-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+@keyframes shimmer{from{opacity:0.4;}to{opacity:1;}}
+@keyframes scan{0%{left:-40%;width:40%;}100%{left:140%;width:40%;}}
 .mock-scores{padding:16px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:16px;}
 .mock-gls{font-family:var(--FD);font-size:56px;line-height:1;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .mock-gls-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:2px;}
@@ -352,6 +354,101 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
       </div>
       <div class="hero-right">
         <div class="mock-card">
+          <!-- Card visual — mock realista estilo Pokémon TCG -->
+          <div style="background:#0a0a08;border-bottom:0.5px solid var(--border);padding:14px 16px;display:flex;gap:14px;align-items:center;">
+            <!-- La carta simulada completa -->
+            <div style="position:relative;flex-shrink:0;">
+              <svg width="100" height="140" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" style="border-radius:7px;box-shadow:0 0 24px rgba(212,168,67,0.25),0 0 8px rgba(212,168,67,0.15);display:block;">
+                <defs>
+                  <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#1a2a5e"/>
+                    <stop offset="50%" style="stop-color:#2a1a3a"/>
+                    <stop offset="100%" style="stop-color:#3a1008"/>
+                  </linearGradient>
+                  <linearGradient id="holoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgba(255,200,100,0);stop-opacity:0"/>
+                    <stop offset="40%" style="stop-color:rgba(255,180,80,0.18);stop-opacity:1"/>
+                    <stop offset="60%" style="stop-color:rgba(255,120,50,0.12);stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:rgba(255,200,100,0);stop-opacity:0"/>
+                  </linearGradient>
+                  <radialGradient id="glowGrad" cx="35%" cy="30%" r="50%">
+                    <stop offset="0%" style="stop-color:rgba(255,160,60,0.4)"/>
+                    <stop offset="100%" style="stop-color:rgba(255,100,0,0)"/>
+                  </radialGradient>
+                  <clipPath id="cardClip">
+                    <rect width="100" height="140" rx="7"/>
+                  </clipPath>
+                </defs>
+                <!-- Fondo carta -->
+                <rect width="100" height="140" rx="7" fill="url(#bgGrad)"/>
+                <!-- Borde dorado exterior -->
+                <rect x="1" y="1" width="98" height="138" rx="6.5" fill="none" stroke="rgba(212,168,67,0.6)" stroke-width="1.5"/>
+                <!-- Glow radial -->
+                <rect width="100" height="140" rx="7" fill="url(#glowGrad)" clip-path="url(#cardClip)"/>
+                <!-- Header tipo Pokémon: nombre y HP -->
+                <rect x="5" y="5" width="90" height="14" rx="2" fill="rgba(255,200,80,0.15)"/>
+                <text x="9" y="14.5" font-family="Arial Black,sans-serif" font-size="6" font-weight="900" fill="#f0c96a" letter-spacing="0.5">CHARIZARD V</text>
+                <text x="83" y="14.5" font-family="Arial,sans-serif" font-size="5.5" font-weight="700" fill="#ff8060" text-anchor="middle">220HP</text>
+                <!-- Arte principal — dragón abstracto en fuego -->
+                <rect x="5" y="21" width="90" height="62" rx="3" fill="rgba(0,0,0,0.3)"/>
+                <!-- Cuerpo dragón simplificado -->
+                <ellipse cx="50" cy="55" rx="22" ry="26" fill="rgba(200,60,10,0.7)"/>
+                <ellipse cx="50" cy="52" rx="16" ry="20" fill="rgba(230,80,20,0.8)"/>
+                <!-- Alas -->
+                <path d="M28 45 Q18 30 22 50 Q24 55 32 50 Z" fill="rgba(180,40,5,0.6)"/>
+                <path d="M72 45 Q82 30 78 50 Q76 55 68 50 Z" fill="rgba(180,40,5,0.6)"/>
+                <!-- Llama -->
+                <ellipse cx="50" cy="30" rx="8" ry="12" fill="rgba(255,160,0,0.7)"/>
+                <ellipse cx="50" cy="28" rx="5" ry="8" fill="rgba(255,220,0,0.8)"/>
+                <ellipse cx="50" cy="26" rx="3" ry="5" fill="rgba(255,255,200,0.9)"/>
+                <!-- Holo shimmer overlay -->
+                <rect width="100" height="140" rx="7" fill="url(#holoGrad)" clip-path="url(#cardClip)" opacity="0.8"/>
+                <!-- Zona de ataques -->
+                <rect x="5" y="85" width="90" height="28" rx="2" fill="rgba(0,0,0,0.25)"/>
+                <rect x="8" y="88" width="34" height="8" rx="1" fill="rgba(255,120,0,0.3)"/>
+                <text x="10" y="94.5" font-family="Arial,sans-serif" font-size="5" fill="rgba(255,200,100,0.9)" font-weight="bold">Crimine</text>
+                <text x="68" y="94.5" font-family="Arial Black,sans-serif" font-size="7" fill="#ff8060" font-weight="900" text-anchor="middle">200</text>
+                <rect x="8" y="98" width="84" height="0.5" fill="rgba(255,255,255,0.1)"/>
+                <text x="10" y="104.5" font-family="Arial,sans-serif" font-size="4.5" fill="rgba(240,237,230,0.5)">Descartá 3 energías Fire de este Pokémon.</text>
+                <!-- Footer: rareza y set -->
+                <rect x="5" y="115" width="90" height="20" rx="2" fill="rgba(0,0,0,0.2)"/>
+                <text x="50" y="124" font-family="Arial,sans-serif" font-size="4" fill="rgba(240,237,230,0.4)" text-anchor="middle">Brilliant Stars · 174/172 · 2022</text>
+                <text x="50" y="131" font-family="Arial,sans-serif" font-size="5" fill="rgba(212,168,67,0.8)" text-anchor="middle">✦✦ SECRET RARE</text>
+                <!-- Corner scan markers (análisis) -->
+                <line x1="5" y1="7" x2="11" y2="7" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <line x1="5" y1="7" x2="5" y2="13" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <line x1="95" y1="7" x2="89" y2="7" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <line x1="95" y1="7" x2="95" y2="13" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <line x1="5" y1="133" x2="11" y2="133" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <line x1="5" y1="133" x2="5" y2="127" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <line x1="95" y1="133" x2="89" y2="133" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <line x1="95" y1="133" x2="95" y2="127" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
+                <!-- Línea de centering -->
+                <line x1="50" y1="5" x2="50" y2="135" stroke="rgba(46,184,154,0.2)" stroke-width="0.5" stroke-dasharray="2,2"/>
+              </svg>
+              <!-- Badge GLS encima de la carta -->
+              <div style="position:absolute;top:-8px;right:-8px;background:linear-gradient(135deg,var(--gold),var(--gold2));width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--FD);font-size:14px;color:#0a0a08;box-shadow:0 0 12px rgba(212,168,67,0.5);border:1.5px solid rgba(255,255,255,0.2);">8.5</div>
+            </div>
+            <!-- Info panel -->
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;display:flex;align-items:center;gap:5px;"><span style="width:5px;height:5px;border-radius:50%;background:var(--teal);box-shadow:0 0 5px var(--teal);display:inline-block;"></span>ANALIZADO</div>
+              <div style="font-family:var(--FD);font-size:16px;letter-spacing:0.5px;color:var(--text);line-height:1.1;margin-bottom:3px;">Charizard V</div>
+              <div style="font-size:11px;color:var(--gold2);margin-bottom:5px;font-weight:300;">Alternate Art</div>
+              <div style="font-size:9px;color:var(--text3);font-family:var(--FM);margin-bottom:10px;">Brilliant Stars · 174/172</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;justify-content:space-between;font-size:9px;"><span style="color:var(--text3);">Centering</span><span style="font-family:var(--FM);color:var(--teal);">55/45</span></div>
+                <div style="height:2px;background:var(--bg3);border-radius:1px;"><div style="width:82%;height:100%;background:var(--teal);border-radius:1px;"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:9px;"><span style="color:var(--text3);">Esquinas</span><span style="font-family:var(--FM);color:var(--gold);">74/100</span></div>
+                <div style="height:2px;background:var(--bg3);border-radius:1px;"><div style="width:74%;height:100%;background:var(--gold);border-radius:1px;"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:9px;"><span style="color:var(--text3);">Superficie</span><span style="font-family:var(--FM);color:var(--teal);">88/100</span></div>
+                <div style="height:2px;background:var(--bg3);border-radius:1px;"><div style="width:88%;height:100%;background:var(--teal);border-radius:1px;"></div></div>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap;">
+                <span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(46,184,154,0.1);border:0.5px solid rgba(46,184,154,0.3);color:var(--teal);">✓ AUTH 95%</span>
+                <span style="font-size:9px;padding:2px 7px;border-radius:2px;background:var(--golddim);border:0.5px solid var(--goldborder);color:var(--gold2);">LP</span>
+              </div>
+            </div>
+          </div>
           <div class="mock-scores">
             <div>
               <div class="mock-gls">8.5</div>
@@ -377,7 +474,7 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
           </div>
           <div class="mock-prices">
             <div class="mock-price-block">
-              <div class="mock-price-lbl">TCGPlayer LP · USD</div>
+              <div class="mock-price-lbl">PriceCharting · USD</div>
               <div class="mock-price-val">USD 65</div>
               <div style="font-size:10px;color:var(--text3);margin-top:2px;">NM: USD 87</div>
             </div>
@@ -751,7 +848,7 @@ async function callProxy(messages) {
       model:       'meta-llama/llama-4-scout-17b-16e-instruct',
       messages,
       temperature: 0.05,
-      max_tokens:  1400
+      max_tokens:  2400
     })
   });
   if (!response.ok) {
@@ -768,12 +865,37 @@ async function callProxy(messages) {
 }
 
 function parseJSON(raw) {
-  const clean = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
-  try { return JSON.parse(clean); } catch {
-    const match = clean.match(/\{[\s\S]*\}/);
-    if (match) { try { return JSON.parse(match[0]); } catch {} }
-    throw new Error('La IA no devolvió JSON válido. Intentá de nuevo o con otra foto.');
+  // Strip markdown fences
+  let clean = raw
+    .replace(/^```json\s*/i,'')
+    .replace(/^```\s*/i,'')
+    .replace(/\s*```$/i,'')
+    .trim();
+
+  // Intento 1: parseo directo
+  try { return JSON.parse(clean); } catch {}
+
+  // Intento 2: extraer el primer objeto JSON completo
+  const match = clean.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch {}
+    // Intento 3: el JSON puede estar truncado — intentar cerrar llaves faltantes
+    try {
+      let attempt = match[0];
+      // Contar llaves abiertas vs cerradas
+      let open = 0;
+      for (const ch of attempt) { if (ch === '{') open++; else if (ch === '}') open--; }
+      // Agregar llaves de cierre faltantes + comillas si la última property quedó abierta
+      if (open > 0) {
+        // Si termina con comilla o texto incompleto, cerrar la cadena
+        if (!attempt.endsWith('"') && !attempt.endsWith('}')) attempt += '"';
+        attempt += '}'.repeat(open);
+        try { return JSON.parse(attempt); } catch {}
+      }
+    } catch {}
   }
+
+  throw new Error('La IA no devolvió JSON válido. Intentá de nuevo o con otra foto.');
 }
 
 function imageToGroqFormat(dataUrl) {
@@ -787,21 +909,21 @@ function imageToGroqFormat(dataUrl) {
 }
 
 // ════════════════════════════════════════════════════════
-//  eBay SOLD LISTINGS — via proxy para evitar CORS
-//  El Worker hace el scraping/fetch del RSS de eBay
+//  PRECIO DE CARTA — múltiples fuentes reales via Worker
+//  El Worker intenta: PriceCharting → eBay RSS → sin datos
+//  Nunca se inventan precios.
 // ════════════════════════════════════════════════════════
-async function fetchEbayPrice(cardName, condition) {
+async function fetchCardPrice(cardName, condition) {
   if (!cardName) return null;
+  const cleanName = cardName.replace(/[^a-zA-Z0-9\s\-]/g, '').trim().substring(0, 80);
   try {
-    // Construir query limpia para eBay
-    const query = encodeURIComponent(cardName.replace(/[^a-zA-Z0-9\s\-]/g, '').trim().substring(0, 60));
-    const res = await fetch(`${PROXY_URL}?action=ebay&q=${query}&cond=${condition || 'NM'}`, {
-      signal: AbortSignal.timeout(8000)
+    const query = encodeURIComponent(cleanName);
+    const res   = await fetch(`${PROXY_URL}?action=ebay&q=${query}&cond=${encodeURIComponent(condition || 'NM')}`, {
+      signal: AbortSignal.timeout(12000)
     });
     if (!res.ok) return null;
     const data = await res.json();
-    // Esperamos { avgUSD: 45.50, count: 12, lastSale: "2026-04-04", source: "ebay_sold" }
-    if (data?.avgUSD && data.avgUSD > 0) return data;
+    if (data?.avgUSD && data.avgUSD > 0 && !data.error) return data;
     return null;
   } catch { return null; }
 }
@@ -856,17 +978,15 @@ async function runAnalysis() {
   const PROMPT_ID = `Sos un experto certificado en TCG coleccionables. Año: 2026.
 Identificá la carta en la imagen con máxima precisión.
 ${notes ? `Nota del usuario: "${notes}"\n` : ''}
-REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto adicional, sin markdown, sin backticks.
+NOMBRE Y TRADUCCIÓN:
+Si la carta está en japonés, coreano u otro idioma no latino, el campo "name" debe ser el nombre oficial en INGLÉS. Agregá "name_original" con el nombre en el idioma de la carta. Si ya está en inglés o castellano, "name_original" va vacío.
+Ejemplo: carta japonesa → name: "Umbreon V", name_original: "ブラッキーV"
 
-{
-  "name": "nombre exacto completo de la carta",
-  "set": "Nombre del set · Número/Total · Idioma · Año",
-  "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro",
-  "variante": "variante exacta: Base, Holo, Reverse Holo, Full Art, Alternate Art, etc.",
-  "rareza": "descripción de rareza con símbolo si identificable",
-  "detalles_identificacion": "qué elementos visuales usaste para identificar esta variante específica",
-  "auth": { "estado": "autentica|falsificacion_detectada", "confianza": 95, "flags": [] }
-}`;
+PRECIO ESTIMADO: Usá tu conocimiento de mercado TCG 2025-2026. Estimá el precio NM en USD de forma conservadora. Si es carta conocida, poné el valor real de mercado. Solo -1 si genuinamente no reconocés la carta.
+
+REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto, sin markdown, sin backticks.
+
+{"name":"nombre en inglés","name_original":"nombre idioma original si aplica","set":"Nombre del set · Número/Total · Idioma · Año","game":"Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro","variante":"variante exacta","rareza":"descripción de rareza","detalles_identificacion":"elementos visuales usados","usd_nm_estimado":45,"auth":{"estado":"autentica|falsificacion_detectada","confianza":95,"flags":[]}}`;
 
   const rawId  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_ID }] }]);
   const cardId = parseJSON(rawId);
@@ -874,31 +994,26 @@ REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto adicional, sin markdown,
   // ── PASO 2: Condición física ────────────────────────
   const cardName   = cardId.name || 'esta carta TCG';
   const PROMPT_COND= `Sos un grader PSA estricto analizando: "${cardName}".
-Evaluá con criterio severo. La mayoría de cartas "bien cuidadas" son LP, no NM.
+Evaluá con criterio severo. LP es la condición más común. NM es rarísima.
 
-REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto, sin markdown, sin backticks.
+REGLA ABSOLUTA: Tu respuesta debe ser EXCLUSIVAMENTE el objeto JSON. Sin texto antes, sin texto después, sin markdown, sin backticks, sin comentarios. Solo el JSON.
 
-{
-  "centering": { "h": "55/45", "v": "55/45" },
-  "esquinas": { "TL": "descripción", "TR": "descripción", "BL": "descripción", "BR": "descripción" },
-  "bordes": { "top": "descripción", "bottom": "descripción", "left": "descripción", "right": "descripción" },
-  "superficie": { "scratches": "descripción", "print_lines": "ninguno|descripción", "stains": "ninguno|descripción", "dents": "ninguno|descripción" },
-  "reverso": "no disponible|descripción",
-  "color": { "saturacion": "excelente|buena|regular|reducida", "nitidez": "excelente|buena|reducida", "fading": "ninguno|leve|moderado|severo" },
-  "condicion": "NM|LP|MP|HP|DMG",
-  "notas": "análisis en español rioplatense, 3-4 oraciones honesto",
-  "foto_limitaciones": "ninguna|descripción de qué no pudiste evaluar bien",
-  "grading": { "rec": "si|no|depende", "justificacion": "una oración" }
-}
+{"centering":{"h":"55/45","v":"55/45"},"esquinas":{"TL":"descripción concisa","TR":"descripción concisa","BL":"descripción concisa","BR":"descripción concisa"},"bordes":{"top":"descripción","bottom":"descripción","left":"descripción","right":"descripción"},"superficie":{"scratches":"descripción","print_lines":"ninguno","stains":"ninguno","dents":"ninguno"},"reverso":"no disponible","color":{"saturacion":"excelente","nitidez":"excelente","fading":"ninguno"},"condicion":"LP","notas":"análisis honesto 2-3 oraciones en español rioplatense","foto_limitaciones":"ninguna","grading":{"rec":"si","justificacion":"una oración"}}
 
-Criterios: NM=TODAS esquinas perfectas, scratches solo con lupa, centering máx 58/42. LP=1-2 esquinas whitening leve. MP=whitening moderado 2+ esquinas. HP=whitening severo/dobleces. DMG=quiebres/rasgaduras.`;
+Criterios de condición (ser ESTRICTO):
+NM: TODAS esquinas sin whitening, centering máx 58/42, sin scratches visibles sin lupa
+LP: 1-2 esquinas con whitening leve, micro-scratches solo en ángulo extremo
+MP: whitening moderado en 2+ esquinas, scratches visibles sin ángulo
+HP: whitening severo o dobleces
+DMG: quiebres o rasgaduras
+
+Describí cada esquina en máximo 8 palabras. Respondé SOLO el JSON.`;
 
   const rawCond  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_COND }] }]);
   const cardCond = parseJSON(rawCond);
 
-  // ── PASO 3: Precio eBay (async, no bloquea el informe) ──
-  // Se busca en paralelo mientras construimos el objeto
-  const ebayPromise = fetchEbayPrice(cardId.name, cardCond.condicion);
+  // ── PASO 3: Precio (async, no bloquea el informe) ──
+  const pricePromise = fetchCardPrice(cardId.name, cardCond.condicion);
 
   // ── Construcción del objeto card ────────────────────
   const card = {
@@ -907,6 +1022,7 @@ Criterios: NM=TODAS esquinas perfectas, scratches solo con lupa, centering máx 
     foto:                uploadedImages[0]?.dataUrl || null,
     fotos:               uploadedImages.map(img => img.dataUrl),
     name:                cardId.name || 'Carta TCG',
+    name_original:       cardId.name_original || '',
     set:                 cardId.set  || '',
     game:                cardId.game || 'Pokémon TCG',
     variante:            cardId.variante || '',
@@ -937,30 +1053,50 @@ Criterios: NM=TODAS esquinas perfectas, scratches solo con lupa, centering máx 
     }
   };
 
-  // Esperar resultado de eBay
-  const ebayResult = await ebayPromise;
-  if (ebayResult?.avgUSD && ebayResult.avgUSD > 0) {
-    const condMult = { NM:1, LP:0.75, MP:0.5, HP:0.3, DMG:0.15 };
-    const mult     = condMult[card.condicion] || 0.75;
-    card.mercado.usd_nm   = ebayResult.avgUSD;
-    card.mercado.usd_cond = Math.round(ebayResult.avgUSD * mult);
-    card.mercado.ebay_avg = ebayResult.avgUSD;
-    card.mercado.ebay_count = ebayResult.count || null;
-    card.mercado.ebay_last  = ebayResult.lastSale || null;
-    card.mercado.fuente     = 'ebay_sold';
+  // ── Esperar resultado de precio ─────────────────────
+  // Fuente 1: Worker (PriceCharting / eBay)
+  // Fuente 2 (fallback): estimado por IA en el paso 1
+  const priceResult = await pricePromise;
+  const condMult = { NM:1, LP:0.75, MP:0.5, HP:0.3, DMG:0.15 };
+  const mult     = condMult[card.condicion] || 0.75;
 
+  if (priceResult?.avgUSD && priceResult.avgUSD > 0) {
+    // Fuente externa disponible
+    card.mercado.usd_nm       = priceResult.avgUSD;
+    card.mercado.usd_cond     = Math.round(priceResult.avgUSD * mult);
+    card.mercado.ebay_avg     = priceResult.avgUSD;
+    card.mercado.ebay_count   = priceResult.count || null;
+    card.mercado.ebay_last    = priceResult.lastSale || null;
+    card.mercado.fuente       = priceResult.source || 'externo';
+    card.mercado.fuente_label = priceResult.source === 'pricecharting'
+      ? 'PriceCharting'
+      : priceResult.source === 'ebay_rss'
+        ? 'eBay Sold'
+        : 'Mercado externo';
+  } else if (cardId.usd_nm_estimado && cardId.usd_nm_estimado > 0) {
+    // Fallback: precio estimado por la IA en el paso de identificación
+    card.mercado.usd_nm       = cardId.usd_nm_estimado;
+    card.mercado.usd_cond     = Math.round(cardId.usd_nm_estimado * mult);
+    card.mercado.fuente       = 'ia_estimado';
+    card.mercado.fuente_label = 'Estimado por IA';
+    card.mercado.ebay_count   = null;
+    card.mercado.ebay_last    = null;
+  } else {
+    card.mercado.fuente       = 'no_disponible';
+    card.mercado.fuente_label = 'No disponible';
+  }
+
+  // Calcular ARS si hay precio y dólar blue
+  if (card.mercado.usd_nm > 0) {
     if (DOLAR_BLUE) {
-      card.mercado.ars     = Math.round(card.mercado.usd_cond * DOLAR_BLUE * 1.2);
-      card.mercado.ars_min = Math.round(card.mercado.ars * 0.88);
-      card.mercado.ars_max = Math.round(card.mercado.ars * 1.12);
+      card.mercado.ars         = Math.round(card.mercado.usd_cond * DOLAR_BLUE * 1.2);
+      card.mercado.ars_min     = Math.round(card.mercado.ars * 0.88);
+      card.mercado.ars_max     = Math.round(card.mercado.ars * 1.12);
       card.mercado.dolar_usado = DOLAR_BLUE;
     } else {
-      // No hay dólar blue disponible — no se calculan ARS
-      card.mercado.ars     = 0;
-      card.mercado.fuente_nota = 'Sin valor de dólar blue disponible. No se calculó precio en ARS.';
+      card.mercado.ars         = 0;
+      card.mercado.fuente_nota = 'Sin dólar blue disponible. ARS no calculado.';
     }
-  } else {
-    card.mercado.fuente = 'no_disponible';
   }
 
   const glp  = computeGLP(card);
@@ -1082,14 +1218,16 @@ function renderReport(card, fromPortfolio = false) {
       <div class="block fade-in">
         <div class="block-title">Valuación de mercado</div>
         <div style="padding:12px;background:var(--bg3);border-radius:6px;font-size:12px;color:var(--text3);">
-          No se encontraron ventas recientes en eBay para esta carta.
-          Consultá TCGPlayer o grupos de WhatsApp para precio de referencia.
+          No se pudo obtener precio de mercado para esta carta en este momento.
+          Consultá TCGPlayer, PriceCharting o grupos de WhatsApp para precio de referencia.
         </div>
       </div>`;
     }
+    const isIaEstimate = m.fuente === 'ia_estimado';
 
-    const ebayBadge = m.fuente === 'ebay_sold'
-      ? `<span class="ebay-badge">eBay sold ${m.ebay_count ? `· ${m.ebay_count} ventas` : ''}${m.ebay_last ? ` · ${m.ebay_last}` : ''}</span>`
+    const sourceLabel = m.fuente_label || (m.fuente === 'ebay_sold' ? 'eBay Sold' : m.fuente === 'pricecharting' ? 'PriceCharting' : m.fuente === 'ia_estimado' ? 'Estimado IA' : 'Mercado');
+    const ebayBadge = m.fuente && m.fuente !== 'no_disponible'
+      ? `<span class="ebay-badge">${sourceLabel}${m.ebay_count ? ` · ${m.ebay_count} ventas` : ''}${m.ebay_last ? ` · ${m.ebay_last}` : ''}</span>`
       : '';
 
     const arsBlock = (m.ars > 0 && DOLAR_BLUE)
@@ -1109,9 +1247,10 @@ function renderReport(card, fromPortfolio = false) {
     return `
     <div class="block fade-in">
       <div class="block-title">Valuación de mercado ${ebayBadge}</div>
-      <div class="price-row"><span class="pr-lbl">Precio NM${m.fuente==='ebay_sold'?' (eBay sold promedio)':''}</span><span class="pr-val">USD ${m.usd_nm}</span></div>
+      <div class="price-row"><span class="pr-lbl">Precio NM (${sourceLabel})</span><span class="pr-val">USD ${m.usd_nm}</span></div>
       <div class="price-row"><span class="pr-lbl">Precio condición ${card.condicion}</span><span class="pr-val">USD ${m.usd_cond||'—'}</span></div>
       ${arsBlock}
+      ${isIaEstimate ? `<div style="margin-top:8px;padding:7px 10px;background:rgba(245,158,11,0.07);border:0.5px solid rgba(245,158,11,0.2);border-radius:4px;font-size:11px;color:var(--amber);">⚠ Precio estimado por IA · No se encontraron datos de PriceCharting ni eBay para esta carta. Verificá en TCGPlayer o grupos locales.</div>` : ''}
     </div>`;
   })();
 
@@ -1119,6 +1258,7 @@ function renderReport(card, fromPortfolio = false) {
     <div class="report-header-block fade-in">
       <div style="flex:1;min-width:0;">
         <div class="rh-name">${card.name || 'Carta TCG'}</div>
+        ${card.name_original ? `<div class="rh-set" style="color:var(--gold2);font-size:11px;margin-top:2px;">🌏 Nombre original: ${card.name_original}</div>` : ''}
         <div class="rh-set">${card.set || ''}</div>
         ${card.variante ? `<div class="rh-variant">${card.variante}${card.rareza?' · '+card.rareza:''}</div>` : ''}
         ${card.detalles_id ? `<div class="rh-id-note">🔍 ${card.detalles_id}</div>` : ''}
@@ -1209,8 +1349,8 @@ function renderReport(card, fromPortfolio = false) {
     <div class="save-confirm" id="saveConfirm">✓ Carta guardada en tu colección.</div>
 
     <div class="disclaimer">
-      Análisis generado por Groq Vision (Llama 4 Scout) via proxy seguro · Gem Lens v3.2 · GLS calculado a partir de la condición evaluada por IA.
-      Precios eBay en tiempo real · Dólar blue via bluelytics.com.ar · Las valuaciones son estimativas y no constituyen grading oficial ni asesoramiento financiero.
+      Análisis generado por Groq Vision (Llama 4 Scout) via proxy seguro · Gem Lens v3.5 · GLS calculado a partir de la condición evaluada por IA.
+      Precios de mercado vía PriceCharting / eBay sold listings · Dólar blue via bluelytics.com.ar · Las valuaciones son estimativas y no constituyen grading oficial ni asesoramiento financiero.
       Para grading certificado consultá PSA, CGC o BGS. · Ley 25.326 Argentina.
     </div>
   `;
