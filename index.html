@@ -33,6 +33,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 .nav-btn.active{background:var(--golddim);border-color:var(--goldborder);color:var(--gold2);}
 .nav-credits{font-size:11px;color:var(--text3);font-family:var(--FM);padding:0 12px;}
 
+/* Dólar live pill */
+.dolar-live{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--FM);padding:4px 9px;border-radius:20px;background:rgba(46,184,154,0.08);border:0.5px solid rgba(46,184,154,0.2);color:var(--teal);white-space:nowrap;}
+.dolar-live-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
 /* ══════ VIEWS ══════ */
 .view{display:none;padding-top:54px;min-height:100vh;}
 .view.active{display:block;}
@@ -220,6 +225,13 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 .btn-new:hover{background:var(--surface);color:var(--text);}
 .save-confirm{display:none;margin-top:8px;padding:9px 12px;background:var(--tealdim);border:0.5px solid rgba(46,184,154,0.3);border-radius:6px;font-size:12px;color:var(--teal);text-align:center;}
 .disclaimer{background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:11px 14px;font-size:11px;color:var(--text3);font-weight:300;line-height:1.6;margin-top:16px;}
+
+/* eBay price badge */
+.ebay-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:3px 8px;border-radius:3px;background:rgba(255,165,0,0.1);border:0.5px solid rgba(255,165,0,0.3);color:#ffa500;font-family:var(--FM);margin-left:6px;}
+.ebay-loading{color:var(--text3);animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* Condición styles */
 .cond-nm{background:rgba(46,184,154,0.15);color:var(--teal);border-color:rgba(46,184,154,0.35);}
 .cond-lp{background:rgba(74,144,217,0.12);color:#4a90d9;border-color:rgba(74,144,217,0.3);}
 .cond-mp{background:rgba(245,158,11,0.12);color:var(--amber);border-color:rgba(245,158,11,0.3);}
@@ -253,7 +265,7 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 
 /* ══════ PORTFOLIO TRACKER ══════ */
 .tracker-block{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:20px;}
-.tracker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.tracker-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
 .tracker-title{font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text3);}
 .tracker-value-usd{font-family:var(--FD);font-size:38px;line-height:1;color:var(--gold2);}
 .tracker-value-ars{font-size:12px;color:var(--text3);font-family:var(--FM);margin-top:2px;}
@@ -262,7 +274,7 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 .tracker-change.down{background:rgba(224,82,82,0.12);color:var(--red);border:0.5px solid rgba(224,82,82,0.25);}
 .tracker-change.neutral{background:var(--bg3);color:var(--text3);border:0.5px solid var(--border);}
 .chart-wrap{position:relative;height:160px;margin-top:4px;}
-.chart-empty{display:flex;align-items:center;justify-content:center;height:120px;border:0.5px dashed var(--border2);border-radius:6px;margin-top:8px;}
+.chart-empty{display:flex;align-items:center;justify-content:center;height:80px;border:0.5px dashed var(--border2);border-radius:6px;margin-top:8px;}
 .chart-empty-txt{font-size:12px;color:var(--text3);font-family:var(--FM);text-align:center;line-height:1.6;padding:0 16px;}
 .tracker-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--border);}
 .tm-item{text-align:center;}
@@ -311,7 +323,13 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
     <button class="nav-btn active" id="nb-upload" onclick="goTo('upload')">⬛ Analizar</button>
     <button class="nav-btn" id="nb-portfolio" onclick="goTo('portfolio')">Mi Colección <span id="nav-count" style="font-family:var(--FM);font-size:10px;"></span></button>
   </div>
-  <div class="nav-credits" id="nav-credits-display"></div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="dolar-live" id="dolarPill">
+      <div class="dolar-live-dot"></div>
+      <span id="dolarDisplay">cargando...</span>
+    </div>
+    <div class="nav-credits" id="nav-credits-display"></div>
+  </div>
 </nav>
 
 <div id="toast"></div>
@@ -365,8 +383,8 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
             </div>
             <div class="mock-price-block gold">
               <div class="mock-price-lbl">Precio estimado ARS</div>
-              <div class="mock-price-val">$97.500</div>
-              <div style="font-size:10px;color:var(--gold3);margin-top:2px;">Grupos WA: $90k–$105k</div>
+              <div class="mock-price-val" id="mockArsPrice">$97.500</div>
+              <div style="font-size:10px;color:var(--gold3);margin-top:2px;">Grupos WA: ~$90k–$105k</div>
             </div>
           </div>
         </div>
@@ -388,8 +406,8 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
     <div class="section-title">TRES PASOS.<br>TREINTA SEGUNDOS.</div>
     <div class="steps-grid">
       <div class="step"><div class="step-n">01</div><div class="step-title">SACÁS LA FOTO</div><p class="step-desc">Desde el celular, cámara o galería. Hasta 4 fotos: frente, reverso, bordes, esquinas. Más fotos = análisis más preciso.</p></div>
-      <div class="step"><div class="step-n">02</div><div class="step-title">LA IA ANALIZA</div><p class="step-desc">Groq Vision (Llama 4 Scout) evalúa autenticidad, centering, 4 esquinas, 4 bordes, superficie holo y calidad de color. GLP 0–500.</p></div>
-      <div class="step"><div class="step-n">03</div><div class="step-title">RECIBÍS EL INFORME</div><p class="step-desc">GLS 0–10, GLP 0–500, identificación exacta, precio USD y ARS al blue, consejo de grading con ROI estimado y análisis en español rioplatense.</p></div>
+      <div class="step"><div class="step-n">02</div><div class="step-title">LA IA ANALIZA</div><p class="step-desc">Groq Vision (Llama 4 Scout) evalúa autenticidad, centering, 4 esquinas, 4 bordes, superficie holo y calidad de color. GLP 0–500. Precio desde eBay.</p></div>
+      <div class="step"><div class="step-n">03</div><div class="step-title">RECIBÍS EL INFORME</div><p class="step-desc">GLS 0–10, GLP 0–500, identificación exacta, precio USD real de eBay y ARS al blue actual, consejo de grading con ROI estimado.</p></div>
     </div>
   </div>
 
@@ -405,7 +423,7 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
           <ul class="plan-feats">
             <li class="plan-feat"><div class="feat-dot"></div><span>3 valuaciones por día</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Informe GLS + GLP completo</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Autenticidad + precios ARS</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Autenticidad + precios ARS real</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Portfolio local</span></li>
           </ul>
           <button class="plan-btn btn-outline" onclick="goTo('upload')">EMPEZAR GRATIS</button>
@@ -483,7 +501,7 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
     </button>
 
     <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text3);">
-      Powered by Groq (Llama 4 Scout Vision) · Sin registro requerido
+      Powered by Groq (Llama 4 Scout Vision) via proxy seguro · Sin registro requerido
     </div>
   </div>
 </div>
@@ -516,99 +534,134 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
       <button onclick="goTo('upload')" style="background:var(--gold);color:var(--bg);font-family:var(--FD);font-size:14px;letter-spacing:1px;padding:9px 18px;border-radius:3px;border:none;cursor:pointer;">+ ANALIZAR CARTA</button>
     </div>
 
-    <!-- PORTFOLIO VALUE TRACKER -->
     <div class="tracker-block fade-in" id="trackerBlock"></div>
-
     <div id="summaryGrid" class="summary-grid"></div>
     <div id="portfolioContent"></div>
   </div>
 </div>
 
 <script>
-// ════════════════════════════════
-//  CONFIG
-// ════════════════════════════════
-const MAX_FREE_DAILY = 3;
-const DOLAR_BLUE = 1620;
-// Modo dev: escribí esta palabra en el campo de notas para bypass de créditos
-const DEV_PASSWORD = 'gemlensdev';
-const isDevMode = () => (document.getElementById('notesInput')?.value || '').trim().toLowerCase() === DEV_PASSWORD;
-
-// ════════════════════════════════
-//  PROXY — Cloudflare Worker
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  PROXY URL — único endpoint autorizado
+//  Reemplazá con tu Cloudflare Worker URL
+// ════════════════════════════════════════════════════════
 const PROXY_URL = 'https://gem-lens.namendoza5.workers.dev/';
+
+// ════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════
+const MAX_FREE_DAILY = 3;
+const DEV_PASSWORD   = 'gemlensdev';
+const isDevMode      = () => (document.getElementById('notesInput')?.value || '').trim().toLowerCase() === DEV_PASSWORD;
 
 const LOADING_MSGS = [
   'Identificando carta y variante...',
   'Verificando autenticidad y tipografía...',
   'Analizando esquinas zona por zona...',
   'Evaluando superficie holo y centering...',
-  'Consultando base de precios TCGPlayer / eBay...',
-  'Calculando precio al blue + premium ARG...',
+  'Consultando eBay sold listings...',
+  'Calculando precio al blue real + premium ARG...',
   'Generando informe completo...'
 ];
 
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  DÓLAR BLUE — tiempo real via bluelytics proxy
+//  Se obtiene via Worker para evitar CORS
+// ════════════════════════════════════════════════════════
+let DOLAR_BLUE = null; // null = no disponible, se carga async
+
+async function fetchDolarBlue() {
+  try {
+    // Intentar via bluelytics (puede tener CORS, el Worker lo expone)
+    const res = await fetch('https://api.bluelytics.com.ar/v2/latest', {
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    // bluelytics devuelve blue.value_sell (precio venta) y blue.value_buy
+    const sell = data?.blue?.value_sell;
+    const buy  = data?.blue?.value_buy;
+    if (sell && buy) {
+      DOLAR_BLUE = Math.round((sell + buy) / 2);
+    } else if (sell) {
+      DOLAR_BLUE = Math.round(sell * 0.97); // promedio estimado
+    }
+  } catch {
+    // Fallback: intentar via proxy propio
+    try {
+      const res = await fetch(PROXY_URL + '?action=dolar', {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.blue) DOLAR_BLUE = data.blue;
+      }
+    } catch { /* sin fallback — no se inventa valor */ }
+  }
+  updateDolarDisplay();
+}
+
+function updateDolarDisplay() {
+  const el = document.getElementById('dolarDisplay');
+  const mockEl = document.getElementById('mockArsPrice');
+  if (!el) return;
+  if (DOLAR_BLUE) {
+    el.textContent = `Blue $${DOLAR_BLUE.toLocaleString('es-AR')}`;
+    // Actualizar mock card en landing con valor real
+    if (mockEl) {
+      const mockARS = Math.round(65 * DOLAR_BLUE * 1.2);
+      mockEl.textContent = '$' + mockARS.toLocaleString('es-AR');
+    }
+  } else {
+    el.textContent = 'blue no disponible';
+    document.getElementById('dolarPill')?.classList.add('warn');
+  }
+}
+
+// ════════════════════════════════════════════════════════
 //  STORAGE — Cartas
-// ════════════════════════════════
-const getCards = () => { try { return JSON.parse(localStorage.getItem('gem_cards') || '[]'); } catch { return []; } };
-const saveCards = c => localStorage.setItem('gem_cards', JSON.stringify(c));
-
-// ════════════════════════════════
-//  STORAGE — Snapshots históricos
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
+const getCards     = () => { try { return JSON.parse(localStorage.getItem('gem_cards') || '[]'); } catch { return []; } };
+const saveCards    = c => localStorage.setItem('gem_cards', JSON.stringify(c));
 const getSnapshots = () => { try { return JSON.parse(localStorage.getItem('gem_snapshots') || '[]'); } catch { return []; } };
-const saveSnapshots = s => localStorage.setItem('gem_snapshots', JSON.stringify(s));
+const saveSnapshots= s => localStorage.setItem('gem_snapshots', JSON.stringify(s));
 
-/**
- * Guarda un snapshot del valor total del portfolio.
- * Máximo 1 por día — si ya existe uno de hoy, lo actualiza.
- * No guarda si el portfolio está vacío (0 cartas) o vale $0.
- */
+// ════════════════════════════════════════════════════════
+//  SNAPSHOT — guarda 1 por día máximo, nunca datos falsos
+// ════════════════════════════════════════════════════════
 function maybeSnapshot() {
   const cards = getCards();
   if (!cards.length) return;
-
   const totalUSD = cards.reduce((s, c) => s + (c.mercado?.usd_nm || 0), 0);
   if (totalUSD === 0) return;
-
   const totalARS = cards.reduce((s, c) => s + (c.mercado?.ars || 0), 0);
-  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-
-  const snaps = getSnapshots();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const snaps    = getSnapshots();
   const todayIdx = snaps.findIndex(s => s.date.slice(0, 10) === todayStr);
-
-  const snap = { date: new Date().toISOString(), valueUSD: totalUSD, valueARS: totalARS };
-
-  if (todayIdx >= 0) {
-    snaps[todayIdx] = snap; // actualiza el de hoy
-  } else {
-    snaps.push(snap);
-  }
-
+  const snap     = { date: new Date().toISOString(), valueUSD: totalUSD, valueARS: totalARS };
+  if (todayIdx >= 0) snaps[todayIdx] = snap;
+  else snaps.push(snap);
   saveSnapshots(snaps);
 }
 
-// ════════════════════════════════
-//  STORAGE — Créditos
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  CRÉDITOS
+// ════════════════════════════════════════════════════════
 function getCredits() {
   const today = new Date().toDateString();
   const s = JSON.parse(localStorage.getItem('gem_credits') || '{"date":"","used":0}');
-  if (s.date !== today) { const f = {date:today,used:0}; localStorage.setItem('gem_credits',JSON.stringify(f)); return f; }
+  if (s.date !== today) { const f={date:today,used:0}; localStorage.setItem('gem_credits',JSON.stringify(f)); return f; }
   return s;
 }
 function useCredit() { if (isDevMode()) return; const c=getCredits(); c.used++; localStorage.setItem('gem_credits',JSON.stringify(c)); }
 const creditsLeft = () => isDevMode() ? 99 : Math.max(0, MAX_FREE_DAILY - getCredits().used);
 
-function updateApiKeyUI() { checkBtn(); }
-
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  NAV & VIEWS
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 let uploadedImages = [];
-let lastAnalysis = null;
+let lastAnalysis   = null;
 let portfolioChart = null;
 
 function goTo(viewId) {
@@ -622,20 +675,17 @@ function goTo(viewId) {
   if (viewId === 'upload') refreshUploadUI();
 }
 
-function refreshUploadUI() {
-  renderCredits();
-  updateNavCount();
-}
+function refreshUploadUI() { renderCredits(); updateNavCount(); }
 
 function updateNavCount() {
   const el = document.getElementById('nav-count');
-  const n = getCards().length;
+  const n  = getCards().length;
   if (el) el.textContent = n ? `(${n})` : '';
 }
 
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  UPLOAD UI
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 function handleFiles(files) {
   const available = 4 - uploadedImages.length;
   Array.from(files).slice(0, available).forEach(file => {
@@ -655,15 +705,15 @@ function renderPreviews() {
 }
 
 function checkBtn() {
-  const hasImages = uploadedImages.length > 0;
+  const hasImages  = uploadedImages.length > 0;
   const hasCredits = creditsLeft() > 0;
   document.getElementById('btnAnalyze').disabled = !hasImages || !hasCredits;
 }
 
 function renderCredits() {
   const devMode = isDevMode();
-  const left = devMode ? MAX_FREE_DAILY : creditsLeft();
-  const dotsEl = document.getElementById('creditsDots');
+  const left    = devMode ? MAX_FREE_DAILY : creditsLeft();
+  const dotsEl  = document.getElementById('creditsDots');
   if (!dotsEl) return;
   if (devMode) {
     dotsEl.innerHTML = `<span style="font-size:10px;color:var(--gold2);font-family:var(--FM);letter-spacing:1px;">DEV ∞</span>`;
@@ -680,57 +730,29 @@ function renderCredits() {
 document.addEventListener('DOMContentLoaded', () => {
   const dz = document.getElementById('dropZone');
   if (dz) {
-    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dragover'); });
     dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-    dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+    dz.addEventListener('drop',      e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
   }
   refreshUploadUI();
-  // Snapshot al abrir la app si hay cartas
   maybeSnapshot();
+  fetchDolarBlue();
 });
 
-// ════════════════════════════════
-//  ANALYSIS — via Proxy
-// ════════════════════════════════
-async function startAnalysis() {
-  if (uploadedImages.length === 0) { showToast('Subí al menos una foto'); return; }
-  if (creditsLeft() === 0) { showToast('No te quedan análisis gratuitos hoy'); return; }
-  goTo('loading');
-  runLoadingAnim();
-  try {
-    const result = await runAnalysis();
-    lastAnalysis = result;
-    useCredit();
-    goTo('report');
-    renderReport(result);
-  } catch (err) {
-    goTo('upload');
-    const msg = err.message || 'Error desconocido';
-    let errorHtml = `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${msg}</div>`;
-    const uploadView = document.querySelector('.upload-view');
-    const existing = uploadView.querySelector('.error-block');
-    if (existing) existing.remove();
-    uploadView.insertAdjacentHTML('beforeend', errorHtml);
-    console.error('Analysis error:', err);
-  }
-}
-
-function runLoadingAnim() {
-  const bar = document.getElementById('loadingBar');
-  const msg = document.getElementById('loadingMsg');
-  let step = 0;
-  const total = LOADING_MSGS.length;
-  const iv = setInterval(() => {
-    if (step < total) { msg.textContent = LOADING_MSGS[step]; bar.style.width = ((step + 1) / total * 100) + '%'; step++; }
-    else { clearInterval(iv); }
-  }, 1100);
-}
-
-async function callGroq(messages) {
+// ════════════════════════════════════════════════════════
+//  CALL PROXY — única función que llama al exterior
+//  NO hay API keys, NO hay Bearer tokens aquí
+// ════════════════════════════════════════════════════════
+async function callProxy(messages) {
   const response = await fetch(PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', messages, temperature: 0.05, max_tokens: 1400 })
+    body: JSON.stringify({
+      model:       'meta-llama/llama-4-scout-17b-16e-instruct',
+      messages,
+      temperature: 0.05,
+      max_tokens:  1400
+    })
   });
   if (!response.ok) {
     let errMsg = `Error HTTP ${response.status}`;
@@ -738,6 +760,7 @@ async function callGroq(messages) {
     if (response.status === 429) throw new Error('Rate limit alcanzado. Esperá 1 minuto e intentá de nuevo.');
     if (response.status === 413) throw new Error('Las imágenes son muy grandes. Intentá con fotos de menor tamaño.');
     if (response.status === 400) throw new Error('Formato de imagen no soportado. Usá JPG, PNG o WEBP.');
+    if (response.status === 503) throw new Error('Servicio temporalmente no disponible. Intentá en un momento.');
     throw new Error(errMsg);
   }
   const data = await response.json();
@@ -754,107 +777,205 @@ function parseJSON(raw) {
 }
 
 function imageToGroqFormat(dataUrl) {
-  const commaIdx = dataUrl.indexOf(',');
-  const header = dataUrl.substring(0, commaIdx);
-  const b64data = dataUrl.substring(commaIdx + 1);
+  const commaIdx  = dataUrl.indexOf(',');
+  const header    = dataUrl.substring(0, commaIdx);
+  const b64data   = dataUrl.substring(commaIdx + 1);
   const mimeMatch = header.match(/data:([^;]+);/);
-  const validMimes = ['image/jpeg','image/png','image/gif','image/webp'];
-  const mime = (mimeMatch && validMimes.includes(mimeMatch[1])) ? mimeMatch[1] : 'image/jpeg';
+  const validMimes= ['image/jpeg','image/png','image/gif','image/webp'];
+  const mime      = (mimeMatch && validMimes.includes(mimeMatch[1])) ? mimeMatch[1] : 'image/jpeg';
   return { type:'image_url', image_url:{ url:`data:${mime};base64,${b64data}` } };
+}
+
+// ════════════════════════════════════════════════════════
+//  eBay SOLD LISTINGS — via proxy para evitar CORS
+//  El Worker hace el scraping/fetch del RSS de eBay
+// ════════════════════════════════════════════════════════
+async function fetchEbayPrice(cardName, condition) {
+  if (!cardName) return null;
+  try {
+    // Construir query limpia para eBay
+    const query = encodeURIComponent(cardName.replace(/[^a-zA-Z0-9\s\-]/g, '').trim().substring(0, 60));
+    const res = await fetch(`${PROXY_URL}?action=ebay&q=${query}&cond=${condition || 'NM'}`, {
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    // Esperamos { avgUSD: 45.50, count: 12, lastSale: "2026-04-04", source: "ebay_sold" }
+    if (data?.avgUSD && data.avgUSD > 0) return data;
+    return null;
+  } catch { return null; }
+}
+
+// ════════════════════════════════════════════════════════
+//  ANALYSIS FLOW
+// ════════════════════════════════════════════════════════
+async function startAnalysis() {
+  if (uploadedImages.length === 0) { showToast('Subí al menos una foto'); return; }
+  if (creditsLeft() === 0) { showToast('No te quedan análisis gratuitos hoy'); return; }
+  goTo('loading');
+  runLoadingAnim();
+  try {
+    const result = await runAnalysis();
+    lastAnalysis  = result;
+    useCredit();
+    goTo('report');
+    renderReport(result);
+  } catch (err) {
+    goTo('upload');
+    const msg = err.message || 'Error desconocido';
+    const uploadView = document.querySelector('.upload-view');
+    const existing   = uploadView.querySelector('.error-block');
+    if (existing) existing.remove();
+    uploadView.insertAdjacentHTML('beforeend',
+      `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${msg}</div>`
+    );
+    console.error('Analysis error:', err);
+  }
+}
+
+function runLoadingAnim() {
+  const bar = document.getElementById('loadingBar');
+  const msg = document.getElementById('loadingMsg');
+  let step  = 0;
+  const total = LOADING_MSGS.length;
+  const iv = setInterval(() => {
+    if (step < total) {
+      msg.textContent   = LOADING_MSGS[step];
+      bar.style.width   = ((step + 1) / total * 100) + '%';
+      step++;
+    } else { clearInterval(iv); }
+  }, 1100);
 }
 
 async function runAnalysis() {
   const notesRaw = document.getElementById('notesInput').value.trim();
-  const notes = isDevMode() ? '' : notesRaw;
+  const notes    = isDevMode() ? '' : notesRaw;
   const imageParts = uploadedImages.map(img => imageToGroqFormat(img.dataUrl));
 
+  // ── PASO 1: Identificación ──────────────────────────
   const PROMPT_ID = `Sos un experto certificado en TCG coleccionables. Año: 2026.
 Identificá la carta en la imagen con máxima precisión.
 ${notes ? `Nota del usuario: "${notes}"\n` : ''}
-Respondé SOLO con JSON puro, sin texto adicional, sin markdown, sin backticks:
+REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto adicional, sin markdown, sin backticks.
+
 {
   "name": "nombre exacto completo de la carta",
   "set": "Nombre del set · Número/Total · Idioma · Año",
   "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro",
   "variante": "variante exacta: Base, Holo, Reverse Holo, Full Art, Alternate Art, etc.",
-  "rareza": "descripción de rareza",
-  "detalles_identificacion": "qué elementos usaste para identificar esta carta específica",
-  "auth": { "estado": "autentica|falsificacion_detectada", "confianza": 95, "flags": [] },
-  "mercado": { "usd_nm": 0, "nota_precio": "breve nota sobre confianza del precio" }
+  "rareza": "descripción de rareza con símbolo si identificable",
+  "detalles_identificacion": "qué elementos visuales usaste para identificar esta variante específica",
+  "auth": { "estado": "autentica|falsificacion_detectada", "confianza": 95, "flags": [] }
 }`;
 
-  const rawId = await callGroq([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_ID }] }]);
+  const rawId  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_ID }] }]);
   const cardId = parseJSON(rawId);
 
-  const cardName = cardId.name || 'esta carta TCG';
-  const PROMPT_COND = `Sos un grader PSA estricto analizando: "${cardName}".
-Evaluá la condición física con criterio severo (la mayoría de cartas "bien cuidadas" son LP, no NM).
+  // ── PASO 2: Condición física ────────────────────────
+  const cardName   = cardId.name || 'esta carta TCG';
+  const PROMPT_COND= `Sos un grader PSA estricto analizando: "${cardName}".
+Evaluá con criterio severo. La mayoría de cartas "bien cuidadas" son LP, no NM.
 
-Respondé SOLO con JSON puro, sin texto, sin markdown:
+REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto, sin markdown, sin backticks.
+
 {
   "centering": { "h": "55/45", "v": "55/45" },
-  "esquinas": { "TL": "descripción TL", "TR": "descripción TR", "BL": "descripción BL", "BR": "descripción BR" },
+  "esquinas": { "TL": "descripción", "TR": "descripción", "BL": "descripción", "BR": "descripción" },
   "bordes": { "top": "descripción", "bottom": "descripción", "left": "descripción", "right": "descripción" },
   "superficie": { "scratches": "descripción", "print_lines": "ninguno|descripción", "stains": "ninguno|descripción", "dents": "ninguno|descripción" },
   "reverso": "no disponible|descripción",
   "color": { "saturacion": "excelente|buena|regular|reducida", "nitidez": "excelente|buena|reducida", "fading": "ninguno|leve|moderado|severo" },
   "condicion": "NM|LP|MP|HP|DMG",
-  "notas": "análisis en español rioplatense, 3-4 oraciones",
-  "foto_limitaciones": "ninguna|descripción",
+  "notas": "análisis en español rioplatense, 3-4 oraciones honesto",
+  "foto_limitaciones": "ninguna|descripción de qué no pudiste evaluar bien",
   "grading": { "rec": "si|no|depende", "justificacion": "una oración" }
 }
 
-Criterios estrictos: NM=TODAS esquinas perfectas, scratches solo con lupa, centering máx 58/42. LP=1-2 esquinas whitening leve. MP=whitening moderado 2+ esquinas. HP=whitening severo/dobleces. DMG=quiebres/rasgaduras.`;
+Criterios: NM=TODAS esquinas perfectas, scratches solo con lupa, centering máx 58/42. LP=1-2 esquinas whitening leve. MP=whitening moderado 2+ esquinas. HP=whitening severo/dobleces. DMG=quiebres/rasgaduras.`;
 
-  const rawCond = await callGroq([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_COND }] }]);
+  const rawCond  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_COND }] }]);
   const cardCond = parseJSON(rawCond);
 
+  // ── PASO 3: Precio eBay (async, no bloquea el informe) ──
+  // Se busca en paralelo mientras construimos el objeto
+  const ebayPromise = fetchEbayPrice(cardId.name, cardCond.condicion);
+
+  // ── Construcción del objeto card ────────────────────
   const card = {
-    id: 'card_' + Date.now(),
-    timestamp: new Date().toISOString(),
-    foto: uploadedImages[0]?.dataUrl || null,
-    fotos: uploadedImages.map(img => img.dataUrl),
-    name: cardId.name || 'Carta TCG',
-    set: cardId.set || '',
-    game: cardId.game || 'Pokémon TCG',
-    variante: cardId.variante || '',
-    rareza: cardId.rareza || '',
-    detalles_id: cardId.detalles_identificacion || '',
-    auth: cardId.auth || { estado:'autentica', confianza:80, flags:[] },
-    centering: cardCond.centering || { h:'55/45', v:'55/45' },
-    esquinas: cardCond.esquinas || { TL:'no evaluado', TR:'no evaluado', BL:'no evaluado', BR:'no evaluado' },
-    bordes: cardCond.bordes || {},
-    superficie: cardCond.superficie || { scratches:'no evaluado', print_lines:'ninguno', stains:'ninguno', dents:'ninguno' },
-    reverso: cardCond.reverso || 'no disponible',
-    color: cardCond.color || { saturacion:'buena', nitidez:'buena', fading:'ninguno' },
-    condicion: cardCond.condicion || 'LP',
-    notas: cardCond.notas || '',
-    foto_limitaciones: cardCond.foto_limitaciones || 'ninguna',
-    mercado: cardId.mercado || { usd_nm:0 },
-    grading: cardCond.grading || { rec:'depende', justificacion:'' }
+    id:                  'card_' + Date.now(),
+    timestamp:           new Date().toISOString(),
+    foto:                uploadedImages[0]?.dataUrl || null,
+    fotos:               uploadedImages.map(img => img.dataUrl),
+    name:                cardId.name || 'Carta TCG',
+    set:                 cardId.set  || '',
+    game:                cardId.game || 'Pokémon TCG',
+    variante:            cardId.variante || '',
+    rareza:              cardId.rareza   || '',
+    detalles_id:         cardId.detalles_identificacion || '',
+    auth:                cardId.auth || { estado:'autentica', confianza:80, flags:[] },
+    centering:           cardCond.centering  || { h:'55/45', v:'55/45' },
+    esquinas:            cardCond.esquinas   || { TL:'no evaluado', TR:'no evaluado', BL:'no evaluado', BR:'no evaluado' },
+    bordes:              cardCond.bordes     || {},
+    superficie:          cardCond.superficie || { scratches:'no evaluado', print_lines:'ninguno', stains:'ninguno', dents:'ninguno' },
+    reverso:             cardCond.reverso    || 'no disponible',
+    color:               cardCond.color      || { saturacion:'buena', nitidez:'buena', fading:'ninguno' },
+    condicion:           cardCond.condicion  || 'LP',
+    notas:               cardCond.notas      || '',
+    foto_limitaciones:   cardCond.foto_limitaciones || 'ninguna',
+    grading:             cardCond.grading    || { rec:'depende', justificacion:'' },
+    mercado: {
+      usd_nm:       0,
+      usd_cond:     0,
+      ars:          0,
+      ars_min:      0,
+      ars_max:      0,
+      fuente:       'pendiente',
+      ebay_avg:     null,
+      ebay_count:   null,
+      ebay_last:    null,
+      dolar_usado:  DOLAR_BLUE
+    }
   };
 
-  if (card.mercado?.usd_nm > 0) {
+  // Esperar resultado de eBay
+  const ebayResult = await ebayPromise;
+  if (ebayResult?.avgUSD && ebayResult.avgUSD > 0) {
     const condMult = { NM:1, LP:0.75, MP:0.5, HP:0.3, DMG:0.15 };
-    const mult = condMult[card.condicion] || 0.75;
-    card.mercado.usd_cond = Math.round(card.mercado.usd_nm * mult);
-    card.mercado.ars = Math.round(card.mercado.usd_cond * DOLAR_BLUE * 1.2);
-    card.mercado.ars_min = Math.round(card.mercado.ars * 0.9);
-    card.mercado.ars_max = Math.round(card.mercado.ars * 1.1);
+    const mult     = condMult[card.condicion] || 0.75;
+    card.mercado.usd_nm   = ebayResult.avgUSD;
+    card.mercado.usd_cond = Math.round(ebayResult.avgUSD * mult);
+    card.mercado.ebay_avg = ebayResult.avgUSD;
+    card.mercado.ebay_count = ebayResult.count || null;
+    card.mercado.ebay_last  = ebayResult.lastSale || null;
+    card.mercado.fuente     = 'ebay_sold';
+
+    if (DOLAR_BLUE) {
+      card.mercado.ars     = Math.round(card.mercado.usd_cond * DOLAR_BLUE * 1.2);
+      card.mercado.ars_min = Math.round(card.mercado.ars * 0.88);
+      card.mercado.ars_max = Math.round(card.mercado.ars * 1.12);
+      card.mercado.dolar_usado = DOLAR_BLUE;
+    } else {
+      // No hay dólar blue disponible — no se calculan ARS
+      card.mercado.ars     = 0;
+      card.mercado.fuente_nota = 'Sin valor de dólar blue disponible. No se calculó precio en ARS.';
+    }
+  } else {
+    card.mercado.fuente = 'no_disponible';
   }
 
-  const glp = computeGLP(card);
-  card.glp = glp;
-  card.gls = getGLS(glp.total);
+  const glp  = computeGLP(card);
+  card.glp   = glp;
+  card.gls   = getGLS(glp.total);
   return card;
 }
 
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  SCORING ENGINE
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 function computeGLP(card) {
   const isFake = card.auth?.estado === 'falsificacion_detectada';
   if (isFake) return { total:0, cH:0, cV:0, corn:0, edge:0, surf:0, col:0 };
+
   function cScore(ratio, max) {
     if (!ratio || ratio === 'N/A') return Math.round(max * 0.5);
     const parts = ratio.split('/').map(Number);
@@ -868,67 +989,78 @@ function computeGLP(card) {
     if (big <= 70) return Math.round(max * .17);
     return 0;
   }
+
   const cH = cScore(card.centering?.h, 60);
   const cV = cScore(card.centering?.v, 60);
+
   const condMap = {
-    NM:{ corn:108, edge:72, surf:90, col:76 },
-    LP:{ corn:84, edge:58, surf:72, col:70 },
-    MP:{ corn:58, edge:42, surf:52, col:58 },
-    HP:{ corn:30, edge:22, surf:28, col:42 },
-    DMG:{ corn:8, edge:6, surf:8, col:18 }
+    NM:  { corn:108, edge:72, surf:90, col:76 },
+    LP:  { corn:84,  edge:58, surf:72, col:70 },
+    MP:  { corn:58,  edge:42, surf:52, col:58 },
+    HP:  { corn:30,  edge:22, surf:28, col:42 },
+    DMG: { corn:8,   edge:6,  surf:8,  col:18 }
   };
   let { corn, edge, surf, col } = condMap[card.condicion] || condMap.LP;
+
   const sc = (card.superficie?.scratches || '').toLowerCase();
-  if (sc.includes('severo') || sc.includes('abundante')) surf = Math.max(0, surf - 20);
-  else if (sc.includes('moderado') || sc.includes('visibles')) surf = Math.max(0, surf - 10);
-  else if (sc.includes('micro') || sc.includes('ángulo')) surf = Math.max(0, surf - 3);
-  if (card.superficie?.stains && card.superficie.stains !== 'ninguno') surf = Math.max(0, surf - 8);
+  if (sc.includes('severo') || sc.includes('abundante'))        surf = Math.max(0, surf - 20);
+  else if (sc.includes('moderado') || sc.includes('visibles'))  surf = Math.max(0, surf - 10);
+  else if (sc.includes('micro') || sc.includes('ángulo'))       surf = Math.max(0, surf - 3);
+  if (card.superficie?.stains && card.superficie.stains !== 'ninguno')       surf = Math.max(0, surf - 8);
   if (card.superficie?.print_lines && card.superficie.print_lines !== 'ninguno') surf = Math.max(0, surf - 5);
   if (card.color?.fading === 'moderado') col = Math.max(0, col - 12);
-  if (card.color?.fading === 'severo') col = Math.max(0, col - 22);
+  if (card.color?.fading === 'severo')   col = Math.max(0, col - 22);
   if (card.color?.saturacion === 'reducida') col = Math.max(0, col - 10);
   const lim = (card.foto_limitaciones || '').toLowerCase();
   if (lim && lim !== 'ninguna' && lim.length > 5) corn = Math.max(0, corn - 6);
+
   return { total:cH+cV+corn+edge+surf+col, cH, cV, corn:Math.round(corn), edge:Math.round(edge), surf:Math.round(surf), col:Math.round(col) };
 }
 
 function getGLS(t) {
   if (t >= 480) return 10; if (t >= 460) return 9.5; if (t >= 440) return 9;
-  if (t >= 415) return 8.5; if (t >= 385) return 8; if (t >= 340) return 7;
-  if (t >= 270) return 6; if (t >= 190) return 5; if (t >= 120) return 4;
-  if (t >= 60) return 3; if (t > 0) return 2; return 0;
+  if (t >= 415) return 8.5; if (t >= 385) return 8;  if (t >= 340) return 7;
+  if (t >= 270) return 6;  if (t >= 190) return 5;   if (t >= 120) return 4;
+  if (t >= 60)  return 3;  if (t > 0)    return 2;   return 0;
 }
-const glsLabel = g => ({10:'GEM MINT',9.5:'GEM MINT',9:'MINT',8.5:'NM-MINT',8:'NM-MINT',7:'NEAR MINT',6:'EXCELLENT-MINT',5:'EXCELLENT',4:'VG-EX',3:'VG',2:'GOOD',0:'—'}[g] || '—');
-const barColor = p => p >= 88 ? 'var(--teal)' : p >= 68 ? 'var(--gold)' : p >= 42 ? 'var(--amber)' : 'var(--red)';
-const condStyle = c => ({
-  NM:{cls:'cond-nm',label:'NEAR MINT'}, LP:{cls:'cond-lp',label:'LIGHTLY PLAYED'},
-  MP:{cls:'cond-mp',label:'MODERATELY PLAYED'}, HP:{cls:'cond-hp',label:'HEAVILY PLAYED'},
-  DMG:{cls:'cond-dmg',label:'DAMAGED'}
+
+const glsLabel   = g => ({10:'GEM MINT',9.5:'GEM MINT',9:'MINT',8.5:'NM-MINT',8:'NM-MINT',7:'NEAR MINT',6:'EXCELLENT-MINT',5:'EXCELLENT',4:'VG-EX',3:'VG',2:'GOOD',0:'—'}[g] || '—');
+const barColor   = p => p >= 88 ? 'var(--teal)' : p >= 68 ? 'var(--gold)' : p >= 42 ? 'var(--amber)' : 'var(--red)';
+const condStyle  = c => ({
+  NM:  {cls:'cond-nm', label:'NEAR MINT'},
+  LP:  {cls:'cond-lp', label:'LIGHTLY PLAYED'},
+  MP:  {cls:'cond-mp', label:'MODERATELY PLAYED'},
+  HP:  {cls:'cond-hp', label:'HEAVILY PLAYED'},
+  DMG: {cls:'cond-dmg',label:'DAMAGED'}
 }[c] || {cls:'cond-lp',label:'LIGHTLY PLAYED'});
 
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  RENDER REPORT
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 function renderReport(card, fromPortfolio = false) {
-  const isFake = card.auth?.estado === 'falsificacion_detectada';
-  const s = card.glp || computeGLP(card);
-  const gls = card.gls ?? getGLS(s.total);
-  const cs = condStyle(card.condicion);
-  const authCls = isFake ? 'fail' : card.auth?.confianza >= 85 ? 'ok' : 'warn';
-  const alreadySaved = fromPortfolio || getCards().some(c => c.id === card.id);
+  const isFake        = card.auth?.estado === 'falsificacion_detectada';
+  const s             = card.glp || computeGLP(card);
+  const gls           = card.gls ?? getGLS(s.total);
+  const cs            = condStyle(card.condicion);
+  const authCls       = isFake ? 'fail' : card.auth?.confianza >= 85 ? 'ok' : 'warn';
+  const alreadySaved  = fromPortfolio || getCards().some(c => c.id === card.id);
 
+  // ROI block
   const roiRows = (() => {
-    if (!card.mercado?.usd_nm || card.mercado.usd_nm < 10) return '';
-    const nm = card.mercado.usd_nm, cost = 80;
-    const p8 = Math.round(nm*1.3), p9 = Math.round(nm*1.8), p10 = Math.round(nm*3.5);
+    if (!card.mercado?.usd_nm || card.mercado.usd_nm < 5) return '';
+    const nm   = card.mercado.usd_nm;
+    const cost = 80;
+    const p8   = Math.round(nm * 1.3);
+    const p9   = Math.round(nm * 1.8);
+    const p10  = Math.round(nm * 3.5);
     return `
       <div class="roi-row"><span class="roi-label">PSA 8 — costo ~USD ${cost}</span><span class="${p8-cost>0?'roi-positive':'roi-negative'}">${p8-cost>0?'+':''}USD ${p8-cost} ROI</span></div>
       <div class="roi-row"><span class="roi-label">PSA 9 — costo ~USD ${cost}</span><span class="${p9-cost>0?'roi-positive':'roi-negative'}">${p9-cost>0?'+':''}USD ${p9-cost} ROI ✓</span></div>
       <div class="roi-row"><span class="roi-label">PSA 10 — costo ~USD 100</span><span class="${gls>=9?'roi-positive':'roi-negative'}">${gls>=9?`+USD ${p10-100} ROI`:'condición insuficiente'}</span></div>`;
   })();
 
-  // Fotos: si hay array fotos, usarlo; si no, usar foto individual
-  const allFotos = (card.fotos && card.fotos.length > 0) ? card.fotos : (card.foto ? [card.foto] : []);
+  // Fotos
+  const allFotos = (card.fotos?.length > 0) ? card.fotos : (card.foto ? [card.foto] : []);
   const fotosHtml = allFotos.length ? `
     <div class="fade-in" style="margin-bottom:16px;border-radius:10px;background:var(--bg2);border:0.5px solid var(--border2);padding:14px;">
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
@@ -939,6 +1071,49 @@ function renderReport(card, fromPortfolio = false) {
       </div>
       ${allFotos.length > 1 ? `<div style="text-align:center;margin-top:8px;font-size:10px;color:var(--text3);font-family:var(--FM);">${allFotos.length} fotos analizadas</div>` : ''}
     </div>` : '';
+
+  // Precio block — con eBay real si disponible
+  const mercadoBlock = (() => {
+    const m = card.mercado;
+    if (!m) return '';
+
+    if (m.fuente === 'no_disponible' || !m.usd_nm) {
+      return `
+      <div class="block fade-in">
+        <div class="block-title">Valuación de mercado</div>
+        <div style="padding:12px;background:var(--bg3);border-radius:6px;font-size:12px;color:var(--text3);">
+          No se encontraron ventas recientes en eBay para esta carta.
+          Consultá TCGPlayer o grupos de WhatsApp para precio de referencia.
+        </div>
+      </div>`;
+    }
+
+    const ebayBadge = m.fuente === 'ebay_sold'
+      ? `<span class="ebay-badge">eBay sold ${m.ebay_count ? `· ${m.ebay_count} ventas` : ''}${m.ebay_last ? ` · ${m.ebay_last}` : ''}</span>`
+      : '';
+
+    const arsBlock = (m.ars > 0 && DOLAR_BLUE)
+      ? `<div class="price-row">
+           <span class="pr-lbl">Estimado ARS (blue $${(m.dolar_usado||DOLAR_BLUE).toLocaleString('es-AR')} + 20% premium)</span>
+           <span class="pr-big">$ ${m.ars.toLocaleString('es-AR')}</span>
+         </div>
+         <div class="price-row" style="color:var(--text3);font-size:11px;">
+           <span>Rango grupos WhatsApp AR</span>
+           <span style="font-family:var(--FM);font-size:11px;">$${(m.ars_min||0).toLocaleString('es-AR')} — $${(m.ars_max||0).toLocaleString('es-AR')}</span>
+         </div>`
+      : `<div class="price-row">
+           <span class="pr-lbl" style="color:var(--amber);">⚠ Precio en ARS no disponible — dólar blue no pudo obtenerse</span>
+           <span style="font-size:11px;color:var(--text3);">Intentá recargar la página</span>
+         </div>`;
+
+    return `
+    <div class="block fade-in">
+      <div class="block-title">Valuación de mercado ${ebayBadge}</div>
+      <div class="price-row"><span class="pr-lbl">Precio NM${m.fuente==='ebay_sold'?' (eBay sold promedio)':''}</span><span class="pr-val">USD ${m.usd_nm}</span></div>
+      <div class="price-row"><span class="pr-lbl">Precio condición ${card.condicion}</span><span class="pr-val">USD ${m.usd_cond||'—'}</span></div>
+      ${arsBlock}
+    </div>`;
+  })();
 
   document.getElementById('reportContainer').innerHTML = `
     <div class="report-header-block fade-in">
@@ -1011,18 +1186,7 @@ function renderReport(card, fromPortfolio = false) {
       ${card.foto_limitaciones&&card.foto_limitaciones!=='ninguna'&&card.foto_limitaciones.length>5?`<div style="margin-top:8px;padding:7px 10px;background:rgba(245,158,11,0.08);border:0.5px solid rgba(245,158,11,0.25);border-radius:4px;font-size:11px;color:var(--amber);">⚠ Limitación fotográfica: ${card.foto_limitaciones}</div>`:''}
     </div>
 
-    ${card.mercado?.usd_nm>0?`
-    <div class="block fade-in">
-      <div class="block-title">Valuación de mercado</div>
-      <div class="price-row"><span class="pr-lbl">Precio NM (TCGPlayer / eBay)</span><span class="pr-val">USD ${card.mercado.usd_nm}</span></div>
-      <div class="price-row"><span class="pr-lbl">Precio condición ${card.condicion}</span><span class="pr-val">USD ${card.mercado.usd_cond||'—'}</span></div>
-      <div class="price-row" style="padding-top:10px;"><span class="pr-lbl">Estimado ARS (blue $${DOLAR_BLUE.toLocaleString('es-AR')} + 20% premium)</span><span class="pr-big">$ ${(card.mercado.ars||0).toLocaleString('es-AR')}</span></div>
-      <div class="price-row" style="color:var(--text3);font-size:11px;"><span>Rango grupos WhatsApp AR</span><span style="font-family:var(--FM);font-size:11px;">$${(card.mercado.ars_min||0).toLocaleString('es-AR')} — $${(card.mercado.ars_max||0).toLocaleString('es-AR')}</span></div>
-    </div>`:`
-    <div class="block fade-in">
-      <div class="block-title">Valuación de mercado</div>
-      <p style="font-size:12px;color:var(--text3);">No se pudo determinar el precio con confianza. Consultá TCGPlayer o grupos de WhatsApp.</p>
-    </div>`}
+    ${mercadoBlock}
 
     <div class="block fade-in">
       <div class="block-title">¿Conviene gradear con PSA?</div>
@@ -1045,8 +1209,8 @@ function renderReport(card, fromPortfolio = false) {
     <div class="save-confirm" id="saveConfirm">✓ Carta guardada en tu colección.</div>
 
     <div class="disclaimer">
-      Análisis generado por Groq Vision (Llama 4 Scout) · Gem Lens v3.1 · GLS calculado a partir de la condición evaluada por IA.
-      Las valuaciones son estimativas y no constituyen grading oficial ni asesoramiento financiero.
+      Análisis generado por Groq Vision (Llama 4 Scout) via proxy seguro · Gem Lens v3.2 · GLS calculado a partir de la condición evaluada por IA.
+      Precios eBay en tiempo real · Dólar blue via bluelytics.com.ar · Las valuaciones son estimativas y no constituyen grading oficial ni asesoramiento financiero.
       Para grading certificado consultá PSA, CGC o BGS. · Ley 25.326 Argentina.
     </div>
   `;
@@ -1058,9 +1222,9 @@ function saveToPortfolio() {
   if (cards.some(c => c.id === lastAnalysis.id)) { showToast('Esta carta ya está en tu colección'); return; }
   cards.push(lastAnalysis);
   saveCards(cards);
-  maybeSnapshot(); // actualiza snapshot al guardar
-  document.getElementById('btnSave').disabled = true;
-  document.getElementById('btnSave').textContent = '✓ GUARDADA EN COLECCIÓN';
+  maybeSnapshot();
+  document.getElementById('btnSave').disabled     = true;
+  document.getElementById('btnSave').textContent  = '✓ GUARDADA EN COLECCIÓN';
   document.getElementById('saveConfirm').style.display = 'block';
   updateNavCount();
   showToast('¡Carta guardada en tu colección!');
@@ -1068,53 +1232,83 @@ function saveToPortfolio() {
 
 function analyzeAnother() {
   uploadedImages = [];
-  lastAnalysis = null;
+  lastAnalysis   = null;
   document.getElementById('previewRow').innerHTML = '';
-  document.getElementById('notesInput').value = '';
-  document.getElementById('fileInput').value = '';
+  document.getElementById('notesInput').value     = '';
+  document.getElementById('fileInput').value      = '';
   const existing = document.querySelector('.upload-view .error-block');
   if (existing) existing.remove();
   goTo('upload');
 }
 
-// ════════════════════════════════
-//  PORTFOLIO TRACKER — CHART
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  PORTFOLIO TRACKER — CHART con lógica mejorada
+//  Muestra gráfico con 1+ puntos de datos reales
+// ════════════════════════════════════════════════════════
 function renderTracker(totalUSD, totalARS) {
-  const snaps = getSnapshots();
   const block = document.getElementById('trackerBlock');
   if (!block) return;
 
-  // Cambio respecto al snapshot anterior
+  const cards = getCards();
+  let snaps   = getSnapshots();
+
+  // ── CASO C: Sin colección → no portfolio ──────────────
+  if (!cards.length || totalUSD === 0) {
+    block.innerHTML = `
+      <div class="tracker-header">
+        <div>
+          <div class="tracker-title">Total Portfolio Value</div>
+          <div class="tracker-value-usd" style="color:var(--text3);">USD 0</div>
+          <div class="tracker-value-ars">No portfolio data available yet</div>
+        </div>
+      </div>
+      <div class="chart-empty">
+        <div class="chart-empty-txt">Guardá tu primera carta para empezar a trackear el valor de tu colección.</div>
+      </div>`;
+    return;
+  }
+
+  // ── CASO B: Hay colección pero sin snapshots → crear uno ahora ──
+  if (!snaps.length) {
+    const snap = { date: new Date().toISOString(), valueUSD: totalUSD, valueARS: totalARS };
+    snaps.push(snap);
+    saveSnapshots(snaps);
+  }
+
+  // ── Cambio respecto al snapshot anterior ─────────────
   let changeHtml = '';
   if (snaps.length >= 2) {
     const prev = snaps[snaps.length - 2];
     const curr = snaps[snaps.length - 1];
     if (prev.valueUSD > 0) {
-      const pct = ((curr.valueUSD - prev.valueUSD) / prev.valueUSD * 100).toFixed(1);
+      const pct  = ((curr.valueUSD - prev.valueUSD) / prev.valueUSD * 100).toFixed(1);
       const isUp = parseFloat(pct) >= 0;
-      changeHtml = `<div class="tracker-change ${isUp?'up':'down'}">${isUp?'▲':'▼'} ${isUp?'+':''}${pct}% vs ayer</div>`;
+      changeHtml = `<div class="tracker-change ${isUp?'up':'down'}">${isUp?'▲':'▼'} ${isUp?'+':''}${pct}% vs ant.</div>`;
     }
+  } else {
+    changeHtml = `<div class="tracker-change neutral">Snapshot inicial</div>`;
   }
 
-  // Última fecha de snapshot
-  const lastSnap = snaps.length > 0 ? snaps[snaps.length - 1] : null;
-  const lastSnapDate = lastSnap ? new Date(lastSnap.date).toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : null;
+  const lastSnap     = snaps[snaps.length - 1];
+  const lastSnapDate = lastSnap
+    ? new Date(lastSnap.date).toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    : null;
+
+  const arsDisplay = (totalARS > 0 && DOLAR_BLUE)
+    ? `ARS ~$ ${Math.round(totalARS/1000).toLocaleString('es-AR')}K · blue $${DOLAR_BLUE.toLocaleString('es-AR')}`
+    : 'ARS no disponible (sin dólar blue)';
 
   block.innerHTML = `
     <div class="tracker-header">
       <div>
         <div class="tracker-title">Total Portfolio Value</div>
         <div class="tracker-value-usd">USD ${totalUSD.toLocaleString('en-US')}</div>
-        <div class="tracker-value-ars">ARS ~$ ${Math.round(totalARS/1000).toLocaleString('es-AR')}K estimado · blue $${DOLAR_BLUE.toLocaleString('es-AR')}</div>
+        <div class="tracker-value-ars">${arsDisplay}</div>
       </div>
       ${changeHtml}
     </div>
 
-    ${snaps.length >= 2
-      ? `<div class="chart-wrap"><canvas id="portfolioChart"></canvas></div>`
-      : `<div class="chart-empty"><div class="chart-empty-txt">Not enough historical data to display portfolio performance yet.<br><span style="font-size:10px;opacity:0.6;">El gráfico aparecerá cuando haya datos de al menos 2 días distintos.</span></div></div>`
-    }
+    <div class="chart-wrap"><canvas id="portfolioChart"></canvas></div>
 
     ${snaps.length >= 2 ? `
     <div class="tracker-metrics">
@@ -1135,100 +1329,103 @@ function renderTracker(totalUSD, totalARS) {
     ${lastSnapDate ? `<div class="snapshot-info">Último snapshot: ${lastSnapDate}</div>` : ''}
   `;
 
-  // Inicializar chart solo si hay ≥2 snapshots
-  if (snaps.length >= 2) {
-    // Destruir instancia anterior si existe
-    if (portfolioChart) { portfolioChart.destroy(); portfolioChart = null; }
+  // ── Destruir chart anterior ───────────────────────────
+  if (portfolioChart) { portfolioChart.destroy(); portfolioChart = null; }
 
-    const labels = snaps.map(s => {
-      const d = new Date(s.date);
-      return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' });
-    });
-    const values = snaps.map(s => s.valueUSD);
+  const ctx = document.getElementById('portfolioChart');
+  if (!ctx) return;
 
-    const ctx = document.getElementById('portfolioChart');
-    if (!ctx) return;
+  // ── CASO A: 1 snapshot → mostrar punto único ─────────
+  // ── CASO B default: múltiples → línea completa ───────
+  const labels = snaps.map(s => {
+    const d = new Date(s.date);
+    return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' });
+  });
+  const values = snaps.map(s => s.valueUSD);
 
-    const isPositive = values[values.length-1] >= values[0];
-    const lineColor = isPositive ? '#2eb89a' : '#e05252';
-    const fillColor = isPositive ? 'rgba(46,184,154,0.08)' : 'rgba(224,82,82,0.08)';
+  const isPositive   = values.length < 2 ? true : values[values.length-1] >= values[0];
+  const lineColor    = isPositive ? '#2eb89a' : '#e05252';
+  const fillColor    = isPositive ? 'rgba(46,184,154,0.08)' : 'rgba(224,82,82,0.08)';
 
-    portfolioChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          data: values,
-          borderColor: lineColor,
-          backgroundColor: fillColor,
-          borderWidth: 1.5,
-          pointRadius: snaps.length <= 10 ? 3 : 0,
-          pointHoverRadius: 4,
-          pointBackgroundColor: lineColor,
-          fill: true,
-          tension: 0.3
-        }]
+  portfolioChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data:                values,
+        borderColor:         lineColor,
+        backgroundColor:     fillColor,
+        borderWidth:         snaps.length === 1 ? 0 : 1.5,
+        pointRadius:         snaps.length === 1 ? 8 : (snaps.length <= 10 ? 3 : 0),
+        pointHoverRadius:    6,
+        pointBackgroundColor:lineColor,
+        pointStyle:          snaps.length === 1 ? 'circle' : 'circle',
+        fill:                true,
+        tension:             0.3,
+        spanGaps:            false
+      }]
+    },
+    options: {
+      responsive:           true,
+      maintainAspectRatio:  false,
+      interaction:          { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          backgroundColor:  '#222220',
+          borderColor:      'rgba(240,237,230,0.14)',
+          borderWidth:      0.5,
+          titleColor:       'rgba(240,237,230,0.55)',
+          bodyColor:        '#f0c96a',
+          titleFont:        { family:'DM Mono', size:10 },
+          bodyFont:         { family:'Bebas Neue', size:15 },
+          callbacks: { label: ctx => `USD ${ctx.raw.toLocaleString('en-US')}` }
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode:'index', intersect:false },
-        plugins: {
-          legend: { display:false },
-          tooltip: {
-            backgroundColor: '#222220',
-            borderColor: 'rgba(240,237,230,0.14)',
-            borderWidth: 0.5,
-            titleColor: 'rgba(240,237,230,0.55)',
-            bodyColor: '#f0c96a',
-            titleFont: { family:'DM Mono', size:10 },
-            bodyFont: { family:'Bebas Neue', size:15 },
-            callbacks: {
-              label: ctx => `USD ${ctx.raw.toLocaleString('en-US')}`
-            }
-          }
+      scales: {
+        x: {
+          grid:  { color:'rgba(240,237,230,0.05)', drawBorder:false },
+          ticks: { color:'rgba(240,237,230,0.28)', font:{ family:'DM Mono', size:9 }, maxTicksLimit:6 }
         },
-        scales: {
-          x: {
-            grid: { color:'rgba(240,237,230,0.05)', drawBorder:false },
-            ticks: { color:'rgba(240,237,230,0.28)', font:{ family:'DM Mono', size:9 }, maxTicksLimit:6 }
+        y: {
+          grid:  { color:'rgba(240,237,230,0.05)', drawBorder:false },
+          ticks: {
+            color:'rgba(240,237,230,0.28)',
+            font: { family:'DM Mono', size:9 },
+            callback: v => `$${v >= 1000 ? (v/1000).toFixed(1)+'k' : v}`
           },
-          y: {
-            grid: { color:'rgba(240,237,230,0.05)', drawBorder:false },
-            ticks: {
-              color:'rgba(240,237,230,0.28)',
-              font:{ family:'DM Mono', size:9 },
-              callback: v => `$${v >= 1000 ? (v/1000).toFixed(1)+'k' : v}`
-            }
-          }
+          suggestedMin: snaps.length === 1 ? values[0] * 0.9 : undefined,
+          suggestedMax: snaps.length === 1 ? values[0] * 1.1 : undefined
         }
       }
-    });
-  }
+    }
+  });
 }
 
-// ════════════════════════════════
-//  PORTFOLIO
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  PORTFOLIO RENDER
+// ════════════════════════════════════════════════════════
 function renderPortfolio() {
-  const cards = getCards();
+  const cards    = getCards();
   updateNavCount();
-  const totalUSD = cards.reduce((s, c) => s + (c.mercado?.usd_nm || 0), 0);
-  const totalARS = cards.reduce((s, c) => s + (c.mercado?.ars || 0), 0);
-  const avgGLS = cards.length ? (cards.reduce((s, c) => s + (c.gls||0), 0) / cards.length).toFixed(1) : '—';
+
+  const totalUSD = cards.reduce((s, c) => s + (c.mercado?.usd_nm  || 0), 0);
+  const totalARS = cards.reduce((s, c) => s + (c.mercado?.ars     || 0), 0);
+  const avgGLS   = cards.length ? (cards.reduce((s, c) => s + (c.gls||0), 0) / cards.length).toFixed(1) : '—';
   const bestCard = cards.length ? cards.reduce((b, c) => (c.mercado?.usd_nm||0) > (b.mercado?.usd_nm||0) ? c : b) : null;
-  const condCount = { NM:0, LP:0, MP:0, HP:0, DMG:0 };
+  const snaps    = getSnapshots();
+
+  const condCount  = { NM:0, LP:0, MP:0, HP:0, DMG:0 };
   cards.forEach(c => { if (condCount[c.condicion] !== undefined) condCount[c.condicion]++; });
   const condColors = { NM:'var(--teal)', LP:'#4a90d9', MP:'var(--amber)', HP:'var(--gold3)', DMG:'var(--red)' };
 
-  // Renderizar tracker (siempre, muestra mensaje si no hay datos suficientes)
   renderTracker(totalUSD, totalARS);
 
   document.getElementById('summaryGrid').innerHTML = `
     <div class="summary-card"><div class="sc-label">Cartas en colección</div><div class="sc-value">${cards.length}</div><div class="sc-sub">valuaciones guardadas</div></div>
     <div class="summary-card"><div class="sc-label">GLS promedio</div><div class="sc-value teal">${avgGLS}</div><div class="sc-sub">${glsLabel(Number(avgGLS))||'—'}</div></div>
     <div class="summary-card"><div class="sc-label">Carta más valiosa</div><div class="sc-value" style="font-size:15px;line-height:1.2;">${bestCard?bestCard.name?.split('—')[0].trim().substring(0,20):'—'}</div><div class="sc-sub">${bestCard?`USD ${bestCard.mercado?.usd_nm||0}`:'sin cartas aún'}</div></div>
-    <div class="summary-card"><div class="sc-label">Snapshots históricos</div><div class="sc-value">${getSnapshots().length}</div><div class="sc-sub">días registrados</div></div>
+    <div class="summary-card"><div class="sc-label">Snapshots históricos</div><div class="sc-value">${snaps.length}</div><div class="sc-sub">días registrados</div></div>
   `;
 
   const content = document.getElementById('portfolioContent');
@@ -1258,14 +1455,15 @@ function renderPortfolio() {
     </div>
     <div class="pt-header"><div>Carta</div><div>GLS</div><div>Condición</div><div>USD (NM)</div><div>ARS est.</div><div></div></div>
     ${cards.slice().reverse().map(card => {
-      const cs = condStyle(card.condicion);
+      const cs       = condStyle(card.condicion);
       const glsColor = (card.gls||0)>=9?'var(--teal)':(card.gls||0)>=7?'var(--gold2)':(card.gls||0)>=5?'var(--amber)':'var(--red)';
+      const arsK     = card.mercado?.ars > 0 ? `$${Math.round((card.mercado.ars)/1000)}K` : '—';
       return `<div class="pt-row" onclick="viewCard('${card.id}')">
         <div><div class="pt-name">${card.name||'—'}</div><div class="pt-set">${(card.set||'').substring(0,38)}</div></div>
         <div class="pt-gls" style="color:${glsColor}">${card.gls||'?'}</div>
         <div><span class="pt-cond ${cs.cls}">${card.condicion||'?'}</span></div>
-        <div style="font-family:var(--FM);font-size:12px;">USD ${card.mercado?.usd_nm||'?'}</div>
-        <div style="font-family:var(--FM);font-size:11px;color:var(--text3);">$${Math.round((card.mercado?.ars||0)/1000)}K</div>
+        <div style="font-family:var(--FM);font-size:12px;">${card.mercado?.usd_nm ? `USD ${card.mercado.usd_nm}` : '—'}</div>
+        <div style="font-family:var(--FM);font-size:11px;color:var(--text3);">${arsK}</div>
         <div><button class="pt-del" onclick="event.stopPropagation();deleteCard('${card.id}')">BORRAR</button></div>
       </div>`;
     }).join('')}
@@ -1289,9 +1487,9 @@ function deleteCard(cardId) {
   showToast('Carta eliminada');
 }
 
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  UTILS
-// ════════════════════════════════
+// ════════════════════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
