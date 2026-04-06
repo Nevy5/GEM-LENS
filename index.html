@@ -698,11 +698,19 @@ let portfolioChart = null;
 function goTo(viewId) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('view-' + viewId).classList.add('active');
+  const targetView = document.getElementById('view-' + viewId);
+  if (targetView) targetView.classList.add('active');
   const nb = document.getElementById('nb-' + viewId);
   if (nb) nb.classList.add('active');
   window.scrollTo(0, 0);
-  if (viewId === 'portfolio') { maybeSnapshot(); renderPortfolio(); }
+  
+  if (viewId === 'portfolio') {
+    // Pequeño retraso para asegurar que el DOM está listo
+    setTimeout(() => {
+      maybeSnapshot();
+      renderPortfolio();
+    }, 50);
+  }
   if (viewId === 'upload') refreshUploadUI();
 }
 
@@ -1417,7 +1425,11 @@ function renderTracker(totalUSD, totalARS) {
   if (!block) return;
 
   const cards = getCards();
-  let snaps   = getSnapshots();
+  let snaps = getSnapshots();
+
+  // Limpiar snapshots inválidos
+  snaps = snaps.filter(s => s && typeof s.valueUSD === 'number' && s.valueUSD > 0);
+  saveSnapshots(snaps);
 
   if (!cards.length || totalUSD === 0) {
     block.innerHTML = `
@@ -1425,217 +1437,271 @@ function renderTracker(totalUSD, totalARS) {
         <div>
           <div class="tracker-title">Total Portfolio Value</div>
           <div class="tracker-value-usd" style="color:var(--text3);">USD 0</div>
-          <div class="tracker-value-ars">No portfolio data available yet</div>
+          <div class="tracker-value-ars">Sin datos aún</div>
         </div>
       </div>
       <div class="chart-empty">
-        <div class="chart-empty-txt">Guardá tu primera carta para empezar a trackear el valor de tu colección.</div>
+        <div class="chart-empty-txt">📱 Guardá tu primera carta para empezar a trackear el valor de tu colección.</div>
       </div>`;
     return;
   }
 
+  // Crear snapshot si no existe
   if (!snaps.length) {
     const snap = { date: new Date().toISOString(), valueUSD: totalUSD, valueARS: totalARS };
     snaps.push(snap);
     saveSnapshots(snaps);
   }
 
+  // Cambio respecto al snapshot anterior
   let changeHtml = '';
   if (snaps.length >= 2) {
     const prev = snaps[snaps.length - 2];
     const curr = snaps[snaps.length - 1];
-    if (prev.valueUSD > 0) {
-      const pct  = ((curr.valueUSD - prev.valueUSD) / prev.valueUSD * 100).toFixed(1);
+    if (prev && prev.valueUSD > 0) {
+      const pct = ((curr.valueUSD - prev.valueUSD) / prev.valueUSD * 100).toFixed(1);
       const isUp = parseFloat(pct) >= 0;
-      changeHtml = `<div class="tracker-change ${isUp?'up':'down'}">${isUp?'▲':'▼'} ${isUp?'+':''}${pct}% vs ant.</div>`;
+      changeHtml = `<div class="tracker-change ${isUp ? 'up' : 'down'}">${isUp ? '▲' : '▼'} ${isUp ? '+' : ''}${pct}% vs ant.</div>`;
     }
   } else {
-    changeHtml = `<div class="tracker-change neutral">Snapshot inicial</div>`;
+    changeHtml = `<div class="tracker-change neutral">📊 Snapshot inicial</div>`;
   }
 
-  const lastSnap     = snaps[snaps.length - 1];
+  const lastSnap = snaps[snaps.length - 1];
   const lastSnapDate = lastSnap
-    ? new Date(lastSnap.date).toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    ? new Date(lastSnap.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : null;
 
   const arsDisplay = (totalARS > 0 && DOLAR_BLUE)
-    ? `ARS ~$ ${Math.round(totalARS/1000).toLocaleString('es-AR')}K · blue $${DOLAR_BLUE.toLocaleString('es-AR')}`
-    : 'ARS no disponible (sin dólar blue)';
+    ? `ARS ~$${Math.round(totalARS / 1000).toLocaleString('es-AR')}K · blue $${DOLAR_BLUE.toLocaleString('es-AR')}`
+    : 'ARS no disponible';
 
   block.innerHTML = `
     <div class="tracker-header">
       <div>
-        <div class="tracker-title">Total Portfolio Value</div>
+        <div class="tracker-title">💰 Valor total</div>
         <div class="tracker-value-usd">USD ${totalUSD.toLocaleString('en-US')}</div>
         <div class="tracker-value-ars">${arsDisplay}</div>
       </div>
       ${changeHtml}
     </div>
-
-    <div class="chart-wrap"><canvas id="portfolioChart"></canvas></div>
-
+    <div class="chart-wrap" style="min-height:160px;"><canvas id="portfolioChart" style="max-height:160px;width:100%;"></canvas></div>
     ${snaps.length >= 2 ? `
     <div class="tracker-metrics">
       <div class="tm-item">
-        <div class="tm-label">Snapshots</div>
-        <div class="tm-val">${snaps.length} días</div>
+        <div class="tm-label">📅 Días</div>
+        <div class="tm-val">${snaps.length}</div>
       </div>
       <div class="tm-item">
-        <div class="tm-label">Primer registro</div>
-        <div class="tm-val">${new Date(snaps[0].date).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</div>
+        <div class="tm-label">📈 Máximo</div>
+        <div class="tm-val up">USD ${Math.max(...snaps.map(s => s.valueUSD)).toLocaleString('en-US')}</div>
       </div>
       <div class="tm-item">
-        <div class="tm-label">Máximo USD</div>
-        <div class="tm-val up">USD ${Math.max(...snaps.map(s=>s.valueUSD)).toLocaleString('en-US')}</div>
+        <div class="tm-label">🃏 Cartas</div>
+        <div class="tm-val">${getCards().length}</div>
       </div>
     </div>` : ''}
-
-    ${lastSnapDate ? `<div class="snapshot-info">Último snapshot: ${lastSnapDate}</div>` : ''}
+    ${lastSnapDate ? `<div class="snapshot-info">🕐 Último snapshot: ${lastSnapDate}</div>` : ''}
   `;
 
-  if (portfolioChart) { portfolioChart.destroy(); portfolioChart = null; }
+  // Destruir chart anterior si existe
+  if (portfolioChart) {
+    try { portfolioChart.destroy(); } catch (e) {}
+    portfolioChart = null;
+  }
 
-  const ctx = document.getElementById('portfolioChart');
-  if (!ctx) return;
+  // Esperar a que el canvas esté en el DOM
+  setTimeout(() => {
+    const ctx = document.getElementById('portfolioChart');
+    if (!ctx) return;
 
-  const labels = snaps.map(s => {
-    const d = new Date(s.date);
-    return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' });
-  });
-  const values = snaps.map(s => s.valueUSD);
+    const labels = snaps.map(s => {
+      const d = new Date(s.date);
+      return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+    });
+    const values = snaps.map(s => s.valueUSD);
 
-  const isPositive   = values.length < 2 ? true : values[values.length-1] >= values[0];
-  const lineColor    = isPositive ? '#2eb89a' : '#e05252';
-  const fillColor    = isPositive ? 'rgba(46,184,154,0.08)' : 'rgba(224,82,82,0.08)';
+    const isPositive = values.length < 2 ? true : values[values.length - 1] >= values[0];
+    const lineColor = isPositive ? '#2eb89a' : '#e05252';
+    const fillColor = isPositive ? 'rgba(46,184,154,0.08)' : 'rgba(224,82,82,0.08)';
 
-  portfolioChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        data:                values,
-        borderColor:         lineColor,
-        backgroundColor:     fillColor,
-        borderWidth:         snaps.length === 1 ? 0 : 1.5,
-        pointRadius:         snaps.length === 1 ? 8 : (snaps.length <= 10 ? 3 : 0),
-        pointHoverRadius:    6,
-        pointBackgroundColor:lineColor,
-        pointStyle:          'circle',
-        fill:                true,
-        tension:             0.3,
-        spanGaps:            false
-      }]
-    },
-    options: {
-      responsive:           true,
-      maintainAspectRatio:  false,
-      interaction:          { mode:'index', intersect:false },
-      plugins: {
-        legend: { display:false },
-        tooltip: {
-          backgroundColor:  '#222220',
-          borderColor:      'rgba(240,237,230,0.14)',
-          borderWidth:      0.5,
-          titleColor:       'rgba(240,237,230,0.55)',
-          bodyColor:        '#f0c96a',
-          titleFont:        { family:'DM Mono', size:10 },
-          bodyFont:         { family:'Bebas Neue', size:15 },
-          callbacks: { label: ctx => `USD ${ctx.raw.toLocaleString('en-US')}` }
-        }
-      },
-      scales: {
-        x: {
-          grid:  { color:'rgba(240,237,230,0.05)', drawBorder:false },
-          ticks: { color:'rgba(240,237,230,0.28)', font:{ family:'DM Mono', size:9 }, maxTicksLimit:6 }
+    try {
+      portfolioChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            borderColor: lineColor,
+            backgroundColor: fillColor,
+            borderWidth: snaps.length === 1 ? 0 : 2,
+            pointRadius: snaps.length === 1 ? 6 : (snaps.length <= 8 ? 3 : 0),
+            pointHoverRadius: 5,
+            pointBackgroundColor: lineColor,
+            fill: true,
+            tension: 0.2,
+          }]
         },
-        y: {
-          grid:  { color:'rgba(240,237,230,0.05)', drawBorder:false },
-          ticks: {
-            color:'rgba(240,237,230,0.28)',
-            font: { family:'DM Mono', size:9 },
-            callback: v => `$${v >= 1000 ? (v/1000).toFixed(1)+'k' : v}`
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#222220',
+              borderColor: 'rgba(240,237,230,0.14)',
+              borderWidth: 0.5,
+              titleColor: 'rgba(240,237,230,0.55)',
+              bodyColor: '#f0c96a',
+              titleFont: { size: 10 },
+              bodyFont: { size: 12 },
+              callbacks: {
+                label: (ctx) => `USD ${ctx.raw.toLocaleString('en-US')}`
+              }
+            }
           },
-          suggestedMin: snaps.length === 1 ? values[0] * 0.9 : undefined,
-          suggestedMax: snaps.length === 1 ? values[0] * 1.1 : undefined
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: 'rgba(240,237,230,0.4)', font: { size: 9 }, maxRotation: 45, autoSkip: true }
+            },
+            y: {
+              grid: { color: 'rgba(240,237,230,0.08)' },
+              ticks: {
+                color: 'rgba(240,237,230,0.4)',
+                font: { size: 9 },
+                callback: (v) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`
+              }
+            }
+          }
         }
-      }
+      });
+    } catch (err) {
+      console.error('Chart error:', err);
     }
-  });
+  }, 50);
 }
 
 function renderPortfolio() {
-  const cards    = getCards();
+  // Asegurar que el contenedor existe
+  const content = document.getElementById('portfolioContent');
+  if (!content) return;
+
+  const cards = getCards();
   updateNavCount();
 
-  const totalUSD = cards.reduce((s, c) => s + (c.mercado?.usd_nm  || 0), 0);
-  const totalARS = cards.reduce((s, c) => s + (c.mercado?.ars     || 0), 0);
-  const avgGLS   = cards.length ? (cards.reduce((s, c) => s + (c.gls||0), 0) / cards.length).toFixed(1) : '—';
-  const bestCard = cards.length ? cards.reduce((b, c) => (c.mercado?.usd_nm||0) > (b.mercado?.usd_nm||0) ? c : b) : null;
-  const snaps    = getSnapshots();
+  // Validar cards antes de procesar
+  const validCards = cards.filter(c => c && c.name);
+  if (validCards.length !== cards.length) {
+    saveCards(validCards);
+  }
 
-  const condCount  = { NM:0, LP:0, MP:0, HP:0, DMG:0 };
-  cards.forEach(c => { if (condCount[c.condicion] !== undefined) condCount[c.condicion]++; });
-  const condColors = { NM:'var(--teal)', LP:'#4a90d9', MP:'var(--amber)', HP:'var(--gold3)', DMG:'var(--red)' };
+  const totalUSD = validCards.reduce((s, c) => s + (c.mercado?.usd_nm || 0), 0);
+  const totalARS = validCards.reduce((s, c) => s + (c.mercado?.ars || 0), 0);
+  const avgGLS = validCards.length ? (validCards.reduce((s, c) => s + (c.gls || 0), 0) / validCards.length).toFixed(1) : '—';
+  const bestCard = validCards.length ? validCards.reduce((b, c) => (c.mercado?.usd_nm || 0) > (b.mercado?.usd_nm || 0) ? c : b) : null;
+  const snaps = getSnapshots();
 
-  renderTracker(totalUSD, totalARS);
+  const condCount = { NM: 0, LP: 0, MP: 0, HP: 0, DMG: 0 };
+  validCards.forEach(c => {
+    if (condCount[c.condicion] !== undefined) condCount[c.condicion]++;
+  });
+  const condColors = { NM: 'var(--teal)', LP: '#4a90d9', MP: 'var(--amber)', HP: 'var(--gold3)', DMG: 'var(--red)' };
+
+  // Renderizar tracker (con manejo de errores)
+  try {
+    renderTracker(totalUSD, totalARS);
+  } catch (err) {
+    console.error('Tracker error:', err);
+    const block = document.getElementById('trackerBlock');
+    if (block) {
+      block.innerHTML = `<div class="error-block" style="padding:12px;text-align:center;">⚠ Error al cargar gráfico. Recargá la página.</div>`;
+    }
+  }
 
   const summaryGrid = document.getElementById('summaryGrid');
   if (summaryGrid) {
     summaryGrid.innerHTML = `
-      <div class="summary-card"><div class="sc-label">Cartas en colección</div><div class="sc-value">${cards.length}</div><div class="sc-sub">valuaciones guardadas</div></div>
-      <div class="summary-card"><div class="sc-label">GLS promedio</div><div class="sc-value teal">${avgGLS}</div><div class="sc-sub">${glsLabel(Number(avgGLS))||'—'}</div></div>
-      <div class="summary-card"><div class="sc-label">Carta más valiosa</div><div class="sc-value" style="font-size:15px;line-height:1.2;">${bestCard?escapeHtml(bestCard.name?.split('—')[0].trim().substring(0,20)):'—'}</div><div class="sc-sub">${bestCard?`USD ${bestCard.mercado?.usd_nm||0}`:'sin cartas aún'}</div></div>
-      <div class="summary-card"><div class="sc-label">Snapshots históricos</div><div class="sc-value">${snaps.length}</div><div class="sc-sub">días registrados</div></div>
+      <div class="summary-card"><div class="sc-label">🃏 Cartas</div><div class="sc-value">${validCards.length}</div><div class="sc-sub">en colección</div></div>
+      <div class="summary-card"><div class="sc-label">⭐ GLS promedio</div><div class="sc-value teal">${avgGLS}</div><div class="sc-sub">${glsLabel(Number(avgGLS)) || '—'}</div></div>
+      <div class="summary-card"><div class="sc-label">🏆 Más valiosa</div><div class="sc-value" style="font-size:15px;line-height:1.2;">${bestCard ? escapeHtml(bestCard.name?.split('—')[0].trim().substring(0, 18)) : '—'}</div><div class="sc-sub">${bestCard ? `USD ${bestCard.mercado?.usd_nm || 0}` : 'sin cartas'}</div></div>
+      <div class="summary-card"><div class="sc-label">📅 Historial</div><div class="sc-value">${snaps.length}</div><div class="sc-sub">días registrados</div></div>
     `;
   }
 
-  const content = document.getElementById('portfolioContent');
-  if (!content) return;
-
-  if (!cards.length) {
+  if (!validCards.length) {
     content.innerHTML = `
       <div class="empty-portfolio">
         <div class="ep-icon">🃏</div>
         <div class="ep-title">TU COLECCIÓN ESTÁ VACÍA</div>
         <div class="ep-sub">Analizá tu primera carta y guardala acá para empezar a trackear tu portfolio.</div>
-        <button onclick="goTo('upload')" style="background:var(--gold);color:var(--bg);font-family:var(--FD);font-size:17px;letter-spacing:1px;padding:11px 26px;border-radius:4px;border:none;cursor:pointer;">ANALIZAR MI PRIMERA CARTA →</button>
+        <button onclick="goTo('upload')" style="background:var(--gold);color:var(--bg);font-family:var(--FD);font-size:17px;letter-spacing:1px;padding:11px 26px;border-radius:4px;border:none;cursor:pointer;margin-top:16px;">📸 ANALIZAR MI PRIMERA CARTA →</button>
       </div>`;
     return;
   }
 
-  const distBar = Object.entries(condCount).filter(([,v])=>v>0)
-    .map(([k,v])=>`<div class="dist-seg" style="flex:${v};background:${condColors[k]}"></div>`).join('');
+  const distBar = Object.entries(condCount).filter(([, v]) => v > 0)
+    .map(([k, v]) => `<div class="dist-seg" style="flex:${v};background:${condColors[k]}"></div>`).join('');
 
+  // Versión simplificada para móvil (menos columnas)
+  const isMobile = window.innerWidth <= 768;
+  
   content.innerHTML = `
     <div style="margin-bottom:14px;">
-      <div class="dist-bar">${distBar}</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:5px;">
-        ${Object.entries(condCount).filter(([,v])=>v>0).map(([k,v])=>
-          `<span style="font-size:11px;color:var(--text3);"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${condColors[k]};margin-right:3px;"></span>${k} (${v})</span>`
-        ).join('')}
+      <div class="dist-bar" style="display:flex;height:6px;border-radius:4px;overflow:hidden;gap:2px;">${distBar || '<div style="flex:1;background:var(--border);"></div>'}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;justify-content:center;">
+        ${Object.entries(condCount).filter(([, v]) => v > 0).map(([k, v]) =>
+      `<span style="font-size:11px;color:var(--text3);"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${condColors[k]};margin-right:4px;"></span>${k} (${v})</span>`
+    ).join('')}
       </div>
     </div>
-    <div class="pt-header"><div>Carta</div><div>GLS</div><div>Condición</div><div>USD (NM)</div><div>ARS est.</div><div></div></div>
-    ${cards.slice().reverse().map(card => {
-      const cs       = condStyle(card.condicion);
-      const glsColor = (card.gls||0)>=9?'var(--teal)':(card.gls||0)>=7?'var(--gold2)':(card.gls||0)>=5?'var(--amber)':'var(--red)';
-      const arsK     = card.mercado?.ars > 0 ? `$${Math.round((card.mercado.ars)/1000)}K` : '—';
-      return `<div class="pt-row" onclick="viewCard('${card.id}')">
-        <div><div class="pt-name">${escapeHtml(card.name||'—')}</div><div class="pt-set">${escapeHtml((card.set||'').substring(0,38))}</div></div>
-        <div class="pt-gls" style="color:${glsColor}">${card.gls||'?'}</div>
-        <div><span class="pt-cond ${cs.cls}">${card.condicion||'?'}</span></div>
-        <div style="font-family:var(--FM);font-size:12px;">${card.mercado?.usd_nm ? `USD ${card.mercado.usd_nm}` : '—'}</div>
-        <div style="font-family:var(--FM);font-size:11px;color:var(--text3);">${arsK}</div>
-        <div><button class="pt-del" onclick="event.stopPropagation();deleteCard('${card.id}')">BORRAR</button></div>
+    <div class="pt-header" style="display:${isMobile ? 'none' : 'grid'};grid-template-columns:2fr 60px 80px 80px 70px 50px;">
+      <div>Carta</div><div>GLS</div><div>Cond</div><div>USD</div><div>ARS</div><div></div>
+    </div>
+    ${validCards.slice().reverse().map(card => {
+    const cs = condStyle(card.condicion);
+    const glsColor = (card.gls || 0) >= 9 ? 'var(--teal)' : (card.gls || 0) >= 7 ? 'var(--gold2)' : (card.gls || 0) >= 5 ? 'var(--amber)' : 'var(--red)';
+    const arsK = card.mercado?.ars > 0 ? `$${Math.round((card.mercado.ars) / 1000)}K` : '—';
+    
+    if (isMobile) {
+      return `<div class="pt-row" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px;border-bottom:0.5px solid var(--border);" onclick="viewCard('${card.id}')">
+        <div style="flex:2;min-width:0;">
+          <div class="pt-name" style="font-size:13px;">${escapeHtml(card.name || '—')}</div>
+          <div class="pt-set" style="font-size:9px;">${escapeHtml((card.set || '').substring(0, 35))}</div>
+        </div>
+        <div style="text-align:center;min-width:50px;">
+          <div class="pt-gls" style="color:${glsColor};font-size:18px;">${card.gls || '?'}</div>
+          <span class="pt-cond ${cs.cls}" style="font-size:8px;padding:2px 6px;">${card.condicion || '?'}</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--FM);font-size:12px;">USD ${card.mercado?.usd_nm || '—'}</div>
+          <div style="font-size:10px;color:var(--text3);">${arsK}</div>
+        </div>
+        <button class="pt-del" onclick="event.stopPropagation();deleteCard('${card.id}')" style="margin-left:8px;">🗑</button>
       </div>`;
-    }).join('')}
-    <div style="padding:12px;font-size:11px;color:var(--text3);text-align:right;">${cards.length} carta${cards.length!==1?'s':''} · Guardadas localmente en tu browser</div>
+    } else {
+      return `<div class="pt-row" onclick="viewCard('${card.id}')" style="display:grid;grid-template-columns:2fr 60px 80px 80px 70px 50px;align-items:center;padding:10px 12px;">
+        <div><div class="pt-name">${escapeHtml(card.name || '—')}</div><div class="pt-set">${escapeHtml((card.set || '').substring(0, 38))}</div></div>
+        <div class="pt-gls" style="color:${glsColor}">${card.gls || '?'}</div>
+        <div><span class="pt-cond ${cs.cls}">${card.condicion || '?'}</span></div>
+        <div style="font-family:var(--FM);font-size:12px;">USD ${card.mercado?.usd_nm || '—'}</div>
+        <div style="font-family:var(--FM);font-size:11px;color:var(--text3);">${arsK}</div>
+        <div><button class="pt-del" onclick="event.stopPropagation();deleteCard('${card.id}')">🗑 BORRAR</button></div>
+      </div>`;
+    }
+  }).join('')}
+    <div style="padding:16px;font-size:11px;color:var(--text3);text-align:center;border-top:0.5px solid var(--border);margin-top:8px;">
+      📱 ${validCards.length} carta${validCards.length !== 1 ? 's' : ''} · Guardadas localmente en tu navegador
+    </div>
   `;
 }
 
 function viewCard(cardId) {
   const card = getCards().find(c => c.id === cardId);
-  if (!card) return;
+  if (!card) {
+    showToast('Error: No se encontró la carta');
+    return;
+  }
   lastAnalysis = card;
   goTo('report');
   renderReport(card, true);
@@ -1643,10 +1709,11 @@ function viewCard(cardId) {
 
 function deleteCard(cardId) {
   if (!confirm('¿Eliminar esta carta de tu colección?')) return;
-  saveCards(getCards().filter(c => c.id !== cardId));
+  const cards = getCards().filter(c => c.id !== cardId);
+  saveCards(cards);
   maybeSnapshot();
   renderPortfolio();
-  showToast('Carta eliminada');
+  showToast('🗑 Carta eliminada');
 }
 
 function showToast(msg) {
