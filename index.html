@@ -356,77 +356,20 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
         <div class="mock-card">
           <!-- Card visual — mock realista estilo Pokémon TCG -->
           <div style="background:#0a0a08;border-bottom:0.5px solid var(--border);padding:14px 16px;display:flex;gap:14px;align-items:center;">
-            <!-- La carta simulada completa -->
+            <!-- Charizard V Alternate Art — Brilliant Stars 174/172 — imagen real -->
             <div style="position:relative;flex-shrink:0;">
-              <svg width="100" height="140" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" style="border-radius:7px;box-shadow:0 0 24px rgba(212,168,67,0.25),0 0 8px rgba(212,168,67,0.15);display:block;">
-                <defs>
-                  <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#1a2a5e"/>
-                    <stop offset="50%" style="stop-color:#2a1a3a"/>
-                    <stop offset="100%" style="stop-color:#3a1008"/>
-                  </linearGradient>
-                  <linearGradient id="holoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:rgba(255,200,100,0);stop-opacity:0"/>
-                    <stop offset="40%" style="stop-color:rgba(255,180,80,0.18);stop-opacity:1"/>
-                    <stop offset="60%" style="stop-color:rgba(255,120,50,0.12);stop-opacity:1"/>
-                    <stop offset="100%" style="stop-color:rgba(255,200,100,0);stop-opacity:0"/>
-                  </linearGradient>
-                  <radialGradient id="glowGrad" cx="35%" cy="30%" r="50%">
-                    <stop offset="0%" style="stop-color:rgba(255,160,60,0.4)"/>
-                    <stop offset="100%" style="stop-color:rgba(255,100,0,0)"/>
-                  </radialGradient>
-                  <clipPath id="cardClip">
-                    <rect width="100" height="140" rx="7"/>
-                  </clipPath>
-                </defs>
-                <!-- Fondo carta -->
-                <rect width="100" height="140" rx="7" fill="url(#bgGrad)"/>
-                <!-- Borde dorado exterior -->
-                <rect x="1" y="1" width="98" height="138" rx="6.5" fill="none" stroke="rgba(212,168,67,0.6)" stroke-width="1.5"/>
-                <!-- Glow radial -->
-                <rect width="100" height="140" rx="7" fill="url(#glowGrad)" clip-path="url(#cardClip)"/>
-                <!-- Header tipo Pokémon: nombre y HP -->
-                <rect x="5" y="5" width="90" height="14" rx="2" fill="rgba(255,200,80,0.15)"/>
-                <text x="9" y="14.5" font-family="Arial Black,sans-serif" font-size="6" font-weight="900" fill="#f0c96a" letter-spacing="0.5">CHARIZARD V</text>
-                <text x="83" y="14.5" font-family="Arial,sans-serif" font-size="5.5" font-weight="700" fill="#ff8060" text-anchor="middle">220HP</text>
-                <!-- Arte principal — dragón abstracto en fuego -->
-                <rect x="5" y="21" width="90" height="62" rx="3" fill="rgba(0,0,0,0.3)"/>
-                <!-- Cuerpo dragón simplificado -->
-                <ellipse cx="50" cy="55" rx="22" ry="26" fill="rgba(200,60,10,0.7)"/>
-                <ellipse cx="50" cy="52" rx="16" ry="20" fill="rgba(230,80,20,0.8)"/>
-                <!-- Alas -->
-                <path d="M28 45 Q18 30 22 50 Q24 55 32 50 Z" fill="rgba(180,40,5,0.6)"/>
-                <path d="M72 45 Q82 30 78 50 Q76 55 68 50 Z" fill="rgba(180,40,5,0.6)"/>
-                <!-- Llama -->
-                <ellipse cx="50" cy="30" rx="8" ry="12" fill="rgba(255,160,0,0.7)"/>
-                <ellipse cx="50" cy="28" rx="5" ry="8" fill="rgba(255,220,0,0.8)"/>
-                <ellipse cx="50" cy="26" rx="3" ry="5" fill="rgba(255,255,200,0.9)"/>
-                <!-- Holo shimmer overlay -->
-                <rect width="100" height="140" rx="7" fill="url(#holoGrad)" clip-path="url(#cardClip)" opacity="0.8"/>
-                <!-- Zona de ataques -->
-                <rect x="5" y="85" width="90" height="28" rx="2" fill="rgba(0,0,0,0.25)"/>
-                <rect x="8" y="88" width="34" height="8" rx="1" fill="rgba(255,120,0,0.3)"/>
-                <text x="10" y="94.5" font-family="Arial,sans-serif" font-size="5" fill="rgba(255,200,100,0.9)" font-weight="bold">Crimine</text>
-                <text x="68" y="94.5" font-family="Arial Black,sans-serif" font-size="7" fill="#ff8060" font-weight="900" text-anchor="middle">200</text>
-                <rect x="8" y="98" width="84" height="0.5" fill="rgba(255,255,255,0.1)"/>
-                <text x="10" y="104.5" font-family="Arial,sans-serif" font-size="4.5" fill="rgba(240,237,230,0.5)">Descartá 3 energías Fire de este Pokémon.</text>
-                <!-- Footer: rareza y set -->
-                <rect x="5" y="115" width="90" height="20" rx="2" fill="rgba(0,0,0,0.2)"/>
-                <text x="50" y="124" font-family="Arial,sans-serif" font-size="4" fill="rgba(240,237,230,0.4)" text-anchor="middle">Brilliant Stars · 174/172 · 2022</text>
-                <text x="50" y="131" font-family="Arial,sans-serif" font-size="5" fill="rgba(212,168,67,0.8)" text-anchor="middle">✦✦ SECRET RARE</text>
-                <!-- Corner scan markers (análisis) -->
-                <line x1="5" y1="7" x2="11" y2="7" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <line x1="5" y1="7" x2="5" y2="13" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <line x1="95" y1="7" x2="89" y2="7" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <line x1="95" y1="7" x2="95" y2="13" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <line x1="5" y1="133" x2="11" y2="133" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <line x1="5" y1="133" x2="5" y2="127" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <line x1="95" y1="133" x2="89" y2="133" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <line x1="95" y1="133" x2="95" y2="127" stroke="rgba(46,184,154,0.7)" stroke-width="1"/>
-                <!-- Línea de centering -->
-                <line x1="50" y1="5" x2="50" y2="135" stroke="rgba(46,184,154,0.2)" stroke-width="0.5" stroke-dasharray="2,2"/>
+              <img src="https://images.pokemontcg.io/swsh9/174_hires.png" width="100" height="140" alt="Charizard V Alternate Art" style="border-radius:7px;box-shadow:0 0 24px rgba(212,168,67,0.3),0 0 8px rgba(212,168,67,0.15);display:block;object-fit:cover;" onerror="this.onerror=null;this.src='https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/BST/BST_174_R_EN.png';">
+              <svg width="100" height="140" viewBox="0 0 100 140" style="position:absolute;top:0;left:0;pointer-events:none;border-radius:7px;">
+                <line x1="5" y1="7" x2="11" y2="7" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="5" y1="7" x2="5" y2="13" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="95" y1="7" x2="89" y2="7" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="95" y1="7" x2="95" y2="13" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="5" y1="133" x2="11" y2="133" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="5" y1="133" x2="5" y2="127" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="95" y1="133" x2="89" y2="133" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="95" y1="133" x2="95" y2="127" stroke="rgba(46,184,154,0.9)" stroke-width="1.5"/>
+                <line x1="50" y1="5" x2="50" y2="135" stroke="rgba(46,184,154,0.15)" stroke-width="0.5" stroke-dasharray="2,2"/>
               </svg>
-              <!-- Badge GLS encima de la carta -->
               <div style="position:absolute;top:-8px;right:-8px;background:linear-gradient(135deg,var(--gold),var(--gold2));width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--FD);font-size:14px;color:#0a0a08;box-shadow:0 0 12px rgba(212,168,67,0.5);border:1.5px solid rgba(255,255,255,0.2);">8.5</div>
             </div>
             <!-- Info panel -->
@@ -913,13 +856,25 @@ function imageToGroqFormat(dataUrl) {
 //  El Worker intenta: PriceCharting → eBay RSS → sin datos
 //  Nunca se inventan precios.
 // ════════════════════════════════════════════════════════
-async function fetchCardPrice(cardName, condition) {
+async function fetchCardPrice(cardName, condition, game, setName, rarity) {
   if (!cardName) return null;
-  const cleanName = cardName.replace(/[^a-zA-Z0-9\s\-]/g, '').trim().substring(0, 80);
+  const cleanName = cardName.replace(/[^a-zA-Z0-9\s\-\']/g, '').trim().substring(0, 100);
+  const cleanGame = (game || 'pokemon').toLowerCase()
+    .replace('pokémon tcg','pokemon').replace('pokemon tcg','pokemon')
+    .replace('yu-gi-oh!','yugioh').replace('yu-gi-oh','yugioh')
+    .replace('magic: the gathering','mtg').replace('magic the gathering','mtg')
+    .split(' ')[0]; // tomar solo la primera palabra como game key
   try {
-    const query = encodeURIComponent(cleanName);
-    const res   = await fetch(`${PROXY_URL}?action=ebay&q=${query}&cond=${encodeURIComponent(condition || 'NM')}`, {
-      signal: AbortSignal.timeout(12000)
+    const params = new URLSearchParams({
+      action: 'price',
+      q:      cleanName,
+      cond:   condition || 'NM',
+      game:   cleanGame || 'pokemon',
+    });
+    if (setName)  params.set('set',    setName.substring(0, 80));
+    if (rarity)   params.set('rarity', rarity.substring(0, 60));
+    const res = await fetch(`${PROXY_URL}?${params.toString()}`, {
+      signal: AbortSignal.timeout(14000)
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -975,18 +930,39 @@ async function runAnalysis() {
   const imageParts = uploadedImages.map(img => imageToGroqFormat(img.dataUrl));
 
   // ── PASO 1: Identificación ──────────────────────────
-  const PROMPT_ID = `Sos un experto certificado en TCG coleccionables. Año: 2026.
+  const PROMPT_ID = `Sos un experto certificado en TCG coleccionables con 20 años de experiencia. Año: 2026.
 Identificá la carta en la imagen con máxima precisión.
 ${notes ? `Nota del usuario: "${notes}"\n` : ''}
-NOMBRE Y TRADUCCIÓN:
-Si la carta está en japonés, coreano u otro idioma no latino, el campo "name" debe ser el nombre oficial en INGLÉS. Agregá "name_original" con el nombre en el idioma de la carta. Si ya está en inglés o castellano, "name_original" va vacío.
-Ejemplo: carta japonesa → name: "Umbreon V", name_original: "ブラッキーV"
+NOMBRE OFICIAL — MUY IMPORTANTE:
+El campo "name" es SIEMPRE el nombre CANÓNICO OFICIAL en inglés (el del set inglés oficial). NO traduzcas literalmente el texto de la carta.
+Ejemplos de mapeo correcto para cartas japonesas:
+  "カツラのウインディ" → name: "Blaine's Arcanine" (NO "Blaine's Arcanine" literalmente del kanji)
+  "ブラッキーV" → name: "Umbreon V"
+  "リザードンex" → name: "Charizard ex"
+El campo "name_original" es solo el texto impreso en la carta en su idioma. Si ya es inglés, dejar vacío ""
 
-PRECIO ESTIMADO: Usá tu conocimiento de mercado TCG 2025-2026. Estimá el precio NM en USD de forma conservadora. Si es carta conocida, poné el valor real de mercado. Solo -1 si genuinamente no reconocés la carta.
+RAREZA — en inglés según estándar PSA/TCGPlayer:
+Pokémon: Common | Uncommon | Rare | Holo Rare | V | VMAX | VSTAR | ex | Full Art | Alternate Art | Special Illustration Rare | Hyper Rare | Rainbow Rare | Gold Rare | Shiny Rare | Promo
+YGO: Common | Rare | Super Rare | Ultra Rare | Secret Rare | Starlight Rare | Ghost Rare
+MTG: Common | Uncommon | Rare | Mythic Rare | Foil | Showcase | Borderless | Extended Art
+
+PRECIO NM EN USD — rangos reales de mercado 2025-2026 (eBay/TCGPlayer):
+  Common/Uncommon moderno: 0.25–1
+  Holo Rare moderno / Rare: 1–5
+  V / GX / ex básico: 3–10
+  VMAX / VSTAR / Full Art: 5–15
+  Full Art Trainer: 8–18
+  Alternate Art / SIR: 20–80 (mayoría entre 25–55)
+  Hyper Rare / Rainbow: 15–35
+  Holo Rare vintage (Base Set era): 20–150
+  Charizard Base Set (sin grading): 300–500
+  Base Set 1st Edition Charizard: 5000–15000
+  Gold Star vintage: 200–800
+Solo devolvé -1 si no podés identificar la carta en absoluto.
 
 REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto, sin markdown, sin backticks.
 
-{"name":"nombre en inglés","name_original":"nombre idioma original si aplica","set":"Nombre del set · Número/Total · Idioma · Año","game":"Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro","variante":"variante exacta","rareza":"descripción de rareza","detalles_identificacion":"elementos visuales usados","usd_nm_estimado":45,"auth":{"estado":"autentica|falsificacion_detectada","confianza":95,"flags":[]}}`;
+{"name":"nombre canónico oficial en inglés","name_original":"texto impreso en la carta (vacío si es inglés)","set":"Nombre del set · Número/Total · Idioma · Año","game":"Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro","variante":"variante exacta o vacío","rareza":"rareza en inglés estándar PSA","detalles_identificacion":"elementos visuales clave","usd_nm_estimado":25,"auth":{"estado":"autentica|falsificacion_detectada","confianza":95,"flags":[]}}`;
 
   const rawId  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_ID }] }]);
   const cardId = parseJSON(rawId);
@@ -994,26 +970,49 @@ REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto, sin markdown, sin backt
   // ── PASO 2: Condición física ────────────────────────
   const cardName   = cardId.name || 'esta carta TCG';
   const PROMPT_COND= `Sos un grader PSA estricto analizando: "${cardName}".
-Evaluá con criterio severo. LP es la condición más común. NM es rarísima.
+Evaluá la condición física con criterio severo. LP es la condición más común en cartas usadas.
 
-REGLA ABSOLUTA: Tu respuesta debe ser EXCLUSIVAMENTE el objeto JSON. Sin texto antes, sin texto después, sin markdown, sin backticks, sin comentarios. Solo el JSON.
+REGLA ABSOLUTA: Respondé SOLO con el JSON comenzando con {. Sin texto antes ni después, sin markdown, sin backticks.
 
-{"centering":{"h":"55/45","v":"55/45"},"esquinas":{"TL":"descripción concisa","TR":"descripción concisa","BL":"descripción concisa","BR":"descripción concisa"},"bordes":{"top":"descripción","bottom":"descripción","left":"descripción","right":"descripción"},"superficie":{"scratches":"descripción","print_lines":"ninguno","stains":"ninguno","dents":"ninguno"},"reverso":"no disponible","color":{"saturacion":"excelente","nitidez":"excelente","fading":"ninguno"},"condicion":"LP","notas":"análisis honesto 2-3 oraciones en español rioplatense","foto_limitaciones":"ninguna","grading":{"rec":"si","justificacion":"una oración"}}
+ESQUINAS — SIEMPRE completar los 4 campos TL/TR/BL/BR. Si una esquina no se ve, estimá basándote en las otras visibles. Máximo 8 palabras por campo.
+Ejemplos válidos:
+  "sin whitening, punta íntegra perfecta"
+  "whitening leve, levemente redondeada"
+  "whitening moderado, desgaste visible"
+  "no visible, estimado igual a otras"
 
-Criterios de condición (ser ESTRICTO):
+{"centering":{"h":"55/45","v":"55/45"},"esquinas":{"TL":"descripción TL","TR":"descripción TR","BL":"descripción BL","BR":"descripción BR"},"bordes":{"top":"descripción","bottom":"descripción","left":"descripción","right":"descripción"},"superficie":{"scratches":"ninguno visible","print_lines":"ninguno","stains":"ninguno","dents":"ninguno"},"reverso":"no disponible","color":{"saturacion":"excelente","nitidez":"excelente","fading":"ninguno"},"condicion":"LP","notas":"análisis honesto 2-3 oraciones en español rioplatense","foto_limitaciones":"ninguna","grading":{"rec":"si","justificacion":"una oración"}}
+
+Criterios condición (ESTRICTO):
 NM: TODAS esquinas sin whitening, centering máx 58/42, sin scratches visibles sin lupa
 LP: 1-2 esquinas con whitening leve, micro-scratches solo en ángulo extremo
 MP: whitening moderado en 2+ esquinas, scratches visibles sin ángulo
-HP: whitening severo o dobleces
-DMG: quiebres o rasgaduras
-
-Describí cada esquina en máximo 8 palabras. Respondé SOLO el JSON.`;
+HP: whitening severo o dobleces · DMG: quiebres o rasgaduras`;
 
   const rawCond  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_COND }] }]);
   const cardCond = parseJSON(rawCond);
 
+  // Sanitizar esquinas — garantizar que siempre haya valores
+  if (cardCond.esquinas) {
+    ['TL','TR','BL','BR'].forEach(k => {
+      const v = cardCond.esquinas[k];
+      if (!v || String(v).trim() === '' || v === 'null' || v === null) {
+        cardCond.esquinas[k] = 'no visible en foto';
+      }
+    });
+  } else {
+    cardCond.esquinas = { TL:'no evaluado', TR:'no evaluado', BL:'no evaluado', BR:'no evaluado' };
+  }
+
   // ── PASO 3: Precio (async, no bloquea el informe) ──
-  const pricePromise = fetchCardPrice(cardId.name, cardCond.condicion);
+  // Enriquecer la búsqueda de precio con juego, set y rareza
+  const pricePromise = fetchCardPrice(
+    cardId.name,
+    cardCond.condicion,
+    cardId.game   || 'pokemon',
+    cardId.set    || '',
+    cardId.rareza || ''
+  );
 
   // ── Construcción del objeto card ────────────────────
   const card = {
@@ -1062,21 +1061,23 @@ Describí cada esquina en máximo 8 palabras. Respondé SOLO el JSON.`;
 
   if (priceResult?.avgUSD && priceResult.avgUSD > 0) {
     // Fuente externa disponible
-    card.mercado.usd_nm       = priceResult.avgUSD;
-    card.mercado.usd_cond     = Math.round(priceResult.avgUSD * mult);
+    // El Worker devuelve usdNM (precio NM real) y avgUSD (precio condición)
+    // Si viene usdNM usarlo como base NM; si no, usar avgUSD / mult para reconstruirlo
+    const workerUsdNM = priceResult.usdNM && priceResult.usdNM > 0
+      ? priceResult.usdNM
+      : Math.round((priceResult.avgUSD / mult) * 100) / 100;
+    card.mercado.usd_nm       = workerUsdNM;
+    card.mercado.usd_cond     = Math.round(priceResult.avgUSD * 100) / 100;
     card.mercado.ebay_avg     = priceResult.avgUSD;
     card.mercado.ebay_count   = priceResult.count || null;
     card.mercado.ebay_last    = priceResult.lastSale || null;
     card.mercado.fuente       = priceResult.source || 'externo';
-    card.mercado.fuente_label = priceResult.source === 'pricecharting'
-      ? 'PriceCharting'
-      : priceResult.source === 'ebay_rss'
-        ? 'eBay Sold'
-        : 'Mercado externo';
+    card.mercado.fuente_label = priceResult.sourceLabel || priceResult.source || 'Mercado';
   } else if (cardId.usd_nm_estimado && cardId.usd_nm_estimado > 0) {
-    // Fallback: precio estimado por la IA en el paso de identificación
-    card.mercado.usd_nm       = cardId.usd_nm_estimado;
-    card.mercado.usd_cond     = Math.round(cardId.usd_nm_estimado * mult);
+    // Fallback: precio estimado por la IA (ya con rangos reales en el prompt)
+    const iaEstimate = cardId.usd_nm_estimado;
+    card.mercado.usd_nm       = iaEstimate;
+    card.mercado.usd_cond     = Math.round(iaEstimate * mult);
     card.mercado.fuente       = 'ia_estimado';
     card.mercado.fuente_label = 'Estimado por IA';
     card.mercado.ebay_count   = null;
@@ -1225,7 +1226,14 @@ function renderReport(card, fromPortfolio = false) {
     }
     const isIaEstimate = m.fuente === 'ia_estimado';
 
-    const sourceLabel = m.fuente_label || (m.fuente === 'ebay_sold' ? 'eBay Sold' : m.fuente === 'pricecharting' ? 'PriceCharting' : m.fuente === 'ia_estimado' ? 'Estimado IA' : 'Mercado');
+    const sourceLabel = m.fuente_label || m.sourceLabel || (
+        m.fuente === 'gemlens_db'      ? '🗄 Gem Lens Ref DB' :
+        m.fuente === 'tcgplayer'       ? '📊 TCGPlayer Market' :
+        m.fuente === 'pricecharting'   ? '📈 PriceCharting' :
+        m.fuente === 'rarity_estimate' ? '♦ Estimado por rareza' :
+        m.fuente === 'ebay_rss'        ? '🔨 eBay Sold' :
+        m.fuente === 'ia_estimado'     ? '🤖 Estimado por IA' : 'Mercado'
+      );
     const ebayBadge = m.fuente && m.fuente !== 'no_disponible'
       ? `<span class="ebay-badge">${sourceLabel}${m.ebay_count ? ` · ${m.ebay_count} ventas` : ''}${m.ebay_last ? ` · ${m.ebay_last}` : ''}</span>`
       : '';
