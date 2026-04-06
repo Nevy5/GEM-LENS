@@ -925,22 +925,29 @@ async function runAnalysis() {
   // ── PASO 1: Identificación ──
   const PROMPT_ID = `Sos un experto certificado en TCG coleccionables con 20 años de experiencia.
 
+⚠️ REGLA CRÍTICA PARA CARTAS EN JAPONÉS ⚠️
+Si ves texto en japonés (como カツラのウインディ, リザードン, ブラッキーV):
+  - NO hagas traducción literal del texto japonés
+  - Buscá el nombre OFICIAL en inglés según Bulbapedia
+  - Ejemplo: カツラのウインディ → "Blaine's Arcanine" (NO "Katsura's Windie" ni "Fire Blast")
+  - Ejemplo: リザードン → "Charizard"
+  - Ejemplo: ブラッキーV → "Umbreon V"
+  - El campo "name_original" debe contener el texto japonés original
+
 IDENTIFICACIÓN EXACTA DE LA CARTA:
 1. Nombre oficial en inglés (el que figura en Bulbapedia / TCGPlayer)
 2. Número de colección (ej: 174/172, 001/102)
-3. SET exacto (nombre completo + año)
-4. VARIANTE: ¿Es 1st Edition? ¿Shadowless? ¿Reverse Holo? ¿Promo especial? ¿Edición limitada?
+3. SET exacto (nombre completo + año). Para Gym Heroes/Challenge, detectar:
+   - "Gym Heroes" (si tiene entrenador como Blaine, Misty, Lt. Surge, Erika, Brock, Sabrina, Giovanni)
+   - "Gym Challenge" (para los líderes de gimnasio de Johto)
+4. VARIANTE: ¿Es 1st Edition? ¿Shadowless? ¿Reverse Holo? ¿Promo?
 5. RAREZA según estándar PSA
 
-VARIANTES IMPORTANTES A DETECTAR:
+VARIANTES IMPORTANTES:
 - "1st Edition" (primera edición)
 - "Shadowless" (Base Set sin sombra)
 - "Reverse Holo" (holo invertido)
-- "Promo" (carta promocional, ej: Black Star Promo)
-- "Staff" (edición para staff)
-- "Prerelease" (pre-lanzamiento)
-- "Error" (carta con error de impresión)
-- "Gold Stamp" (sello dorado especial)
+- "Promo" (carta promocional)
 
 ${notes ? `Nota del usuario: "${notes}"\n` : ''}
 
@@ -948,10 +955,11 @@ RESPONDÉ SOLO CON JSON, sin markdown:
 
 {
   "name": "nombre canónico oficial en inglés",
+  "name_original": "texto original si no es inglés (vacío si es inglés)",
   "card_number": "número/colección (ej: 174/172)",
   "set": "Nombre del set · Número/Total · Idioma · Año",
   "game": "Pokémon TCG|Yu-Gi-Oh!|MTG",
-  "variant": "1st Edition|Shadowless|Reverse Holo|Promo|Staff|Prerelease|Error|Normal",
+  "variant": "1st Edition|Shadowless|Reverse Holo|Promo|Normal",
   "rareza": "rareza en inglés estándar",
   "detalles_identificacion": "elementos visuales clave",
   "usd_nm_estimado": 25,
