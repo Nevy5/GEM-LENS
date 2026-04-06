@@ -886,27 +886,46 @@ async function fetchCardPrice(cardName, condition, game, setName, rarity) {
 // ════════════════════════════════════════════════════════
 //  ANALYSIS FLOW
 // ════════════════════════════════════════════════════════
-async function startAnalysis() {
-  if (uploadedImages.length === 0) { showToast('Subí al menos una foto'); return; }
-  if (creditsLeft() === 0) { showToast('No te quedan análisis gratuitos hoy'); return; }
-  goTo('loading');
-  runLoadingAnim();
+async function fetchCardPrice(cardName, condition, game, setName, rarity, variant) {
+  if (!cardName) return null;
+  
+  const cleanName = cardName.replace(/[^a-zA-Z0-9\s\-\']/g, '').trim().substring(0, 100);
+  const cleanGame = (game || 'pokemon').toLowerCase()
+    .replace('pokémon tcg', 'pokemon')
+    .replace('pokemon tcg', 'pokemon')
+    .replace('yu-gi-oh!', 'yugioh')
+    .replace('yu-gi-oh', 'yugioh')
+    .replace('magic: the gathering', 'mtg')
+    .split(' ')[0];
+
   try {
-    const result = await runAnalysis();
-    lastAnalysis  = result;
-    useCredit();
-    goTo('report');
-    renderReport(result);
+    const params = new URLSearchParams({
+      action: 'price',
+      q: cleanName,
+      cond: condition || 'NM',
+      game: cleanGame || 'pokemon',
+    });
+    if (setName) params.set('set', setName.substring(0, 80));
+    if (rarity) params.set('rarity', rarity.substring(0, 60));
+    if (variant && variant !== 'normal') params.set('variant', variant.substring(0, 40));
+
+    const res = await fetch(`${PROXY_URL}?${params.toString()}`, {
+      signal: AbortSignal.timeout(14000)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    
+    // Si el Worker devuelve error por datos insuficientes
+    if (data.error === 'insufficient_data') {
+      console.warn('Datos insuficientes para:', cardName);
+      return null;
+    }
+    
+    if (data?.avgUSD && data.avgUSD > 0 && !data.error) return data;
+    return null;
   } catch (err) {
-    goTo('upload');
-    const msg = err.message || 'Error desconocido';
-    const uploadView = document.querySelector('.upload-view');
-    const existing   = uploadView.querySelector('.error-block');
-    if (existing) existing.remove();
-    uploadView.insertAdjacentHTML('beforeend',
-      `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${msg}</div>`
-    );
-    console.error('Analysis error:', err);
+    console.error('Error fetching price:', err);
+    return null;
   }
 }
 
@@ -926,183 +945,186 @@ function runLoadingAnim() {
 
 async function runAnalysis() {
   const notesRaw = document.getElementById('notesInput').value.trim();
-  const notes    = isDevMode() ? '' : notesRaw;
+  const notes = isDevMode() ? '' : notesRaw;
   const imageParts = uploadedImages.map(img => imageToGroqFormat(img.dataUrl));
 
-  // ── PASO 1: Identificación ──────────────────────────
-  const PROMPT_ID = `Sos un experto certificado en TCG coleccionables con 20 años de experiencia. Año: 2026.
-Identificá la carta en la imagen con máxima precisión.
+  // ── PASO 1: Identificación mejorada (detecta variantes raras) ──
+  const PROMPT_ID = `Sos un experto certificado en TCG coleccionables con 20 años de experiencia.
+
+IDENTIFICACIÓN EXACTA DE LA CARTA:
+1. Nombre oficial en inglés (el que figura en Bulbapedia / TCGPlayer)
+2. Número de colección (ej: 174/172, 001/102)
+3. SET exacto (nombre completo + año)
+4. VARIANTE: ¿Es 1st Edition? ¿Shadowless? ¿Reverse Holo? ¿Promo especial? ¿Edición limitada?
+5. RAREZA según estándar PSA
+
+VARIANTES IMPORTANTES A DETECTAR:
+- "1st Edition" (primera edición)
+- "Shadowless" (Base Set sin sombra)
+- "Reverse Holo" (holo invertido)
+- "Promo" (carta promocional, ej: Black Star Promo)
+- "Staff" (edición para staff)
+- "Prerelease" (pre-lanzamiento)
+- "Error" (carta con error de impresión)
+- "Gold Stamp" (sello dorado especial)
+
 ${notes ? `Nota del usuario: "${notes}"\n` : ''}
-NOMBRE OFICIAL — MUY IMPORTANTE:
-El campo "name" es SIEMPRE el nombre CANÓNICO OFICIAL en inglés (el del set inglés oficial). NO traduzcas literalmente el texto de la carta.
-Ejemplos de mapeo correcto para cartas japonesas:
-  "カツラのウインディ" → name: "Blaine's Arcanine" (NO "Blaine's Arcanine" literalmente del kanji)
-  "ブラッキーV" → name: "Umbreon V"
-  "リザードンex" → name: "Charizard ex"
-El campo "name_original" es solo el texto impreso en la carta en su idioma. Si ya es inglés, dejar vacío ""
 
-RAREZA — en inglés según estándar PSA/TCGPlayer:
-Pokémon: Common | Uncommon | Rare | Holo Rare | V | VMAX | VSTAR | ex | Full Art | Alternate Art | Special Illustration Rare | Hyper Rare | Rainbow Rare | Gold Rare | Shiny Rare | Promo
-YGO: Common | Rare | Super Rare | Ultra Rare | Secret Rare | Starlight Rare | Ghost Rare
-MTG: Common | Uncommon | Rare | Mythic Rare | Foil | Showcase | Borderless | Extended Art
+RESPONDÉ SOLO CON JSON, sin markdown:
 
-PRECIO NM EN USD — rangos reales de mercado 2025-2026 (eBay/TCGPlayer):
-  Common/Uncommon moderno: 0.25–1
-  Holo Rare moderno / Rare: 1–5
-  V / GX / ex básico: 3–10
-  VMAX / VSTAR / Full Art: 5–15
-  Full Art Trainer: 8–18
-  Alternate Art / SIR: 20–80 (mayoría entre 25–55)
-  Hyper Rare / Rainbow: 15–35
-  Holo Rare vintage (Base Set era): 20–150
-  Charizard Base Set (sin grading): 300–500
-  Base Set 1st Edition Charizard: 5000–15000
-  Gold Star vintage: 200–800
-Solo devolvé -1 si no podés identificar la carta en absoluto.
+{
+  "name": "nombre canónico oficial en inglés",
+  "card_number": "número/colección (ej: 174/172)",
+  "set": "Nombre del set · Número/Total · Idioma · Año",
+  "game": "Pokémon TCG|Yu-Gi-Oh!|MTG",
+  "variant": "1st Edition|Shadowless|Reverse Holo|Promo|Staff|Prerelease|Error|Normal",
+  "rareza": "rareza en inglés estándar",
+  "detalles_identificacion": "elementos visuales clave",
+  "usd_nm_estimado": 25,
+  "auth": {
+    "estado": "autentica|falsificacion_detectada",
+    "confianza": 95,
+    "flags": []
+  }
+}`;
 
-REGLA CRÍTICA: Respondé SOLO con JSON puro, sin texto, sin markdown, sin backticks.
-
-{"name":"nombre canónico oficial en inglés","name_original":"texto impreso en la carta (vacío si es inglés)","set":"Nombre del set · Número/Total · Idioma · Año","game":"Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro","variante":"variante exacta o vacío","rareza":"rareza en inglés estándar PSA","detalles_identificacion":"elementos visuales clave","usd_nm_estimado":25,"auth":{"estado":"autentica|falsificacion_detectada","confianza":95,"flags":[]}}`;
-
-  const rawId  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_ID }] }]);
+  const rawId = await callProxy([{ role: 'user', content: [...imageParts, { type: 'text', text: PROMPT_ID }] }]);
   const cardId = parseJSON(rawId);
 
-  // ── PASO 2: Condición física ────────────────────────
-  const cardName   = cardId.name || 'esta carta TCG';
-  const PROMPT_COND= `Sos un grader PSA estricto analizando: "${cardName}".
-Evaluá la condición física con criterio severo. LP es la condición más común en cartas usadas.
+  // ── PASO 2: Condición física (igual que antes, pero mejorado) ──
+  const cardName = cardId.name || 'esta carta TCG';
+  const PROMPT_COND = `Sos un grader PSA estricto analizando: "${cardName} ${cardId.variant ? '(' + cardId.variant + ')' : ''}".
 
-REGLA ABSOLUTA: Respondé SOLO con el JSON comenzando con {. Sin texto antes ni después, sin markdown, sin backticks.
+Evaluá la condición física con criterio severo.
 
-ESQUINAS — SIEMPRE completar los 4 campos TL/TR/BL/BR. Si una esquina no se ve, estimá basándote en las otras visibles. Máximo 8 palabras por campo.
-Ejemplos válidos:
-  "sin whitening, punta íntegra perfecta"
-  "whitening leve, levemente redondeada"
-  "whitening moderado, desgaste visible"
-  "no visible, estimado igual a otras"
+RESPONDÉ SOLO CON JSON:
 
-{"centering":{"h":"55/45","v":"55/45"},"esquinas":{"TL":"descripción TL","TR":"descripción TR","BL":"descripción BL","BR":"descripción BR"},"bordes":{"top":"descripción","bottom":"descripción","left":"descripción","right":"descripción"},"superficie":{"scratches":"ninguno visible","print_lines":"ninguno","stains":"ninguno","dents":"ninguno"},"reverso":"no disponible","color":{"saturacion":"excelente","nitidez":"excelente","fading":"ninguno"},"condicion":"LP","notas":"análisis honesto 2-3 oraciones en español rioplatense","foto_limitaciones":"ninguna","grading":{"rec":"si","justificacion":"una oración"}}
+{
+  "centering": {"h": "55/45", "v": "55/45"},
+  "esquinas": {
+    "TL": "descripción TL (sin whitening, punta íntegra)",
+    "TR": "descripción TR",
+    "BL": "descripción BL",
+    "BR": "descripción BR"
+  },
+  "bordes": {"top": "descripción", "bottom": "descripción", "left": "descripción", "right": "descripción"},
+  "superficie": {
+    "scratches": "ninguno visible|micro-scratches|moderado|severo",
+    "print_lines": "ninguno|leves|varias",
+    "stains": "ninguno|leves|manchas visibles",
+    "dents": "ninguno|leve|marcado"
+  },
+  "reverso": "no disponible",
+  "color": {"saturacion": "excelente|buena|reducida", "nitidez": "excelente|buena|difusa", "fading": "ninguno|leve|moderado"},
+  "condicion": "NM|LP|MP|HP|DMG",
+  "notas": "análisis honesto en español",
+  "foto_limitaciones": "ninguna",
+  "grading": {"rec": "si|no|depende", "justificacion": "una oración"}
+}`;
 
-Criterios condición (ESTRICTO):
-NM: TODAS esquinas sin whitening, centering máx 58/42, sin scratches visibles sin lupa
-LP: 1-2 esquinas con whitening leve, micro-scratches solo en ángulo extremo
-MP: whitening moderado en 2+ esquinas, scratches visibles sin ángulo
-HP: whitening severo o dobleces · DMG: quiebres o rasgaduras`;
-
-  const rawCond  = await callProxy([{ role:'user', content:[...imageParts, { type:'text', text:PROMPT_COND }] }]);
+  const rawCond = await callProxy([{ role: 'user', content: [...imageParts, { type: 'text', text: PROMPT_COND }] }]);
   const cardCond = parseJSON(rawCond);
 
-  // Sanitizar esquinas — garantizar que siempre haya valores
+  // Sanitizar esquinas
   if (cardCond.esquinas) {
-    ['TL','TR','BL','BR'].forEach(k => {
-      const v = cardCond.esquinas[k];
-      if (!v || String(v).trim() === '' || v === 'null' || v === null) {
+    ['TL', 'TR', 'BL', 'BR'].forEach(k => {
+      if (!cardCond.esquinas[k] || String(cardCond.esquinas[k]).trim() === '') {
         cardCond.esquinas[k] = 'no visible en foto';
       }
     });
   } else {
-    cardCond.esquinas = { TL:'no evaluado', TR:'no evaluado', BL:'no evaluado', BR:'no evaluado' };
+    cardCond.esquinas = { TL: 'no evaluado', TR: 'no evaluado', BL: 'no evaluado', BR: 'no evaluado' };
   }
 
-  // ── PASO 3: Precio (async, no bloquea el informe) ──
-  // Enriquecer la búsqueda de precio con juego, set y rareza
+  // ── PASO 3: Precio con variante ──
+  const variantForPrice = cardId.variant === 'Normal' ? null : cardId.variant;
   const pricePromise = fetchCardPrice(
     cardId.name,
     cardCond.condicion,
-    cardId.game   || 'pokemon',
-    cardId.set    || '',
-    cardId.rareza || ''
+    cardId.game || 'pokemon',
+    cardId.set || '',
+    cardId.rareza || '',
+    variantForPrice
   );
 
-  // ── Construcción del objeto card ────────────────────
+  // ── Construcción del objeto carta ──
   const card = {
-    id:                  'card_' + Date.now(),
-    timestamp:           new Date().toISOString(),
-    foto:                uploadedImages[0]?.dataUrl || null,
-    fotos:               uploadedImages.map(img => img.dataUrl),
-    name:                cardId.name || 'Carta TCG',
-    name_original:       cardId.name_original || '',
-    set:                 cardId.set  || '',
-    game:                cardId.game || 'Pokémon TCG',
-    variante:            cardId.variante || '',
-    rareza:              cardId.rareza   || '',
-    detalles_id:         cardId.detalles_identificacion || '',
-    auth:                cardId.auth || { estado:'autentica', confianza:80, flags:[] },
-    centering:           cardCond.centering  || { h:'55/45', v:'55/45' },
-    esquinas:            cardCond.esquinas   || { TL:'no evaluado', TR:'no evaluado', BL:'no evaluado', BR:'no evaluado' },
-    bordes:              cardCond.bordes     || {},
-    superficie:          cardCond.superficie || { scratches:'no evaluado', print_lines:'ninguno', stains:'ninguno', dents:'ninguno' },
-    reverso:             cardCond.reverso    || 'no disponible',
-    color:               cardCond.color      || { saturacion:'buena', nitidez:'buena', fading:'ninguno' },
-    condicion:           cardCond.condicion  || 'LP',
-    notas:               cardCond.notas      || '',
-    foto_limitaciones:   cardCond.foto_limitaciones || 'ninguna',
-    grading:             cardCond.grading    || { rec:'depende', justificacion:'' },
+    id: 'card_' + Date.now(),
+    timestamp: new Date().toISOString(),
+    foto: uploadedImages[0]?.dataUrl || null,
+    fotos: uploadedImages.map(img => img.dataUrl),
+    name: cardId.name || 'Carta TCG',
+    card_number: cardId.card_number || '',
+    set: cardId.set || '',
+    game: cardId.game || 'Pokémon TCG',
+    variant: cardId.variant || '',
+    rareza: cardId.rareza || '',
+    detalles_id: cardId.detalles_identificacion || '',
+    auth: cardId.auth || { estado: 'autentica', confianza: 80, flags: [] },
+    centering: cardCond.centering || { h: '55/45', v: '55/45' },
+    esquinas: cardCond.esquinas,
+    bordes: cardCond.bordes || {},
+    superficie: cardCond.superficie || { scratches: 'no evaluado', print_lines: 'ninguno', stains: 'ninguno', dents: 'ninguno' },
+    reverso: cardCond.reverso || 'no disponible',
+    color: cardCond.color || { saturacion: 'buena', nitidez: 'buena', fading: 'ninguno' },
+    condicion: cardCond.condicion || 'LP',
+    notas: cardCond.notas || '',
+    foto_limitaciones: cardCond.foto_limitaciones || 'ninguna',
+    grading: cardCond.grading || { rec: 'depende', justificacion: '' },
     mercado: {
-      usd_nm:       0,
-      usd_cond:     0,
-      ars:          0,
-      ars_min:      0,
-      ars_max:      0,
-      fuente:       'pendiente',
-      ebay_avg:     null,
-      ebay_count:   null,
-      ebay_last:    null,
-      dolar_usado:  DOLAR_BLUE
+      usd_nm: 0,
+      usd_cond: 0,
+      ars: 0,
+      ars_min: 0,
+      ars_max: 0,
+      fuente: 'pendiente',
+      ebay_avg: null,
+      ebay_count: null,
+      ebay_last: null,
+      dolar_usado: DOLAR_BLUE
     }
   };
 
-  // ── Esperar resultado de precio ─────────────────────
-  // Fuente 1: Worker (PriceCharting / eBay)
-  // Fuente 2 (fallback): estimado por IA en el paso 1
+  // Esperar resultado de precio
   const priceResult = await pricePromise;
-  const condMult = { NM:1, LP:0.75, MP:0.5, HP:0.3, DMG:0.15 };
-  const mult     = condMult[card.condicion] || 0.75;
+  const condMult = { NM: 1, LP: 0.75, MP: 0.5, HP: 0.3, DMG: 0.15 };
+  const mult = condMult[card.condicion] || 0.75;
 
   if (priceResult?.avgUSD && priceResult.avgUSD > 0) {
-    // Fuente externa disponible
-    // El Worker devuelve usdNM (precio NM real) y avgUSD (precio condición)
-    // Si viene usdNM usarlo como base NM; si no, usar avgUSD / mult para reconstruirlo
     const workerUsdNM = priceResult.usdNM && priceResult.usdNM > 0
       ? priceResult.usdNM
       : Math.round((priceResult.avgUSD / mult) * 100) / 100;
-    card.mercado.usd_nm       = workerUsdNM;
-    card.mercado.usd_cond     = Math.round(priceResult.avgUSD * 100) / 100;
-    card.mercado.ebay_avg     = priceResult.avgUSD;
-    card.mercado.ebay_count   = priceResult.count || null;
-    card.mercado.ebay_last    = priceResult.lastSale || null;
-    card.mercado.fuente       = priceResult.source || 'externo';
-    card.mercado.fuente_label = priceResult.sourceLabel || priceResult.source || 'Mercado';
+
+    card.mercado.usd_nm = workerUsdNM;
+    card.mercado.usd_cond = Math.round(priceResult.avgUSD * 100) / 100;
+    card.mercado.ebay_avg = priceResult.avgUSD;
+    card.mercado.ebay_count = priceResult.count || null;
+    card.mercado.ebay_last = priceResult.lastSale || null;
+    card.mercado.fuente = priceResult.source || 'externo';
+    card.mercado.fuente_label = priceResult.sourceLabel || 'Mercado';
+    card.mercado.min_usd = priceResult.minUSD;
+    card.mercado.max_usd = priceResult.maxUSD;
   } else if (cardId.usd_nm_estimado && cardId.usd_nm_estimado > 0) {
-    // Fallback: precio estimado por la IA (ya con rangos reales en el prompt)
-    const iaEstimate = cardId.usd_nm_estimado;
-    card.mercado.usd_nm       = iaEstimate;
-    card.mercado.usd_cond     = Math.round(iaEstimate * mult);
-    card.mercado.fuente       = 'ia_estimado';
-    card.mercado.fuente_label = 'Estimado por IA';
-    card.mercado.ebay_count   = null;
-    card.mercado.ebay_last    = null;
+    card.mercado.usd_nm = cardId.usd_nm_estimado;
+    card.mercado.usd_cond = Math.round(cardId.usd_nm_estimado * mult);
+    card.mercado.fuente = 'ia_estimado';
+    card.mercado.fuente_label = 'Estimado por IA (sin datos de mercado)';
   } else {
-    card.mercado.fuente       = 'no_disponible';
-    card.mercado.fuente_label = 'No disponible';
+    card.mercado.fuente = 'no_disponible';
+    card.mercado.fuente_label = 'No disponible - sin datos de mercado';
   }
 
-  // Calcular ARS si hay precio y dólar blue
-  if (card.mercado.usd_nm > 0) {
-    if (DOLAR_BLUE) {
-      card.mercado.ars         = Math.round(card.mercado.usd_cond * DOLAR_BLUE * 1.2);
-      card.mercado.ars_min     = Math.round(card.mercado.ars * 0.88);
-      card.mercado.ars_max     = Math.round(card.mercado.ars * 1.12);
-      card.mercado.dolar_usado = DOLAR_BLUE;
-    } else {
-      card.mercado.ars         = 0;
-      card.mercado.fuente_nota = 'Sin dólar blue disponible. ARS no calculado.';
-    }
+  // Calcular ARS
+  if (card.mercado.usd_nm > 0 && DOLAR_BLUE) {
+    card.mercado.ars = Math.round(card.mercado.usd_cond * DOLAR_BLUE * 1.2);
+    card.mercado.ars_min = Math.round(card.mercado.ars * 0.88);
+    card.mercado.ars_max = Math.round(card.mercado.ars * 1.12);
+    card.mercado.dolar_usado = DOLAR_BLUE;
   }
 
-  const glp  = computeGLP(card);
-  card.glp   = glp;
-  card.gls   = getGLS(glp.total);
+  const glp = computeGLP(card);
+  card.glp = glp;
+  card.gls = getGLS(glp.total);
   return card;
 }
 
