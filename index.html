@@ -583,7 +583,6 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 <script>
 // ════════════════════════════════════════════════════════
 //  PROXY URL — único endpoint autorizado
-//  Reemplazá con tu Cloudflare Worker URL
 // ════════════════════════════════════════════════════════
 const PROXY_URL = 'https://gem-lens.namendoza5.workers.dev/';
 
@@ -605,29 +604,25 @@ const LOADING_MSGS = [
 ];
 
 // ════════════════════════════════════════════════════════
-//  DÓLAR BLUE — tiempo real via bluelytics proxy
-//  Se obtiene via Worker para evitar CORS
+//  DÓLAR BLUE
 // ════════════════════════════════════════════════════════
-let DOLAR_BLUE = null; // null = no disponible, se carga async
+let DOLAR_BLUE = null;
 
 async function fetchDolarBlue() {
   try {
-    // Intentar via bluelytics (puede tener CORS, el Worker lo expone)
     const res = await fetch('https://api.bluelytics.com.ar/v2/latest', {
       signal: AbortSignal.timeout(5000)
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    // bluelytics devuelve blue.value_sell (precio venta) y blue.value_buy
     const sell = data?.blue?.value_sell;
     const buy  = data?.blue?.value_buy;
     if (sell && buy) {
       DOLAR_BLUE = Math.round((sell + buy) / 2);
     } else if (sell) {
-      DOLAR_BLUE = Math.round(sell * 0.97); // promedio estimado
+      DOLAR_BLUE = Math.round(sell * 0.97);
     }
   } catch {
-    // Fallback: intentar via proxy propio
     try {
       const res = await fetch(PROXY_URL + '?action=dolar', {
         method: 'GET',
@@ -637,7 +632,7 @@ async function fetchDolarBlue() {
         const data = await res.json();
         if (data?.blue) DOLAR_BLUE = data.blue;
       }
-    } catch { /* sin fallback — no se inventa valor */ }
+    } catch { }
   }
   updateDolarDisplay();
 }
@@ -648,7 +643,6 @@ function updateDolarDisplay() {
   if (!el) return;
   if (DOLAR_BLUE) {
     el.textContent = `Blue $${DOLAR_BLUE.toLocaleString('es-AR')}`;
-    // Actualizar mock card en landing con valor real
     if (mockEl) {
       const mockARS = Math.round(65 * DOLAR_BLUE * 1.2);
       mockEl.textContent = '$' + mockARS.toLocaleString('es-AR');
@@ -660,16 +654,13 @@ function updateDolarDisplay() {
 }
 
 // ════════════════════════════════════════════════════════
-//  STORAGE — Cartas
+//  STORAGE
 // ════════════════════════════════════════════════════════
 const getCards     = () => { try { return JSON.parse(localStorage.getItem('gem_cards') || '[]'); } catch { return []; } };
 const saveCards    = c => localStorage.setItem('gem_cards', JSON.stringify(c));
 const getSnapshots = () => { try { return JSON.parse(localStorage.getItem('gem_snapshots') || '[]'); } catch { return []; } };
 const saveSnapshots= s => localStorage.setItem('gem_snapshots', JSON.stringify(s));
 
-// ════════════════════════════════════════════════════════
-//  SNAPSHOT — guarda 1 por día máximo, nunca datos falsos
-// ════════════════════════════════════════════════════════
 function maybeSnapshot() {
   const cards = getCards();
   if (!cards.length) return;
@@ -780,8 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ════════════════════════════════════════════════════════
-//  CALL PROXY — única función que llama al exterior
-//  NO hay API keys, NO hay Bearer tokens aquí
+//  CALL PROXY
 // ════════════════════════════════════════════════════════
 async function callProxy(messages) {
   const response = await fetch(PROXY_URL, {
@@ -808,36 +798,26 @@ async function callProxy(messages) {
 }
 
 function parseJSON(raw) {
-  // Strip markdown fences
   let clean = raw
     .replace(/^```json\s*/i,'')
     .replace(/^```\s*/i,'')
     .replace(/\s*```$/i,'')
     .trim();
-
-  // Intento 1: parseo directo
   try { return JSON.parse(clean); } catch {}
-
-  // Intento 2: extraer el primer objeto JSON completo
   const match = clean.match(/\{[\s\S]*\}/);
   if (match) {
     try { return JSON.parse(match[0]); } catch {}
-    // Intento 3: el JSON puede estar truncado — intentar cerrar llaves faltantes
     try {
       let attempt = match[0];
-      // Contar llaves abiertas vs cerradas
       let open = 0;
       for (const ch of attempt) { if (ch === '{') open++; else if (ch === '}') open--; }
-      // Agregar llaves de cierre faltantes + comillas si la última property quedó abierta
       if (open > 0) {
-        // Si termina con comilla o texto incompleto, cerrar la cadena
         if (!attempt.endsWith('"') && !attempt.endsWith('}')) attempt += '"';
         attempt += '}'.repeat(open);
         try { return JSON.parse(attempt); } catch {}
       }
     } catch {}
   }
-
   throw new Error('La IA no devolvió JSON válido. Intentá de nuevo o con otra foto.');
 }
 
@@ -852,39 +832,7 @@ function imageToGroqFormat(dataUrl) {
 }
 
 // ════════════════════════════════════════════════════════
-//  PRECIO DE CARTA — múltiples fuentes reales via Worker
-//  El Worker intenta: PriceCharting → eBay RSS → sin datos
-//  Nunca se inventan precios.
-// ════════════════════════════════════════════════════════
-async function fetchCardPrice(cardName, condition, game, setName, rarity) {
-  if (!cardName) return null;
-  const cleanName = cardName.replace(/[^a-zA-Z0-9\s\-\']/g, '').trim().substring(0, 100);
-  const cleanGame = (game || 'pokemon').toLowerCase()
-    .replace('pokémon tcg','pokemon').replace('pokemon tcg','pokemon')
-    .replace('yu-gi-oh!','yugioh').replace('yu-gi-oh','yugioh')
-    .replace('magic: the gathering','mtg').replace('magic the gathering','mtg')
-    .split(' ')[0]; // tomar solo la primera palabra como game key
-  try {
-    const params = new URLSearchParams({
-      action: 'price',
-      q:      cleanName,
-      cond:   condition || 'NM',
-      game:   cleanGame || 'pokemon',
-    });
-    if (setName)  params.set('set',    setName.substring(0, 80));
-    if (rarity)   params.set('rarity', rarity.substring(0, 60));
-    const res = await fetch(`${PROXY_URL}?${params.toString()}`, {
-      signal: AbortSignal.timeout(14000)
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (data?.avgUSD && data.avgUSD > 0 && !data.error) return data;
-    return null;
-  } catch { return null; }
-}
-
-// ════════════════════════════════════════════════════════
-//  ANALYSIS FLOW
+//  PRECIO DE CARTA — VERSIÓN ÚNICA Y CORRECTA
 // ════════════════════════════════════════════════════════
 async function fetchCardPrice(cardName, condition, game, setName, rarity, variant) {
   if (!cardName) return null;
@@ -907,7 +855,7 @@ async function fetchCardPrice(cardName, condition, game, setName, rarity, varian
     });
     if (setName) params.set('set', setName.substring(0, 80));
     if (rarity) params.set('rarity', rarity.substring(0, 60));
-    if (variant && variant !== 'normal') params.set('variant', variant.substring(0, 40));
+    if (variant && variant !== 'Normal' && variant !== 'normal') params.set('variant', variant.substring(0, 40));
 
     const res = await fetch(`${PROXY_URL}?${params.toString()}`, {
       signal: AbortSignal.timeout(14000)
@@ -915,7 +863,6 @@ async function fetchCardPrice(cardName, condition, game, setName, rarity, varian
     if (!res.ok) return null;
     const data = await res.json();
     
-    // Si el Worker devuelve error por datos insuficientes
     if (data.error === 'insufficient_data') {
       console.warn('Datos insuficientes para:', cardName);
       return null;
@@ -943,12 +890,39 @@ function runLoadingAnim() {
   }, 1100);
 }
 
+// ════════════════════════════════════════════════════════
+//  ANALYSIS FLOW
+// ════════════════════════════════════════════════════════
+async function startAnalysis() {
+  if (uploadedImages.length === 0) { showToast('Subí al menos una foto'); return; }
+  if (creditsLeft() === 0) { showToast('No te quedan análisis gratuitos hoy'); return; }
+  goTo('loading');
+  runLoadingAnim();
+  try {
+    const result = await runAnalysis();
+    lastAnalysis  = result;
+    useCredit();
+    goTo('report');
+    renderReport(result);
+  } catch (err) {
+    goTo('upload');
+    const msg = err.message || 'Error desconocido';
+    const uploadView = document.querySelector('.upload-view');
+    const existing   = uploadView.querySelector('.error-block');
+    if (existing) existing.remove();
+    uploadView.insertAdjacentHTML('beforeend',
+      `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${msg}</div>`
+    );
+    console.error('Analysis error:', err);
+  }
+}
+
 async function runAnalysis() {
   const notesRaw = document.getElementById('notesInput').value.trim();
   const notes = isDevMode() ? '' : notesRaw;
   const imageParts = uploadedImages.map(img => imageToGroqFormat(img.dataUrl));
 
-  // ── PASO 1: Identificación mejorada (detecta variantes raras) ──
+  // ── PASO 1: Identificación ──
   const PROMPT_ID = `Sos un experto certificado en TCG coleccionables con 20 años de experiencia.
 
 IDENTIFICACIÓN EXACTA DE LA CARTA:
@@ -991,9 +965,10 @@ RESPONDÉ SOLO CON JSON, sin markdown:
   const rawId = await callProxy([{ role: 'user', content: [...imageParts, { type: 'text', text: PROMPT_ID }] }]);
   const cardId = parseJSON(rawId);
 
-  // ── PASO 2: Condición física (igual que antes, pero mejorado) ──
+  // ── PASO 2: Condición física ──
   const cardName = cardId.name || 'esta carta TCG';
-  const PROMPT_COND = `Sos un grader PSA estricto analizando: "${cardName} ${cardId.variant ? '(' + cardId.variant + ')' : ''}".
+  const variantDisplay = cardId.variant && cardId.variant !== 'Normal' ? ` (${cardId.variant})` : '';
+  const PROMPT_COND = `Sos un grader PSA estricto analizando: "${cardName}${variantDisplay}".
 
 Evaluá la condición física con criterio severo.
 
@@ -1002,7 +977,7 @@ RESPONDÉ SOLO CON JSON:
 {
   "centering": {"h": "55/45", "v": "55/45"},
   "esquinas": {
-    "TL": "descripción TL (sin whitening, punta íntegra)",
+    "TL": "descripción TL",
     "TR": "descripción TR",
     "BL": "descripción BL",
     "BR": "descripción BR"
@@ -1036,8 +1011,8 @@ RESPONDÉ SOLO CON JSON:
     cardCond.esquinas = { TL: 'no evaluado', TR: 'no evaluado', BL: 'no evaluado', BR: 'no evaluado' };
   }
 
-  // ── PASO 3: Precio con variante ──
-  const variantForPrice = cardId.variant === 'Normal' ? null : cardId.variant;
+  // ── PASO 3: Precio ──
+  const variantForPrice = (cardId.variant === 'Normal' || !cardId.variant) ? null : cardId.variant;
   const pricePromise = fetchCardPrice(
     cardId.name,
     cardCond.condicion,
@@ -1085,7 +1060,6 @@ RESPONDÉ SOLO CON JSON:
     }
   };
 
-  // Esperar resultado de precio
   const priceResult = await pricePromise;
   const condMult = { NM: 1, LP: 0.75, MP: 0.5, HP: 0.3, DMG: 0.15 };
   const mult = condMult[card.condicion] || 0.75;
@@ -1114,7 +1088,6 @@ RESPONDÉ SOLO CON JSON:
     card.mercado.fuente_label = 'No disponible - sin datos de mercado';
   }
 
-  // Calcular ARS
   if (card.mercado.usd_nm > 0 && DOLAR_BLUE) {
     card.mercado.ars = Math.round(card.mercado.usd_cond * DOLAR_BLUE * 1.2);
     card.mercado.ars_min = Math.round(card.mercado.ars * 0.88);
@@ -1204,7 +1177,6 @@ function renderReport(card, fromPortfolio = false) {
   const authCls       = isFake ? 'fail' : card.auth?.confianza >= 85 ? 'ok' : 'warn';
   const alreadySaved  = fromPortfolio || getCards().some(c => c.id === card.id);
 
-  // ROI block
   const roiRows = (() => {
     if (!card.mercado?.usd_nm || card.mercado.usd_nm < 5) return '';
     const nm   = card.mercado.usd_nm;
@@ -1218,7 +1190,6 @@ function renderReport(card, fromPortfolio = false) {
       <div class="roi-row"><span class="roi-label">PSA 10 — costo ~USD 100</span><span class="${gls>=9?'roi-positive':'roi-negative'}">${gls>=9?`+USD ${p10-100} ROI`:'condición insuficiente'}</span></div>`;
   })();
 
-  // Fotos
   const allFotos = (card.fotos?.length > 0) ? card.fotos : (card.foto ? [card.foto] : []);
   const fotosHtml = allFotos.length ? `
     <div class="fade-in" style="margin-bottom:16px;border-radius:10px;background:var(--bg2);border:0.5px solid var(--border2);padding:14px;">
@@ -1231,7 +1202,6 @@ function renderReport(card, fromPortfolio = false) {
       ${allFotos.length > 1 ? `<div style="text-align:center;margin-top:8px;font-size:10px;color:var(--text3);font-family:var(--FM);">${allFotos.length} fotos analizadas</div>` : ''}
     </div>` : '';
 
-  // Precio block — con eBay real si disponible
   const mercadoBlock = (() => {
     const m = card.mercado;
     if (!m) return '';
@@ -1287,11 +1257,11 @@ function renderReport(card, fromPortfolio = false) {
   document.getElementById('reportContainer').innerHTML = `
     <div class="report-header-block fade-in">
       <div style="flex:1;min-width:0;">
-        <div class="rh-name">${card.name || 'Carta TCG'}</div>
-        ${card.name_original ? `<div class="rh-set" style="color:var(--gold2);font-size:11px;margin-top:2px;">🌏 Nombre original: ${card.name_original}</div>` : ''}
-        <div class="rh-set">${card.set || ''}</div>
-        ${card.variante ? `<div class="rh-variant">${card.variante}${card.rareza?' · '+card.rareza:''}</div>` : ''}
-        ${card.detalles_id ? `<div class="rh-id-note">🔍 ${card.detalles_id}</div>` : ''}
+        <div class="rh-name">${escapeHtml(card.name || 'Carta TCG')}</div>
+        ${card.card_number ? `<div class="rh-set" style="color:var(--gold2);font-size:11px;margin-top:2px;">📇 Número: ${escapeHtml(card.card_number)}</div>` : ''}
+        <div class="rh-set">${escapeHtml(card.set || '')}</div>
+        ${card.variant && card.variant !== 'Normal' ? `<div class="rh-variant">✨ Variante: ${escapeHtml(card.variant)}${card.rareza ? ' · ' + escapeHtml(card.rareza) : ''}</div>` : (card.rareza ? `<div class="rh-variant">${escapeHtml(card.rareza)}</div>` : '')}
+        ${card.detalles_id ? `<div class="rh-id-note">🔍 ${escapeHtml(card.detalles_id)}</div>` : ''}
       </div>
       <div class="score-block">
         <div class="score-gls ${isFake?'fake':''}">${isFake?'0':gls}</div>
@@ -1309,7 +1279,7 @@ function renderReport(card, fromPortfolio = false) {
         <div class="auth-title">${isFake?'🚫 POSIBLE FALSIFICACIÓN DETECTADA':card.auth?.confianza>=85?'✓ AUTENTICIDAD VERIFICADA':'⚠ AUTENTICIDAD DUDOSA — verificar en mano'}</div>
         <div class="auth-detail">${isFake?'Se detectaron indicadores inconsistentes con cartas oficiales. Verificar con un experto.':'Sin indicadores de falsificación detectados en el análisis visual.'}</div>
         <div class="auth-conf-line">Confianza: ${card.auth?.confianza||80}%</div>
-        ${card.auth?.flags?.length?`<div class="flag-list">${card.auth.flags.map(f=>`<div class="flag">${f.split(':')[0]}</div>`).join('')}</div>`:''}
+        ${card.auth?.flags?.length?`<div class="flag-list">${card.auth.flags.map(f=>`<div class="flag">${escapeHtml(f.split(':')[0])}</div>`).join('')}</div>`:''}
       </div>
     </div>
 
@@ -1337,7 +1307,7 @@ function renderReport(card, fromPortfolio = false) {
     <div class="block fade-in">
       <div class="block-title">Esquinas — análisis zona por zona</div>
       <div class="corners-grid">
-        ${['TL ↖','TR ↗','BL ↙','BR ↘'].map((pos,i)=>{const keys=['TL','TR','BL','BR'];return`<div class="corner-item"><div class="corner-pos">${pos}</div><div class="corner-desc">${card.esquinas?.[keys[i]]||'No evaluado'}</div></div>`}).join('')}
+        ${['TL ↖','TR ↗','BL ↙','BR ↘'].map((pos,i)=>{const keys=['TL','TR','BL','BR'];return`<div class="corner-item"><div class="corner-pos">${pos}</div><div class="corner-desc">${escapeHtml(card.esquinas?.[keys[i]]||'No evaluado')}</div></div>`}).join('')}
       </div>
     </div>
 
@@ -1346,14 +1316,14 @@ function renderReport(card, fromPortfolio = false) {
       ${[{l:'Scratches holo',v:card.superficie?.scratches},{l:'Print lines',v:card.superficie?.print_lines},{l:'Manchas',v:card.superficie?.stains},{l:'Dents',v:card.superficie?.dents},{l:'Reverso',v:card.reverso},{l:'Borde superior',v:card.bordes?.top},{l:'Borde inferior',v:card.bordes?.bottom},{l:'Saturación',v:card.color?.saturacion},{l:'Nitidez',v:card.color?.nitidez},{l:'Fading',v:card.color?.fading}].map(r=>`
         <div class="score-row">
           <span class="sr-lbl">${r.l}</span>
-          <span style="font-size:11px;color:var(--text2);text-align:right;flex:1;padding-left:6px;">${r.v||'—'}</span>
+          <span style="font-size:11px;color:var(--text2);text-align:right;flex:1;padding-left:6px;">${escapeHtml(r.v||'—')}</span>
         </div>`).join('')}
     </div>
 
     <div class="block fade-in">
       <div class="block-title">Análisis del especialista</div>
-      <p style="font-size:13px;color:var(--text2);font-weight:300;line-height:1.7;">${card.notas||'—'}</p>
-      ${card.foto_limitaciones&&card.foto_limitaciones!=='ninguna'&&card.foto_limitaciones.length>5?`<div style="margin-top:8px;padding:7px 10px;background:rgba(245,158,11,0.08);border:0.5px solid rgba(245,158,11,0.25);border-radius:4px;font-size:11px;color:var(--amber);">⚠ Limitación fotográfica: ${card.foto_limitaciones}</div>`:''}
+      <p style="font-size:13px;color:var(--text2);font-weight:300;line-height:1.7;">${escapeHtml(card.notas||'—')}</p>
+      ${card.foto_limitaciones&&card.foto_limitaciones!=='ninguna'&&card.foto_limitaciones.length>5?`<div style="margin-top:8px;padding:7px 10px;background:rgba(245,158,11,0.08);border:0.5px solid rgba(245,158,11,0.25);border-radius:4px;font-size:11px;color:var(--amber);">⚠ Limitación fotográfica: ${escapeHtml(card.foto_limitaciones)}</div>`:''}
     </div>
 
     ${mercadoBlock}
@@ -1364,7 +1334,7 @@ function renderReport(card, fromPortfolio = false) {
         <div style="font-family:var(--FD);font-size:13px;letter-spacing:1px;padding:5px 12px;border-radius:4px;border:0.5px solid;${card.grading?.rec==='si'?'background:var(--tealdim);color:var(--teal);border-color:rgba(46,184,154,0.3)':card.grading?.rec==='no'?'background:var(--reddim);color:var(--red);border-color:rgba(224,82,82,0.3)':'background:var(--golddim);color:var(--gold2);border-color:var(--goldborder)'}">
           ${card.grading?.rec==='si'?'✓ GRADEAR':card.grading?.rec==='no'?'✗ NO VALE LA PENA':'~ EVALUAR PRIMERO'}
         </div>
-        <span style="font-size:12px;color:var(--text2);font-weight:300;flex:1;">${card.grading?.justificacion||''}</span>
+        <span style="font-size:12px;color:var(--text2);font-weight:300;flex:1;">${escapeHtml(card.grading?.justificacion||'')}</span>
       </div>
       ${roiRows}
     </div>` : ''}
@@ -1386,6 +1356,19 @@ function renderReport(card, fromPortfolio = false) {
   `;
 }
 
+// ════════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════════
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function saveToPortfolio() {
   if (!lastAnalysis) return;
   const cards = getCards();
@@ -1393,9 +1376,13 @@ function saveToPortfolio() {
   cards.push(lastAnalysis);
   saveCards(cards);
   maybeSnapshot();
-  document.getElementById('btnSave').disabled     = true;
-  document.getElementById('btnSave').textContent  = '✓ GUARDADA EN COLECCIÓN';
-  document.getElementById('saveConfirm').style.display = 'block';
+  const btn = document.getElementById('btnSave');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '✓ GUARDADA EN COLECCIÓN';
+  }
+  const confirmEl = document.getElementById('saveConfirm');
+  if (confirmEl) confirmEl.style.display = 'block';
   updateNavCount();
   showToast('¡Carta guardada en tu colección!');
 }
@@ -1403,17 +1390,19 @@ function saveToPortfolio() {
 function analyzeAnother() {
   uploadedImages = [];
   lastAnalysis   = null;
-  document.getElementById('previewRow').innerHTML = '';
-  document.getElementById('notesInput').value     = '';
-  document.getElementById('fileInput').value      = '';
+  const previewRow = document.getElementById('previewRow');
+  if (previewRow) previewRow.innerHTML = '';
+  const notesInput = document.getElementById('notesInput');
+  if (notesInput) notesInput.value = '';
+  const fileInput = document.getElementById('fileInput');
+  if (fileInput) fileInput.value = '';
   const existing = document.querySelector('.upload-view .error-block');
   if (existing) existing.remove();
   goTo('upload');
 }
 
 // ════════════════════════════════════════════════════════
-//  PORTFOLIO TRACKER — CHART con lógica mejorada
-//  Muestra gráfico con 1+ puntos de datos reales
+//  PORTFOLIO
 // ════════════════════════════════════════════════════════
 function renderTracker(totalUSD, totalARS) {
   const block = document.getElementById('trackerBlock');
@@ -1422,7 +1411,6 @@ function renderTracker(totalUSD, totalARS) {
   const cards = getCards();
   let snaps   = getSnapshots();
 
-  // ── CASO C: Sin colección → no portfolio ──────────────
   if (!cards.length || totalUSD === 0) {
     block.innerHTML = `
       <div class="tracker-header">
@@ -1438,14 +1426,12 @@ function renderTracker(totalUSD, totalARS) {
     return;
   }
 
-  // ── CASO B: Hay colección pero sin snapshots → crear uno ahora ──
   if (!snaps.length) {
     const snap = { date: new Date().toISOString(), valueUSD: totalUSD, valueARS: totalARS };
     snaps.push(snap);
     saveSnapshots(snaps);
   }
 
-  // ── Cambio respecto al snapshot anterior ─────────────
   let changeHtml = '';
   if (snaps.length >= 2) {
     const prev = snaps[snaps.length - 2];
@@ -1499,14 +1485,11 @@ function renderTracker(totalUSD, totalARS) {
     ${lastSnapDate ? `<div class="snapshot-info">Último snapshot: ${lastSnapDate}</div>` : ''}
   `;
 
-  // ── Destruir chart anterior ───────────────────────────
   if (portfolioChart) { portfolioChart.destroy(); portfolioChart = null; }
 
   const ctx = document.getElementById('portfolioChart');
   if (!ctx) return;
 
-  // ── CASO A: 1 snapshot → mostrar punto único ─────────
-  // ── CASO B default: múltiples → línea completa ───────
   const labels = snaps.map(s => {
     const d = new Date(s.date);
     return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' });
@@ -1529,7 +1512,7 @@ function renderTracker(totalUSD, totalARS) {
         pointRadius:         snaps.length === 1 ? 8 : (snaps.length <= 10 ? 3 : 0),
         pointHoverRadius:    6,
         pointBackgroundColor:lineColor,
-        pointStyle:          snaps.length === 1 ? 'circle' : 'circle',
+        pointStyle:          'circle',
         fill:                true,
         tension:             0.3,
         spanGaps:            false
@@ -1572,9 +1555,6 @@ function renderTracker(totalUSD, totalARS) {
   });
 }
 
-// ════════════════════════════════════════════════════════
-//  PORTFOLIO RENDER
-// ════════════════════════════════════════════════════════
 function renderPortfolio() {
   const cards    = getCards();
   updateNavCount();
@@ -1591,14 +1571,18 @@ function renderPortfolio() {
 
   renderTracker(totalUSD, totalARS);
 
-  document.getElementById('summaryGrid').innerHTML = `
-    <div class="summary-card"><div class="sc-label">Cartas en colección</div><div class="sc-value">${cards.length}</div><div class="sc-sub">valuaciones guardadas</div></div>
-    <div class="summary-card"><div class="sc-label">GLS promedio</div><div class="sc-value teal">${avgGLS}</div><div class="sc-sub">${glsLabel(Number(avgGLS))||'—'}</div></div>
-    <div class="summary-card"><div class="sc-label">Carta más valiosa</div><div class="sc-value" style="font-size:15px;line-height:1.2;">${bestCard?bestCard.name?.split('—')[0].trim().substring(0,20):'—'}</div><div class="sc-sub">${bestCard?`USD ${bestCard.mercado?.usd_nm||0}`:'sin cartas aún'}</div></div>
-    <div class="summary-card"><div class="sc-label">Snapshots históricos</div><div class="sc-value">${snaps.length}</div><div class="sc-sub">días registrados</div></div>
-  `;
+  const summaryGrid = document.getElementById('summaryGrid');
+  if (summaryGrid) {
+    summaryGrid.innerHTML = `
+      <div class="summary-card"><div class="sc-label">Cartas en colección</div><div class="sc-value">${cards.length}</div><div class="sc-sub">valuaciones guardadas</div></div>
+      <div class="summary-card"><div class="sc-label">GLS promedio</div><div class="sc-value teal">${avgGLS}</div><div class="sc-sub">${glsLabel(Number(avgGLS))||'—'}</div></div>
+      <div class="summary-card"><div class="sc-label">Carta más valiosa</div><div class="sc-value" style="font-size:15px;line-height:1.2;">${bestCard?escapeHtml(bestCard.name?.split('—')[0].trim().substring(0,20)):'—'}</div><div class="sc-sub">${bestCard?`USD ${bestCard.mercado?.usd_nm||0}`:'sin cartas aún'}</div></div>
+      <div class="summary-card"><div class="sc-label">Snapshots históricos</div><div class="sc-value">${snaps.length}</div><div class="sc-sub">días registrados</div></div>
+    `;
+  }
 
   const content = document.getElementById('portfolioContent');
+  if (!content) return;
 
   if (!cards.length) {
     content.innerHTML = `
@@ -1629,7 +1613,7 @@ function renderPortfolio() {
       const glsColor = (card.gls||0)>=9?'var(--teal)':(card.gls||0)>=7?'var(--gold2)':(card.gls||0)>=5?'var(--amber)':'var(--red)';
       const arsK     = card.mercado?.ars > 0 ? `$${Math.round((card.mercado.ars)/1000)}K` : '—';
       return `<div class="pt-row" onclick="viewCard('${card.id}')">
-        <div><div class="pt-name">${card.name||'—'}</div><div class="pt-set">${(card.set||'').substring(0,38)}</div></div>
+        <div><div class="pt-name">${escapeHtml(card.name||'—')}</div><div class="pt-set">${escapeHtml((card.set||'').substring(0,38))}</div></div>
         <div class="pt-gls" style="color:${glsColor}">${card.gls||'?'}</div>
         <div><span class="pt-cond ${cs.cls}">${card.condicion||'?'}</span></div>
         <div style="font-family:var(--FM);font-size:12px;">${card.mercado?.usd_nm ? `USD ${card.mercado.usd_nm}` : '—'}</div>
@@ -1657,11 +1641,9 @@ function deleteCard(cardId) {
   showToast('Carta eliminada');
 }
 
-// ════════════════════════════════════════════════════════
-//  UTILS
-// ════════════════════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg;
   t.style.opacity = '1';
   t.style.transform = 'translateX(-50%) translateY(0)';
