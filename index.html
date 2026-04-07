@@ -25,23 +25,15 @@ body{font-family:var(--F);background:var(--bg);color:var(--text);font-size:15px;
 
 /* ══════ NAV ══════ */
 nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;height:54px;background:rgba(11,11,9,0.94);backdrop-filter:blur(16px);border-bottom:0.5px solid var(--border);}
-.logo{font-family:var(--FD);font-size:22px;letter-spacing:3px;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);cursor:pointer;}
-.logo-gem-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:4px;flex-shrink:0;position:relative;box-shadow:0 0 12px rgba(212,168,67,0.35);}
-.logo-gem{width:14px;height:14px;background:#0b0b09;clip-path:polygon(50% 0%,100% 35%,82% 100%,18% 100%,0% 35%);flex-shrink:0;}
-.logo-text-wrap{display:flex;flex-direction:column;line-height:1;}
-.logo-name{font-family:var(--FD);font-size:20px;letter-spacing:3px;color:var(--text);line-height:1;}
-.logo-tagline{font-size:8px;letter-spacing:2px;color:var(--gold);font-family:var(--FM);text-transform:uppercase;margin-top:1px;display:none;}
-@media(min-width:600px){.logo-tagline{display:block;}}
+.logo{font-family:var(--FD);font-size:20px;letter-spacing:2px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);cursor:pointer;}
+.logo-gem{width:14px;height:14px;background:var(--gold);clip-path:polygon(50% 0%,100% 35%,82% 100%,18% 100%,0% 35%);flex-shrink:0;}
 .nav-links{display:flex;gap:6px;}
 .nav-btn{font-family:var(--F);font-size:12px;padding:6px 14px;border-radius:3px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;}
 .nav-btn:hover{background:var(--bg3);color:var(--text);}
 .nav-btn.active{background:var(--golddim);border-color:var(--goldborder);color:var(--gold2);}
 .nav-credits{font-size:11px;color:var(--text3);font-family:var(--FM);padding:0 12px;}
-.system-status{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--FM);padding:4px 9px;border-radius:20px;background:rgba(46,184,154,0.08);border:0.5px solid rgba(46,184,154,0.2);color:var(--teal);white-space:nowrap;letter-spacing:1px;}
-@media(max-width:600px){.system-status span{display:none;}}
-.dolar-live-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s ease-in-out infinite;flex-shrink:0;}
-.dolar-info-strip{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--FM);padding:6px 12px;border-radius:4px;background:rgba(46,184,154,0.06);border:0.5px solid rgba(46,184,154,0.15);color:var(--teal);margin-top:16px;width:fit-content;}
-.dolar-info-strip .dolar-live-dot{width:4px;height:4px;}
+.dolar-live{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--FM);padding:4px 9px;border-radius:20px;background:rgba(46,184,154,0.08);border:0.5px solid rgba(46,184,154,0.2);color:var(--teal);white-space:nowrap;}
+.dolar-live-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
 
 /* ══════ VIEWS ══════ */
@@ -289,12 +281,8 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 
 /* ══════ RESPONSIVE ══════ */
 @media(max-width:900px){
-  .hero-inner{grid-template-columns:1fr;gap:32px;}
-  .hero-right{display:block;}
-  .hero-right .mock-card{max-width:420px;margin:0 auto;}
-  .hero-right .mock-prices{display:none;}
-  .hero-right .mock-auth{display:none;}
-  .hero-right .mock-info{padding:10px 14px;}
+  .hero-inner{grid-template-columns:1fr;}
+  .hero-right{display:none;}
   .stats-inner{grid-template-columns:repeat(2,1fr);}
   .stat-item{padding:16px 0;border-right:none;border-bottom:0.5px solid var(--border);}
   .stat-item:last-child{border-bottom:none;}
@@ -314,13 +302,8 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 
 <nav>
   <div class="logo" onclick="goTo('landing')">
-    <div class="logo-gem-wrap">
-      <div class="logo-gem"></div>
-    </div>
-    <div class="logo-text-wrap">
-      <span class="logo-name">GEM LENS</span>
-      <span class="logo-tagline">TCG GRADING · IA</span>
-    </div>
+    <div class="logo-gem"></div>
+    GEM LENS
   </div>
   <div class="nav-links">
     <button class="nav-btn" id="nb-landing" onclick="goTo('landing')">Inicio</button>
@@ -328,9 +311,9 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
     <button class="nav-btn" id="nb-portfolio" onclick="goTo('portfolio')">Mi Colección <span id="nav-count" style="font-family:var(--FM);font-size:10px;"></span></button>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
-    <div class="system-status" id="systemStatus">
+    <div class="dolar-live" id="dolarPill">
       <div class="dolar-live-dot"></div>
-      <span>SISTEMA OPERATIVO</span>
+      <span id="dolarDisplay">cargando...</span>
     </div>
     <div class="nav-credits" id="nav-credits-display"></div>
   </div>
@@ -353,53 +336,22 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
           </button>
           <span class="cta-sub">Sin registro · Gratis · 30 segundos</span>
         </div>
-        <div class="dolar-info-strip" id="dolarInfoStrip" style="display:none;">
-          <div class="dolar-live-dot"></div>
-          <span id="dolarDisplay">—</span>
-        </div>
       </div>
       <div class="hero-right">
         <div class="mock-card">
-          <!-- Carta completa con marco estilo grading slab -->
-          <div style="padding:14px 14px 10px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;gap:14px;align-items:flex-start;">
-            <div style="flex-shrink:0;position:relative;">
-              <!-- Marco tipo slab PSA/CGC -->
-              <div style="background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:8px;padding:3px;box-shadow:0 4px 24px rgba(212,168,67,0.3);">
-                <div style="background:#0b0b09;border-radius:6px;padding:3px;">
-                  <img 
-                    src="https://images.pokemontcg.io/swsh9/174_hires.png" 
-                    alt="Charizard V Alternate Art — Brilliant Stars"
-                    style="display:block;width:130px;height:182px;object-fit:contain;border-radius:4px;background:#111;"
-                    onerror="this.src='https://images.pokemontcg.io/swsh9/174.png';"
-                  >
-                </div>
-              </div>
-              <!-- Badge GLS sobre la carta -->
-              <div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold2));color:#0b0b09;font-family:var(--FD);font-size:12px;letter-spacing:1px;padding:3px 10px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 8px rgba(212,168,67,0.4);">GLS 8.5 · NM-MINT</div>
-            </div>
-            <div style="flex:1;min-width:0;padding-top:4px;">
-              <div style="font-family:var(--FD);font-size:16px;letter-spacing:0.3px;line-height:1.2;margin-bottom:5px;">Charizard V<br><span style="color:var(--gold2);">Alternate Art</span></div>
-              <div style="font-size:10px;color:var(--text3);font-family:var(--FM);margin-bottom:10px;">Brilliant Stars · 174/172 · EN · 2022</div>
-              <div class="mock-mini-grid" style="grid-template-columns:1fr 1fr;gap:5px;">
-                <div class="mock-mini"><div class="mock-mini-val ok">92</div><div class="mock-mini-lbl">Centering</div></div>
-                <div class="mock-mini"><div class="mock-mini-val warn">74</div><div class="mock-mini-lbl">Esquinas</div></div>
-                <div class="mock-mini"><div class="mock-mini-val ok">78</div><div class="mock-mini-lbl">Bordes</div></div>
-                <div class="mock-mini"><div class="mock-mini-val ok">88</div><div class="mock-mini-lbl">Superficie</div></div>
-              </div>
-            </div>
-          </div>
-          <div class="mock-scores" style="padding:10px 16px;">
+          <div class="mock-scores">
             <div>
               <div class="mock-gls">8.5</div>
               <div class="mock-gls-lbl">GLS Score</div>
             </div>
             <div class="mock-divider"></div>
-            <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end;">
-              <div style="text-align:center;"><div style="font-family:var(--FD);font-size:18px;color:var(--teal);">415</div><div style="font-size:9px;color:var(--text3);">GLP / 500</div></div>
-              <div class="mock-divider"></div>
-              <div style="text-align:center;"><div class="mock-mini-val warn" style="font-family:var(--FD);font-size:14px;">LP</div><div style="font-size:9px;color:var(--text3);">Condición</div></div>
-              <div class="mock-divider"></div>
-              <div style="text-align:center;"><div style="font-size:12px;color:var(--teal);">✓</div><div style="font-size:9px;color:var(--text3);">Auténtica</div></div>
+            <div class="mock-mini-grid">
+              <div class="mock-mini"><div class="mock-mini-val ok">92</div><div class="mock-mini-lbl">Centering</div></div>
+              <div class="mock-mini"><div class="mock-mini-val warn">74</div><div class="mock-mini-lbl">Esquinas</div></div>
+              <div class="mock-mini"><div class="mock-mini-val ok">78</div><div class="mock-mini-lbl">Bordes</div></div>
+              <div class="mock-mini"><div class="mock-mini-val ok">88</div><div class="mock-mini-lbl">Superficie</div></div>
+              <div class="mock-mini"><div class="mock-mini-val ok">75</div><div class="mock-mini-lbl">Color</div></div>
+              <div class="mock-mini"><div class="mock-mini-val ok" style="font-size:11px;">✓</div><div class="mock-mini-lbl">Auténtica</div></div>
             </div>
           </div>
           <div class="mock-info">
@@ -450,46 +402,39 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
     <div class="pricing-inner">
       <div style="text-align:center;">
         <div class="eyebrow" style="justify-content:center;display:flex;"><div class="eyebrow-line"></div>Planes</div>
-        <div class="section-title" style="margin-bottom:8px;">EMPEZÁ GRATIS.<br><span style="color:var(--gold2);">CRECÉ CON PRO.</span></div>
-        <p style="font-size:14px;color:var(--text2);font-weight:300;max-width:480px;margin:0 auto 40px;">Tres valuaciones gratis por día, sin registrarte. Cuando tu colección lo necesite, tenemos planes para vos.</p>
+        <div class="section-title" style="margin-bottom:0;">EMPEZÁ GRATIS.</div>
       </div>
       <div class="pricing-grid">
         <div class="pcard">
-          <div class="plan-name">GRATUITO</div>
-          <div style="font-family:var(--FD);font-size:26px;color:var(--teal);letter-spacing:1px;margin-bottom:4px;">SIEMPRE GRATIS</div>
-          <div class="plan-period">sin tarjeta · sin registro</div>
+          <div class="plan-name">GRATUITO</div><div class="plan-price">$0</div><div class="plan-period">para siempre</div>
           <ul class="plan-feats">
             <li class="plan-feat"><div class="feat-dot"></div><span>3 valuaciones por día</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Informe GLS + GLP completo</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Autenticidad + precios ARS real</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Portfolio local en tu dispositivo</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Portfolio local</span></li>
           </ul>
-          <button class="plan-btn btn-outline" onclick="goTo('upload')">EMPEZAR AHORA →</button>
+          <button class="plan-btn btn-outline" onclick="goTo('upload')">EMPEZAR GRATIS</button>
         </div>
         <div class="pcard featured">
           <div class="pcard-badge">⭐ MÁS POPULAR</div>
-          <div class="plan-name">PRO</div>
-          <div style="font-family:var(--FD);font-size:26px;color:var(--gold2);letter-spacing:1px;margin-bottom:4px;">PRÓXIMAMENTE</div>
-          <div class="plan-period">Mercado Pago · precio accesible</div>
+          <div class="plan-name">PRO</div><div class="plan-price">$2.500</div><div class="plan-period">ARS / mes · o USD 4</div>
           <ul class="plan-feats">
             <li class="plan-feat"><div class="feat-dot"></div><span>Valuaciones ilimitadas</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Historial de colección en la nube</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Historial de colección</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Exportar CSV / Excel</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Alertas de precio por carta</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Alertas de precio</span></li>
           </ul>
-          <button class="plan-btn btn-gold" onclick="showToast('¡Te avisamos cuando esté disponible!')">QUIERO SER NOTIFICADO</button>
+          <button class="plan-btn btn-gold" onclick="showToast('¡Próximamente disponible!')">IR PRO — MERCADO PAGO</button>
         </div>
         <div class="pcard">
-          <div class="plan-name">CRÉDITOS</div>
-          <div style="font-family:var(--FD);font-size:26px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;">PRÓXIMAMENTE</div>
-          <div class="plan-period">packs sin suscripción · sin vencimiento</div>
+          <div class="plan-name">CRÉDITOS</div><div class="plan-price">$1.500</div><div class="plan-period">ARS · pack de 10</div>
           <ul class="plan-feats">
-            <li class="plan-feat"><div class="feat-dot"></div><span>Packs de análisis extra</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Sin suscripción mensual</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Pack 10: $1.500 ARS</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Pack 30: $3.500 ARS</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Sin vencimiento</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Pago vía Mercado Pago</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Mercado Pago</span></li>
           </ul>
-          <button class="plan-btn btn-teal" onclick="showToast('¡Próximamente disponible!')">ANOTARME EN LA LISTA</button>
+          <button class="plan-btn btn-teal" onclick="showToast('¡Próximamente disponible!')">COMPRAR CRÉDITOS</button>
         </div>
       </div>
     </div>
@@ -497,7 +442,7 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 
   <footer>
     <div class="footer-inner">
-      <div class="logo"><div class="logo-gem-wrap"><div class="logo-gem"></div></div><div class="logo-text-wrap"><span class="logo-name">GEM LENS</span></div></div>
+      <div class="logo"><div class="logo-gem"></div>GEM LENS</div>
       <div class="footer-txt">© 2026 Gem Lens · Argentina · Los informes son estimaciones, no grading oficial.</div>
       <div class="footer-txt">Hecho con IA para la comunidad TCG 🇦🇷</div>
     </div>
@@ -612,10 +557,28 @@ const LOADING_MSGS = [
 // ════════════════════════════════════════════════════════
 const _memStore = {};
 
+// Detectar si estamos en iOS/móvil y si localStorage funciona
+function isLocalStorageAvailable() {
+  try {
+    const testKey = '__gem_test__';
+    localStorage.setItem(testKey, 'test');
+    localStorage.removeItem(testKey);
+    return true;
+  } catch(e) {
+    console.warn('localStorage no disponible:', e.message);
+    return false;
+  }
+}
+
+const STORAGE_AVAILABLE = isLocalStorageAvailable();
+
 function storageGet(key) {
   try {
-    const val = localStorage.getItem(key);
-    return val;
+    if (STORAGE_AVAILABLE) {
+      const val = localStorage.getItem(key);
+      if (val !== null) return val;
+    }
+    return _memStore[key] !== undefined ? _memStore[key] : null;
   } catch(e) {
     return _memStore[key] !== undefined ? _memStore[key] : null;
   }
@@ -623,45 +586,62 @@ function storageGet(key) {
 
 function storageSet(key, value) {
   try {
-    localStorage.setItem(key, value);
-  } catch(e) {
-    // localStorage lleno o bloqueado — usar memoria
+    if (STORAGE_AVAILABLE) {
+      localStorage.setItem(key, value);
+    }
     _memStore[key] = value;
-    console.warn('localStorage no disponible, usando memoria:', e.message);
+    return true;
+  } catch(e) {
+    // Si falla localStorage (lleno o bloqueado), guardar solo en memoria
+    _memStore[key] = value;
+    console.warn('Guardado en memoria (no persistente):', e.message);
+    return false;
   }
 }
 
 function storageRemove(key) {
-  try { localStorage.removeItem(key); } catch(e) { delete _memStore[key]; }
-}
-
-// Test si localStorage funciona
-function isStorageAvailable() {
   try {
-    const testKey = '__gem_test__';
-    localStorage.setItem(testKey, '1');
-    localStorage.removeItem(testKey);
-    return true;
+    if (STORAGE_AVAILABLE) localStorage.removeItem(key);
+    delete _memStore[key];
   } catch(e) {
-    return false;
+    delete _memStore[key];
   }
 }
 
 const getCards = () => {
   try {
-    return JSON.parse(storageGet('gem_cards') || '[]');
+    const raw = storageGet('gem_cards');
+    const cards = JSON.parse(raw || '[]');
+    // Validar que sea un array y filtrar inválidos
+    return Array.isArray(cards) ? cards.filter(c => c && c.id && c.name) : [];
   } catch { return []; }
 };
 
-const saveCards = (c) => {
+const saveCards = (cards) => {
   try {
-    storageSet('gem_cards', JSON.stringify(c));
-    return true;
-  } catch(e) {
-    console.error('Error guardando cartas:', e);
-    return false;
-  }
-};
+    const validCards = cards.filter(c => c && c.id && c.name);
+    const cardsToStore = validCards.map(c => ({
+      id: c.id,
+      timestamp: c.timestamp,
+      name: c.name,
+      card_number: c.card_number,
+      set: c.set,
+      game: c.game,
+      variant: c.variant,
+      rareza: c.rareza,
+      condicion: c.condicion,
+      gls: c.gls,
+      glp: c.glp,
+      mercado: {
+        usd_nm: c.mercado?.usd_nm || 0,
+        usd_cond: c.mercado?.usd_cond || 0,
+        ars: c.mercado?.ars || 0,
+        fuente: c.mercado?.fuente || 'desconocida',
+        fuente_label: c.mercado?.fuente_label || ''
+      },
+      // NO guardar fotos en localStorage para ahorrar espacio!
+      // Las fotos solo se guardan en memoria temporal
+    }));
 
 const getSnapshots = () => {
   try { return JSON.parse(storageGet('gem_snapshots') || '[]'); } catch { return []; }
@@ -737,12 +717,13 @@ async function fetchDolarBlue() {
 
 function updateDolarDisplay() {
   const el = document.getElementById('dolarDisplay');
-  const strip = document.getElementById('dolarInfoStrip');
   const mockEl = document.getElementById('mockArsPrice');
-  if (el && DOLAR_BLUE) {
-    el.textContent = `Blue $${DOLAR_BLUE.toLocaleString('es-AR')} · TC referencial`;
-    if (strip) strip.style.display = 'inline-flex';
+  if (!el) return;
+  if (DOLAR_BLUE) {
+    el.textContent = `Blue $${DOLAR_BLUE.toLocaleString('es-AR')}`;
     if (mockEl) mockEl.textContent = '$' + Math.round(65 * DOLAR_BLUE * 1.2).toLocaleString('es-AR');
+  } else {
+    el.textContent = 'blue no disponible';
   }
 }
 
@@ -945,7 +926,7 @@ async function startAnalysis() {
   try {
     const result = await runAnalysis();
     lastAnalysis = result;
-    useCredit(); // solo se consume si el análisis fue exitoso
+    useCredit();
     goTo('report');
     renderReport(result);
   } catch (err) {
@@ -953,21 +934,9 @@ async function startAnalysis() {
     const uploadView = document.querySelector('.upload-view');
     const existing = uploadView?.querySelector('.error-block');
     if (existing) existing.remove();
-
-    // Mensaje específico para imagen no-TCG (sin consumir crédito)
-    if (err.message === 'NO_TCG_CARD') {
-      uploadView?.insertAdjacentHTML('beforeend',
-        `<div class="error-block fade-in" style="margin-top:16px;">
-          <strong>🃏 No se detectó una carta TCG</strong>
-          La imagen no parece corresponder a una carta de Pokémon, Yu-Gi-Oh!, Magic u otro juego de cartas coleccionables.<br>
-          <span style="font-size:11px;opacity:0.8;margin-top:4px;display:block;">Tu crédito no fue consumido. Intentá con una foto de una carta real.</span>
-        </div>`
-      );
-    } else {
-      uploadView?.insertAdjacentHTML('beforeend',
-        `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${escapeHtml(err.message || 'Error desconocido')}</div>`
-      );
-    }
+    uploadView?.insertAdjacentHTML('beforeend',
+      `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${escapeHtml(err.message || 'Error desconocido')}</div>`
+    );
     console.error('Analysis error:', err);
   }
 }
@@ -977,96 +946,73 @@ async function runAnalysis() {
   const notes    = isDevMode() ? '' : notesRaw;
   const imageParts = uploadedImages.map(img => imageToGroqFormat(img.dataUrl));
 
-  // ══════════════════════════════════════════════════════
-  // PASO 1A — GATE: ¿Es una carta TCG? + detección de
-  // ediciones especiales ANTES de cualquier otra cosa.
-  // Este es el filtro de entrada. Si no pasa, se corta.
-  // ══════════════════════════════════════════════════════
-  const PROMPT_GATE = `Mirá la imagen con mucha atención.
-
-PREGUNTA 1: ¿Esta imagen muestra una carta TCG coleccionable (Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Dragon Ball Super, One Piece, Flesh and Blood, u otro juego de cartas coleccionables)?
-
-PREGUNTA 2 (solo si la respuesta a la 1 es SÍ): Antes de identificar el Pokémon/monstruo, enfocate en buscar estos elementos específicos en los bordes y márgenes de la carta:
-
-A) ¿Hay algún pequeño ícono o badge en el borde del arte o en las esquinas de la ilustración?
-   — Podría ser: un pequeño Pikachu dorado con el número "25", un logo de aniversario, un ícono de trofeo, un símbolo de GameBoy, una estrella especial, o cualquier marca fuera del diseño normal de la carta.
-
-B) ¿Hay un texto o sello que diga "1st Edition", "1st Ed", "Limited Edition", "Promo" o similar, tipicamente en el costado izquierdo debajo de la ilustración?
-
-C) ¿Hay sombra negra en el borde inferior-derecho del recuadro de la ilustración? (Shadowless = SIN sombra, más valioso)
-
-D) Describí el símbolo del set (el ícono pequeño que aparece abajo a la derecha del texto de la carta): forma, color, si parece especial.
-
-E) ¿El patrón holo tiene textura especial? (galaxia, cosmos, etched, cracked ice, mosaico) vs el patrón estándar.
-
-RESPONDÉ SOLO CON JSON puro, sin markdown, sin explicaciones:
-{
-  "is_tcg_card": true,
-  "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro|desconocido",
-  "badge_25_pikachu": false,
-  "sello_1st_edition": false,
-  "es_shadowless": false,
-  "simbolo_set_descripcion": "descripción breve del símbolo del set",
-  "holo_especial": false,
-  "holo_tipo": "estándar|galaxia|cosmos|etched|cracked ice|mosaico|ninguno",
-  "otros_badges": "descripción de cualquier otro elemento especial visible, o 'ninguno'",
-  "notas_edicion": "resumen de los indicadores de edición especial encontrados"
-}`;
-
-  const rawGate = await callProxy([{ role:'user', content:[...imageParts, {type:'text', text:PROMPT_GATE}] }]);
-  const gateResult = parseJSON(rawGate);
-
-  // ── GATE DE SALIDA — si no es TCG, cortar acá ──────────
-  if (!gateResult.is_tcg_card) {
-    // No consumir crédito — fue un error del usuario, no un análisis
-    // Revertir el crédito ya que startAnalysis lo consume antes de llegar acá
-    // En realidad el crédito se consume en startAnalysis DESPUÉS de runAnalysis,
-    // así que si tiramos error acá, el catch en startAnalysis lo maneja
-    throw new Error('NO_TCG_CARD');
-  }
-
-  // ── Construir contexto de edición para el prompt de ID ──
-  const editionContext = [];
-  if (gateResult.badge_25_pikachu)   editionContext.push('⚠ BADGE "25" CON PIKACHU DORADO DETECTADO → ES CELEBRATIONS, NO BASE SET');
-  if (gateResult.sello_1st_edition)  editionContext.push('⚠ SELLO 1st EDITION DETECTADO → variante = "1st Edition"');
-  if (gateResult.es_shadowless)      editionContext.push('⚠ SIN SOMBRA EN BORDE DE ILUSTRACIÓN → Shadowless Base Set');
-  if (gateResult.holo_especial)      editionContext.push(`⚠ HOLO ESPECIAL DETECTADO: ${gateResult.holo_tipo}`);
-  if (gateResult.otros_badges && gateResult.otros_badges !== 'ninguno') editionContext.push(`⚠ BADGE ADICIONAL: ${gateResult.otros_badges}`);
-
-  const editionContextStr = editionContext.length > 0
-    ? `\nCONTEXTO DE EDICIÓN YA DETECTADO (OBLIGATORIO respetar esto):\n${editionContext.join('\n')}\n`
-    : '\nNo se detectaron badges ni marcas especiales de edición.\n';
-
-  // ══════════════════════════════════════════════════════
-  // PASO 1B — IDENTIFICACIÓN COMPLETA usando el contexto
-  // de edición ya detectado en el paso anterior
-  // ══════════════════════════════════════════════════════
+  // ── PASO 1: Identificación — MEJORADO PARA CELEBRATIONS Y SETS ESPECIALES ──
   const PROMPT_ID = `Sos un experto certificado en TCG coleccionables con 20 años de experiencia.
-${editionContextStr}
-Identificá esta carta TCG con precisión:
 
-- nombre_oficial: nombre exacto en inglés (si es japonés, traducir según Bulbapedia — NO transliterar)
-  Ejemplos: カツラのウインディ → "Blaine's Arcanine", リザードン → "Charizard"
-- numero_coleccion: número en la carta (ej: 4/102, 002/025, SWSH261)
-- set_exacto: nombre completo del set respetando el contexto de edición de arriba
-- anio: año de impresión visible en la carta
-- idioma: EN/JP/ES/PT/KR/DE/FR/IT
+═══════════════════════════════════════════════════════
+PASO 1 — BUSCAR INSIGNIAS Y MARCAS ESPECIALES (OBLIGATORIO)
+═══════════════════════════════════════════════════════
+ANTES de identificar el Pokémon, examiná minuciosamente TODOS los bordes, esquinas
+y márgenes de la ilustración buscando estos elementos:
 
-IMPORTANTE: Si el contexto indica Celebrations, el set DEBE ser "Celebrations" y NO "Base Set".
-Si el contexto indica 1st Edition, la variante DEBE ser "1st Edition".
-${notes ? `\nNota del usuario: "${notes}"\n` : ''}
+A) BADGE "25" CON PIKACHU DORADO (Celebrations 25th Anniversary)
+   → ¿Hay un pequeño Pikachu dorado con el número "25" en cualquier borde del arte?
+   → Si SÍ → set = "Celebrations", variante = "Classic Collection" o "25th Anniversary Promo"
+   → Valor completamente distinto al Base Set original.
+   → NUNCA confundir con Base Set. El Base Set NO tiene ese badge.
+
+B) SELLO "1st EDITION" o "1st Ed"
+   → ¿Hay un sello circular o texto "1st Edition" en el costado izquierdo?
+   → Si SÍ → variante = "1st Edition" — cambia drásticamente el valor.
+
+C) SHADOWLESS (Base Set sin sombra)
+   → En el recuadro de imagen de la carta, ¿hay sombra negra en el borde inferior-derecho?
+   → Sin sombra = "Shadowless" — versión más valiosa del Base Set original.
+   → Con sombra = Base Set estándar (unlimited).
+
+D) SÍMBOLO DEL SET (abajo a la derecha del texto)
+   → El símbolo identifica el set exacto. Describilo: ¿círculo? ¿estrella? ¿símbolo especial?
+   → Base Set = sin símbolo o símbolo de Wizards
+   → Celebrations = símbolo especial de 25 años
+
+E) HOLO PATTERN / GALAXIA / ETCHED
+   → ¿El patrón del holo es especial? (galaxia, mosaico, cracked ice, cosmos)
+   → Esto puede indicar versiones alternativas valiosas.
+
+F) LOGOS ADICIONALES (GameBoy, Trophy, World Championship, etc.)
+   → Cartas de torneos, promos oficiales, etc.
+
+═══════════════════════════════════════════════════════
+PASO 2 — REGLA CRÍTICA PARA JAPONÉS
+═══════════════════════════════════════════════════════
+Si ves texto japonés: traducir al nombre OFICIAL en inglés según Bulbapedia.
+カツラのウインディ → "Blaine's Arcanine"
+リザードン → "Charizard"
+NO transliterar; buscar el nombre canónico inglés.
+
+═══════════════════════════════════════════════════════
+PASO 3 — IDENTIFICACIÓN COMPLETA
+═══════════════════════════════════════════════════════
+Con toda esa info, identificar:
+- nombre_oficial: nombre exacto en inglés
+- numero_coleccion: número en la carta (ej: 4/102, 002/025)
+- set_exacto: nombre completo del set
+- anio: año de impresión
+- idioma: EN/JP/ES/PT/KR
+
+${notes ? `Nota del usuario: "${notes}"\n` : ''}
 
 RESPONDÉ SOLO CON JSON puro, sin markdown:
 {
   "name": "nombre canónico oficial en inglés",
-  "name_original": "texto original si no es inglés, vacío si ya es inglés",
+  "name_original": "texto original si no es inglés, vacío si es inglés",
   "card_number": "número/total de colección",
   "set": "Nombre del set · Número/Total · Idioma · Año",
   "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro",
-  "variant": "1st Edition|Shadowless|Celebrations Classic Collection|Celebrations Promo|Reverse Holo|Full Art|Alternate Art|Special Illustration Rare|Normal|otro",
+  "variant": "1st Edition|Shadowless|Celebrations Classic|25th Promo|Reverse Holo|Full Art|Alternate Art|Normal|otro",
   "rareza": "rareza con símbolo si es identificable",
-  "special_badges_found": "descripción completa de todos los badges o marcas especiales",
-  "detalles_identificacion": "elementos visuales clave usados para identificar",
+  "special_badges_found": "descripción de badges especiales encontrados, o 'ninguno'",
+  "detalles_identificacion": "elementos visuales clave que usaste para identificar",
   "usd_nm_estimado": 25,
   "auth": {
     "estado": "autentica|falsificacion_detectada",
@@ -1077,26 +1023,6 @@ RESPONDÉ SOLO CON JSON puro, sin markdown:
 
   const rawId = await callProxy([{ role:'user', content:[...imageParts, {type:'text', text:PROMPT_ID}] }]);
   const cardId = parseJSON(rawId);
-
-  // Fusionar datos de edición del gate con los de identificación
-  // El gate es más confiable para badges porque fue específico
-  if (gateResult.badge_25_pikachu && !cardId.variant?.includes('Celebrations')) {
-    cardId.variant = 'Celebrations Classic Collection';
-    if (!cardId.set?.includes('Celebrations')) cardId.set = 'Celebrations · 002/025 · ' + (cardId.set?.split('·').slice(-2).join('·').trim() || '2021');
-  }
-  if (gateResult.sello_1st_edition && !cardId.variant?.includes('1st')) {
-    cardId.variant = '1st Edition';
-  }
-  if (gateResult.es_shadowless && cardId.variant === 'Normal') {
-    cardId.variant = 'Shadowless';
-  }
-  // Enriquecer el campo de badges en el card final
-  const allBadgeInfo = [
-    gateResult.otros_badges && gateResult.otros_badges !== 'ninguno' ? gateResult.otros_badges : '',
-    gateResult.notas_edicion || '',
-    cardId.special_badges_found || ''
-  ].filter(Boolean).join(' | ');
-  cardId.special_badges_found = allBadgeInfo || 'ninguno';
 
   // ── PASO 2: Condición física ──
   const cardName = cardId.name || 'esta carta TCG';
@@ -1450,65 +1376,28 @@ function renderReport(card, fromPortfolio = false) {
 }
 
 // ════════════════════════════════════════════════════════
-//  COMPRESIÓN DE IMÁGENES PARA STORAGE MÓVIL
-//  Reduce base64 de ~1.5MB a ~80KB para thumbnail
+//  SAVE TO PORTFOLIO — FIX MOBILE
 // ════════════════════════════════════════════════════════
-function compressImageForStorage(dataUrl, maxWidth = 320) {
-  return new Promise((resolve) => {
-    try {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ratio  = Math.min(maxWidth / img.width, maxWidth / img.height, 1);
-        canvas.width  = Math.round(img.width  * ratio);
-        canvas.height = Math.round(img.height * ratio);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.72));
-      };
-      img.onerror = () => resolve(null);
-      img.src = dataUrl;
-    } catch {
-      resolve(null);
-    }
-  });
-}
-
-// ════════════════════════════════════════════════════════
-//  SAVE TO PORTFOLIO — con compresión automática en móvil
-// ════════════════════════════════════════════════════════
-async function saveToPortfolio() {
+function saveToPortfolio() {
   if (!lastAnalysis) {
     showToast('Error: no hay análisis activo');
     return;
   }
 
-  // Feedback inmediato — el usuario sabe que algo está pasando
-  const btn = document.getElementById('btnSave');
-  if (btn) { btn.disabled = true; btn.textContent = 'GUARDANDO...'; }
-
-  // Comprimir thumbnail para móvil (320px, ~80KB vs ~1.5MB)
-  let thumbDataUrl = null;
-  const rawThumb = lastAnalysis.fotos?.[0] || lastAnalysis.foto || null;
-  if (rawThumb) {
-    try {
-      thumbDataUrl = await compressImageForStorage(rawThumb, 320);
-    } catch {
-      thumbDataUrl = null;
-    }
-  }
-
+  // Crear una copia limpia sin las fotos en base64 para ahorrar espacio
+  // pero conservar la primera foto como thumbnail
   const cardToSave = {
     ...lastAnalysis,
-    foto:  thumbDataUrl,
-    fotos: [] // no guardar fotos full en portfolio — solo el thumbnail
+    // Conservar solo la primera foto como thumbnail para ahorrar espacio en storage
+    foto: lastAnalysis.fotos?.[0] || lastAnalysis.foto || null,
+    // Guardar máximo 2 fotos en portfolio para no llenar el storage
+    fotos: (lastAnalysis.fotos || []).slice(0, 2)
   };
 
   const cards = getCards();
 
   if (cards.some(c => c.id === cardToSave.id)) {
     showToast('Esta carta ya está en tu colección');
-    if (btn) { btn.disabled = true; btn.textContent = '✓ GUARDADA EN COLECCIÓN'; }
     return;
   }
 
@@ -1516,31 +1405,23 @@ async function saveToPortfolio() {
   const saved = saveCards(cards);
 
   if (!saved) {
-    // Si falla con thumbnail, intentar sin foto
-    const cardSinFoto = { ...cardToSave, foto: null, fotos: [] };
-    cards[cards.length - 1] = cardSinFoto;
-    const savedSinFoto = saveCards(cards);
+    // Intentar guardar sin fotos si no hay espacio
+    const cardSinFotos = { ...cardToSave, foto: null, fotos: [] };
+    cards[cards.length - 1] = cardSinFotos;
+    const savedSinFotos = saveCards(cards);
 
-    if (!savedSinFoto) {
-      // Último recurso: limpiar cartas más antiguas y reintentar
-      const cardsLimitadas = cards.slice(-8); // mantener solo las últimas 8
-      cardsLimitadas[cardsLimitadas.length - 1] = cardSinFoto;
-      const savedFinal = saveCards(cardsLimitadas);
-      if (!savedFinal) {
-        showToast('⚠ Almacenamiento lleno. Eliminá cartas antiguas desde Mi Colección.');
-        if (btn) { btn.disabled = false; btn.textContent = '+ GUARDAR EN MI COLECCIÓN'; }
-        return;
-      }
-      showToast('Guardada (se liberó espacio eliminando cartas viejas)');
-    } else {
-      showToast('Guardada sin foto (espacio limitado en tu dispositivo)');
+    if (!savedSinFotos) {
+      showToast('⚠ No se pudo guardar: almacenamiento lleno o bloqueado');
+      return;
     }
+    showToast('Guardada sin fotos (almacenamiento limitado)');
   } else {
     showToast('¡Carta guardada en tu colección!');
   }
 
   maybeSnapshot();
 
+  const btn = document.getElementById('btnSave');
   if (btn) { btn.disabled = true; btn.textContent = '✓ GUARDADA EN COLECCIÓN'; }
 
   const confirmEl = document.getElementById('saveConfirm');
