@@ -25,15 +25,23 @@ body{font-family:var(--F);background:var(--bg);color:var(--text);font-size:15px;
 
 /* ══════ NAV ══════ */
 nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;height:54px;background:rgba(11,11,9,0.94);backdrop-filter:blur(16px);border-bottom:0.5px solid var(--border);}
-.logo{font-family:var(--FD);font-size:20px;letter-spacing:2px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);cursor:pointer;}
-.logo-gem{width:14px;height:14px;background:var(--gold);clip-path:polygon(50% 0%,100% 35%,82% 100%,18% 100%,0% 35%);flex-shrink:0;}
+.logo{font-family:var(--FD);font-size:22px;letter-spacing:3px;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);cursor:pointer;}
+.logo-gem-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:4px;flex-shrink:0;position:relative;box-shadow:0 0 12px rgba(212,168,67,0.35);}
+.logo-gem{width:14px;height:14px;background:#0b0b09;clip-path:polygon(50% 0%,100% 35%,82% 100%,18% 100%,0% 35%);flex-shrink:0;}
+.logo-text-wrap{display:flex;flex-direction:column;line-height:1;}
+.logo-name{font-family:var(--FD);font-size:20px;letter-spacing:3px;color:var(--text);line-height:1;}
+.logo-tagline{font-size:8px;letter-spacing:2px;color:var(--gold);font-family:var(--FM);text-transform:uppercase;margin-top:1px;display:none;}
+@media(min-width:600px){.logo-tagline{display:block;}}
 .nav-links{display:flex;gap:6px;}
 .nav-btn{font-family:var(--F);font-size:12px;padding:6px 14px;border-radius:3px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;}
 .nav-btn:hover{background:var(--bg3);color:var(--text);}
 .nav-btn.active{background:var(--golddim);border-color:var(--goldborder);color:var(--gold2);}
 .nav-credits{font-size:11px;color:var(--text3);font-family:var(--FM);padding:0 12px;}
-.dolar-live{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--FM);padding:4px 9px;border-radius:20px;background:rgba(46,184,154,0.08);border:0.5px solid rgba(46,184,154,0.2);color:var(--teal);white-space:nowrap;}
-.dolar-live-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s ease-in-out infinite;}
+.system-status{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--FM);padding:4px 9px;border-radius:20px;background:rgba(46,184,154,0.08);border:0.5px solid rgba(46,184,154,0.2);color:var(--teal);white-space:nowrap;letter-spacing:1px;}
+@media(max-width:600px){.system-status span{display:none;}}
+.dolar-live-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s ease-in-out infinite;flex-shrink:0;}
+.dolar-info-strip{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--FM);padding:6px 12px;border-radius:4px;background:rgba(46,184,154,0.06);border:0.5px solid rgba(46,184,154,0.15);color:var(--teal);margin-top:16px;width:fit-content;}
+.dolar-info-strip .dolar-live-dot{width:4px;height:4px;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
 
 /* ══════ VIEWS ══════ */
@@ -302,8 +310,13 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 
 <nav>
   <div class="logo" onclick="goTo('landing')">
-    <div class="logo-gem"></div>
-    GEM LENS
+    <div class="logo-gem-wrap">
+      <div class="logo-gem"></div>
+    </div>
+    <div class="logo-text-wrap">
+      <span class="logo-name">GEM LENS</span>
+      <span class="logo-tagline">TCG GRADING · IA</span>
+    </div>
   </div>
   <div class="nav-links">
     <button class="nav-btn" id="nb-landing" onclick="goTo('landing')">Inicio</button>
@@ -311,9 +324,9 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
     <button class="nav-btn" id="nb-portfolio" onclick="goTo('portfolio')">Mi Colección <span id="nav-count" style="font-family:var(--FM);font-size:10px;"></span></button>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
-    <div class="dolar-live" id="dolarPill">
+    <div class="system-status" id="systemStatus">
       <div class="dolar-live-dot"></div>
-      <span id="dolarDisplay">cargando...</span>
+      <span>SISTEMA OPERATIVO</span>
     </div>
     <div class="nav-credits" id="nav-credits-display"></div>
   </div>
@@ -336,9 +349,23 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
           </button>
           <span class="cta-sub">Sin registro · Gratis · 30 segundos</span>
         </div>
+        <div class="dolar-info-strip" id="dolarInfoStrip" style="display:none;">
+          <div class="dolar-live-dot"></div>
+          <span id="dolarDisplay">—</span>
+        </div>
       </div>
       <div class="hero-right">
         <div class="mock-card">
+          <div style="position:relative;overflow:hidden;border-radius:10px 10px 0 0;">
+            <img 
+              src="https://images.pokemontcg.io/swsh9/174_hires.png" 
+              alt="Charizard V Alternate Art — Brilliant Stars"
+              style="width:100%;display:block;max-height:260px;object-fit:cover;object-position:top;"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+            >
+            <div style="display:none;background:var(--bg3);height:180px;align-items:center;justify-content:center;font-size:12px;color:var(--text3);">🃏 Charizard V AA</div>
+            <div style="position:absolute;top:8px;right:8px;background:rgba(11,11,9,0.82);backdrop-filter:blur(6px);border:0.5px solid var(--goldborder);border-radius:4px;padding:4px 8px;font-family:var(--FD);font-size:13px;color:var(--gold2);">GLS 8.5</div>
+          </div>
           <div class="mock-scores">
             <div>
               <div class="mock-gls">8.5</div>
@@ -402,39 +429,46 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
     <div class="pricing-inner">
       <div style="text-align:center;">
         <div class="eyebrow" style="justify-content:center;display:flex;"><div class="eyebrow-line"></div>Planes</div>
-        <div class="section-title" style="margin-bottom:0;">EMPEZÁ GRATIS.</div>
+        <div class="section-title" style="margin-bottom:8px;">EMPEZÁ GRATIS.<br><span style="color:var(--gold2);">CRECÉ CON PRO.</span></div>
+        <p style="font-size:14px;color:var(--text2);font-weight:300;max-width:480px;margin:0 auto 40px;">Tres valuaciones gratis por día, sin registrarte. Cuando tu colección lo necesite, tenemos planes para vos.</p>
       </div>
       <div class="pricing-grid">
         <div class="pcard">
-          <div class="plan-name">GRATUITO</div><div class="plan-price">$0</div><div class="plan-period">para siempre</div>
+          <div class="plan-name">GRATUITO</div>
+          <div style="font-family:var(--FD);font-size:26px;color:var(--teal);letter-spacing:1px;margin-bottom:4px;">SIEMPRE GRATIS</div>
+          <div class="plan-period">sin tarjeta · sin registro</div>
           <ul class="plan-feats">
             <li class="plan-feat"><div class="feat-dot"></div><span>3 valuaciones por día</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Informe GLS + GLP completo</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Autenticidad + precios ARS real</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Portfolio local</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Portfolio local en tu dispositivo</span></li>
           </ul>
-          <button class="plan-btn btn-outline" onclick="goTo('upload')">EMPEZAR GRATIS</button>
+          <button class="plan-btn btn-outline" onclick="goTo('upload')">EMPEZAR AHORA →</button>
         </div>
         <div class="pcard featured">
           <div class="pcard-badge">⭐ MÁS POPULAR</div>
-          <div class="plan-name">PRO</div><div class="plan-price">$2.500</div><div class="plan-period">ARS / mes · o USD 4</div>
+          <div class="plan-name">PRO</div>
+          <div style="font-family:var(--FD);font-size:26px;color:var(--gold2);letter-spacing:1px;margin-bottom:4px;">PRÓXIMAMENTE</div>
+          <div class="plan-period">Mercado Pago · precio accesible</div>
           <ul class="plan-feats">
             <li class="plan-feat"><div class="feat-dot"></div><span>Valuaciones ilimitadas</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Historial de colección</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Historial de colección en la nube</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Exportar CSV / Excel</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Alertas de precio</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Alertas de precio por carta</span></li>
           </ul>
-          <button class="plan-btn btn-gold" onclick="showToast('¡Próximamente disponible!')">IR PRO — MERCADO PAGO</button>
+          <button class="plan-btn btn-gold" onclick="showToast('¡Te avisamos cuando esté disponible!')">QUIERO SER NOTIFICADO</button>
         </div>
         <div class="pcard">
-          <div class="plan-name">CRÉDITOS</div><div class="plan-price">$1.500</div><div class="plan-period">ARS · pack de 10</div>
+          <div class="plan-name">CRÉDITOS</div>
+          <div style="font-family:var(--FD);font-size:26px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;">PRÓXIMAMENTE</div>
+          <div class="plan-period">packs sin suscripción · sin vencimiento</div>
           <ul class="plan-feats">
-            <li class="plan-feat"><div class="feat-dot"></div><span>Pack 10: $1.500 ARS</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Pack 30: $3.500 ARS</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Packs de análisis extra</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Sin suscripción mensual</span></li>
             <li class="plan-feat"><div class="feat-dot"></div><span>Sin vencimiento</span></li>
-            <li class="plan-feat"><div class="feat-dot"></div><span>Mercado Pago</span></li>
+            <li class="plan-feat"><div class="feat-dot"></div><span>Pago vía Mercado Pago</span></li>
           </ul>
-          <button class="plan-btn btn-teal" onclick="showToast('¡Próximamente disponible!')">COMPRAR CRÉDITOS</button>
+          <button class="plan-btn btn-teal" onclick="showToast('¡Próximamente disponible!')">ANOTARME EN LA LISTA</button>
         </div>
       </div>
     </div>
@@ -442,7 +476,7 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 
   <footer>
     <div class="footer-inner">
-      <div class="logo"><div class="logo-gem"></div>GEM LENS</div>
+      <div class="logo"><div class="logo-gem-wrap"><div class="logo-gem"></div></div><div class="logo-text-wrap"><span class="logo-name">GEM LENS</span></div></div>
       <div class="footer-txt">© 2026 Gem Lens · Argentina · Los informes son estimaciones, no grading oficial.</div>
       <div class="footer-txt">Hecho con IA para la comunidad TCG 🇦🇷</div>
     </div>
@@ -682,13 +716,12 @@ async function fetchDolarBlue() {
 
 function updateDolarDisplay() {
   const el = document.getElementById('dolarDisplay');
+  const strip = document.getElementById('dolarInfoStrip');
   const mockEl = document.getElementById('mockArsPrice');
-  if (!el) return;
-  if (DOLAR_BLUE) {
-    el.textContent = `Blue $${DOLAR_BLUE.toLocaleString('es-AR')}`;
+  if (el && DOLAR_BLUE) {
+    el.textContent = `Blue $${DOLAR_BLUE.toLocaleString('es-AR')} · TC referencial`;
+    if (strip) strip.style.display = 'inline-flex';
     if (mockEl) mockEl.textContent = '$' + Math.round(65 * DOLAR_BLUE * 1.2).toLocaleString('es-AR');
-  } else {
-    el.textContent = 'blue no disponible';
   }
 }
 
