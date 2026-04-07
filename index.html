@@ -289,8 +289,12 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
 
 /* ══════ RESPONSIVE ══════ */
 @media(max-width:900px){
-  .hero-inner{grid-template-columns:1fr;}
-  .hero-right{display:none;}
+  .hero-inner{grid-template-columns:1fr;gap:32px;}
+  .hero-right{display:block;}
+  .hero-right .mock-card{max-width:420px;margin:0 auto;}
+  .hero-right .mock-prices{display:none;}
+  .hero-right .mock-auth{display:none;}
+  .hero-right .mock-info{padding:10px 14px;}
   .stats-inner{grid-template-columns:repeat(2,1fr);}
   .stat-item{padding:16px 0;border-right:none;border-bottom:0.5px solid var(--border);}
   .stat-item:last-child{border-bottom:none;}
@@ -356,29 +360,46 @@ footer{background:var(--bg);border-top:0.5px solid var(--border);padding:32px 6v
       </div>
       <div class="hero-right">
         <div class="mock-card">
-          <div style="position:relative;overflow:hidden;border-radius:10px 10px 0 0;">
-            <img 
-              src="https://images.pokemontcg.io/swsh9/174_hires.png" 
-              alt="Charizard V Alternate Art — Brilliant Stars"
-              style="width:100%;display:block;max-height:260px;object-fit:cover;object-position:top;"
-              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-            >
-            <div style="display:none;background:var(--bg3);height:180px;align-items:center;justify-content:center;font-size:12px;color:var(--text3);">🃏 Charizard V AA</div>
-            <div style="position:absolute;top:8px;right:8px;background:rgba(11,11,9,0.82);backdrop-filter:blur(6px);border:0.5px solid var(--goldborder);border-radius:4px;padding:4px 8px;font-family:var(--FD);font-size:13px;color:var(--gold2);">GLS 8.5</div>
+          <!-- Carta completa con marco estilo grading slab -->
+          <div style="padding:14px 14px 10px;background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;gap:14px;align-items:flex-start;">
+            <div style="flex-shrink:0;position:relative;">
+              <!-- Marco tipo slab PSA/CGC -->
+              <div style="background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:8px;padding:3px;box-shadow:0 4px 24px rgba(212,168,67,0.3);">
+                <div style="background:#0b0b09;border-radius:6px;padding:3px;">
+                  <img 
+                    src="https://images.pokemontcg.io/swsh9/174_hires.png" 
+                    alt="Charizard V Alternate Art — Brilliant Stars"
+                    style="display:block;width:130px;height:182px;object-fit:contain;border-radius:4px;background:#111;"
+                    onerror="this.src='https://images.pokemontcg.io/swsh9/174.png';"
+                  >
+                </div>
+              </div>
+              <!-- Badge GLS sobre la carta -->
+              <div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold2));color:#0b0b09;font-family:var(--FD);font-size:12px;letter-spacing:1px;padding:3px 10px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 8px rgba(212,168,67,0.4);">GLS 8.5 · NM-MINT</div>
+            </div>
+            <div style="flex:1;min-width:0;padding-top:4px;">
+              <div style="font-family:var(--FD);font-size:16px;letter-spacing:0.3px;line-height:1.2;margin-bottom:5px;">Charizard V<br><span style="color:var(--gold2);">Alternate Art</span></div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--FM);margin-bottom:10px;">Brilliant Stars · 174/172 · EN · 2022</div>
+              <div class="mock-mini-grid" style="grid-template-columns:1fr 1fr;gap:5px;">
+                <div class="mock-mini"><div class="mock-mini-val ok">92</div><div class="mock-mini-lbl">Centering</div></div>
+                <div class="mock-mini"><div class="mock-mini-val warn">74</div><div class="mock-mini-lbl">Esquinas</div></div>
+                <div class="mock-mini"><div class="mock-mini-val ok">78</div><div class="mock-mini-lbl">Bordes</div></div>
+                <div class="mock-mini"><div class="mock-mini-val ok">88</div><div class="mock-mini-lbl">Superficie</div></div>
+              </div>
+            </div>
           </div>
-          <div class="mock-scores">
+          <div class="mock-scores" style="padding:10px 16px;">
             <div>
               <div class="mock-gls">8.5</div>
               <div class="mock-gls-lbl">GLS Score</div>
             </div>
             <div class="mock-divider"></div>
-            <div class="mock-mini-grid">
-              <div class="mock-mini"><div class="mock-mini-val ok">92</div><div class="mock-mini-lbl">Centering</div></div>
-              <div class="mock-mini"><div class="mock-mini-val warn">74</div><div class="mock-mini-lbl">Esquinas</div></div>
-              <div class="mock-mini"><div class="mock-mini-val ok">78</div><div class="mock-mini-lbl">Bordes</div></div>
-              <div class="mock-mini"><div class="mock-mini-val ok">88</div><div class="mock-mini-lbl">Superficie</div></div>
-              <div class="mock-mini"><div class="mock-mini-val ok">75</div><div class="mock-mini-lbl">Color</div></div>
-              <div class="mock-mini"><div class="mock-mini-val ok" style="font-size:11px;">✓</div><div class="mock-mini-lbl">Auténtica</div></div>
+            <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end;">
+              <div style="text-align:center;"><div style="font-family:var(--FD);font-size:18px;color:var(--teal);">415</div><div style="font-size:9px;color:var(--text3);">GLP / 500</div></div>
+              <div class="mock-divider"></div>
+              <div style="text-align:center;"><div class="mock-mini-val warn" style="font-family:var(--FD);font-size:14px;">LP</div><div style="font-size:9px;color:var(--text3);">Condición</div></div>
+              <div class="mock-divider"></div>
+              <div style="text-align:center;"><div style="font-size:12px;color:var(--teal);">✓</div><div style="font-size:9px;color:var(--text3);">Auténtica</div></div>
             </div>
           </div>
           <div class="mock-info">
