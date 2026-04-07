@@ -891,7 +891,7 @@ async function startAnalysis() {
   try {
     const result = await runAnalysis();
     lastAnalysis = result;
-    useCredit();
+    useCredit(); // solo se consume si el análisis fue exitoso
     goTo('report');
     renderReport(result);
   } catch (err) {
@@ -899,9 +899,21 @@ async function startAnalysis() {
     const uploadView = document.querySelector('.upload-view');
     const existing = uploadView?.querySelector('.error-block');
     if (existing) existing.remove();
-    uploadView?.insertAdjacentHTML('beforeend',
-      `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${escapeHtml(err.message || 'Error desconocido')}</div>`
-    );
+
+    // Mensaje específico para imagen no-TCG (sin consumir crédito)
+    if (err.message === 'NO_TCG_CARD') {
+      uploadView?.insertAdjacentHTML('beforeend',
+        `<div class="error-block fade-in" style="margin-top:16px;">
+          <strong>🃏 No se detectó una carta TCG</strong>
+          La imagen no parece corresponder a una carta de Pokémon, Yu-Gi-Oh!, Magic u otro juego de cartas coleccionables.<br>
+          <span style="font-size:11px;opacity:0.8;margin-top:4px;display:block;">Tu crédito no fue consumido. Intentá con una foto de una carta real.</span>
+        </div>`
+      );
+    } else {
+      uploadView?.insertAdjacentHTML('beforeend',
+        `<div class="error-block fade-in" style="margin-top:16px;"><strong>❌ Error en el análisis</strong>${escapeHtml(err.message || 'Error desconocido')}</div>`
+      );
+    }
     console.error('Analysis error:', err);
   }
 }
@@ -911,73 +923,96 @@ async function runAnalysis() {
   const notes    = isDevMode() ? '' : notesRaw;
   const imageParts = uploadedImages.map(img => imageToGroqFormat(img.dataUrl));
 
-  // ── PASO 1: Identificación — MEJORADO PARA CELEBRATIONS Y SETS ESPECIALES ──
+  // ══════════════════════════════════════════════════════
+  // PASO 1A — GATE: ¿Es una carta TCG? + detección de
+  // ediciones especiales ANTES de cualquier otra cosa.
+  // Este es el filtro de entrada. Si no pasa, se corta.
+  // ══════════════════════════════════════════════════════
+  const PROMPT_GATE = `Mirá la imagen con mucha atención.
+
+PREGUNTA 1: ¿Esta imagen muestra una carta TCG coleccionable (Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Dragon Ball Super, One Piece, Flesh and Blood, u otro juego de cartas coleccionables)?
+
+PREGUNTA 2 (solo si la respuesta a la 1 es SÍ): Antes de identificar el Pokémon/monstruo, enfocate en buscar estos elementos específicos en los bordes y márgenes de la carta:
+
+A) ¿Hay algún pequeño ícono o badge en el borde del arte o en las esquinas de la ilustración?
+   — Podría ser: un pequeño Pikachu dorado con el número "25", un logo de aniversario, un ícono de trofeo, un símbolo de GameBoy, una estrella especial, o cualquier marca fuera del diseño normal de la carta.
+
+B) ¿Hay un texto o sello que diga "1st Edition", "1st Ed", "Limited Edition", "Promo" o similar, tipicamente en el costado izquierdo debajo de la ilustración?
+
+C) ¿Hay sombra negra en el borde inferior-derecho del recuadro de la ilustración? (Shadowless = SIN sombra, más valioso)
+
+D) Describí el símbolo del set (el ícono pequeño que aparece abajo a la derecha del texto de la carta): forma, color, si parece especial.
+
+E) ¿El patrón holo tiene textura especial? (galaxia, cosmos, etched, cracked ice, mosaico) vs el patrón estándar.
+
+RESPONDÉ SOLO CON JSON puro, sin markdown, sin explicaciones:
+{
+  "is_tcg_card": true,
+  "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro|desconocido",
+  "badge_25_pikachu": false,
+  "sello_1st_edition": false,
+  "es_shadowless": false,
+  "simbolo_set_descripcion": "descripción breve del símbolo del set",
+  "holo_especial": false,
+  "holo_tipo": "estándar|galaxia|cosmos|etched|cracked ice|mosaico|ninguno",
+  "otros_badges": "descripción de cualquier otro elemento especial visible, o 'ninguno'",
+  "notas_edicion": "resumen de los indicadores de edición especial encontrados"
+}`;
+
+  const rawGate = await callProxy([{ role:'user', content:[...imageParts, {type:'text', text:PROMPT_GATE}] }]);
+  const gateResult = parseJSON(rawGate);
+
+  // ── GATE DE SALIDA — si no es TCG, cortar acá ──────────
+  if (!gateResult.is_tcg_card) {
+    // No consumir crédito — fue un error del usuario, no un análisis
+    // Revertir el crédito ya que startAnalysis lo consume antes de llegar acá
+    // En realidad el crédito se consume en startAnalysis DESPUÉS de runAnalysis,
+    // así que si tiramos error acá, el catch en startAnalysis lo maneja
+    throw new Error('NO_TCG_CARD');
+  }
+
+  // ── Construir contexto de edición para el prompt de ID ──
+  const editionContext = [];
+  if (gateResult.badge_25_pikachu)   editionContext.push('⚠ BADGE "25" CON PIKACHU DORADO DETECTADO → ES CELEBRATIONS, NO BASE SET');
+  if (gateResult.sello_1st_edition)  editionContext.push('⚠ SELLO 1st EDITION DETECTADO → variante = "1st Edition"');
+  if (gateResult.es_shadowless)      editionContext.push('⚠ SIN SOMBRA EN BORDE DE ILUSTRACIÓN → Shadowless Base Set');
+  if (gateResult.holo_especial)      editionContext.push(`⚠ HOLO ESPECIAL DETECTADO: ${gateResult.holo_tipo}`);
+  if (gateResult.otros_badges && gateResult.otros_badges !== 'ninguno') editionContext.push(`⚠ BADGE ADICIONAL: ${gateResult.otros_badges}`);
+
+  const editionContextStr = editionContext.length > 0
+    ? `\nCONTEXTO DE EDICIÓN YA DETECTADO (OBLIGATORIO respetar esto):\n${editionContext.join('\n')}\n`
+    : '\nNo se detectaron badges ni marcas especiales de edición.\n';
+
+  // ══════════════════════════════════════════════════════
+  // PASO 1B — IDENTIFICACIÓN COMPLETA usando el contexto
+  // de edición ya detectado en el paso anterior
+  // ══════════════════════════════════════════════════════
   const PROMPT_ID = `Sos un experto certificado en TCG coleccionables con 20 años de experiencia.
+${editionContextStr}
+Identificá esta carta TCG con precisión:
 
-═══════════════════════════════════════════════════════
-PASO 1 — BUSCAR INSIGNIAS Y MARCAS ESPECIALES (OBLIGATORIO)
-═══════════════════════════════════════════════════════
-ANTES de identificar el Pokémon, examiná minuciosamente TODOS los bordes, esquinas
-y márgenes de la ilustración buscando estos elementos:
+- nombre_oficial: nombre exacto en inglés (si es japonés, traducir según Bulbapedia — NO transliterar)
+  Ejemplos: カツラのウインディ → "Blaine's Arcanine", リザードン → "Charizard"
+- numero_coleccion: número en la carta (ej: 4/102, 002/025, SWSH261)
+- set_exacto: nombre completo del set respetando el contexto de edición de arriba
+- anio: año de impresión visible en la carta
+- idioma: EN/JP/ES/PT/KR/DE/FR/IT
 
-A) BADGE "25" CON PIKACHU DORADO (Celebrations 25th Anniversary)
-   → ¿Hay un pequeño Pikachu dorado con el número "25" en cualquier borde del arte?
-   → Si SÍ → set = "Celebrations", variante = "Classic Collection" o "25th Anniversary Promo"
-   → Valor completamente distinto al Base Set original.
-   → NUNCA confundir con Base Set. El Base Set NO tiene ese badge.
-
-B) SELLO "1st EDITION" o "1st Ed"
-   → ¿Hay un sello circular o texto "1st Edition" en el costado izquierdo?
-   → Si SÍ → variante = "1st Edition" — cambia drásticamente el valor.
-
-C) SHADOWLESS (Base Set sin sombra)
-   → En el recuadro de imagen de la carta, ¿hay sombra negra en el borde inferior-derecho?
-   → Sin sombra = "Shadowless" — versión más valiosa del Base Set original.
-   → Con sombra = Base Set estándar (unlimited).
-
-D) SÍMBOLO DEL SET (abajo a la derecha del texto)
-   → El símbolo identifica el set exacto. Describilo: ¿círculo? ¿estrella? ¿símbolo especial?
-   → Base Set = sin símbolo o símbolo de Wizards
-   → Celebrations = símbolo especial de 25 años
-
-E) HOLO PATTERN / GALAXIA / ETCHED
-   → ¿El patrón del holo es especial? (galaxia, mosaico, cracked ice, cosmos)
-   → Esto puede indicar versiones alternativas valiosas.
-
-F) LOGOS ADICIONALES (GameBoy, Trophy, World Championship, etc.)
-   → Cartas de torneos, promos oficiales, etc.
-
-═══════════════════════════════════════════════════════
-PASO 2 — REGLA CRÍTICA PARA JAPONÉS
-═══════════════════════════════════════════════════════
-Si ves texto japonés: traducir al nombre OFICIAL en inglés según Bulbapedia.
-カツラのウインディ → "Blaine's Arcanine"
-リザードン → "Charizard"
-NO transliterar; buscar el nombre canónico inglés.
-
-═══════════════════════════════════════════════════════
-PASO 3 — IDENTIFICACIÓN COMPLETA
-═══════════════════════════════════════════════════════
-Con toda esa info, identificar:
-- nombre_oficial: nombre exacto en inglés
-- numero_coleccion: número en la carta (ej: 4/102, 002/025)
-- set_exacto: nombre completo del set
-- anio: año de impresión
-- idioma: EN/JP/ES/PT/KR
-
-${notes ? `Nota del usuario: "${notes}"\n` : ''}
+IMPORTANTE: Si el contexto indica Celebrations, el set DEBE ser "Celebrations" y NO "Base Set".
+Si el contexto indica 1st Edition, la variante DEBE ser "1st Edition".
+${notes ? `\nNota del usuario: "${notes}"\n` : ''}
 
 RESPONDÉ SOLO CON JSON puro, sin markdown:
 {
   "name": "nombre canónico oficial en inglés",
-  "name_original": "texto original si no es inglés, vacío si es inglés",
+  "name_original": "texto original si no es inglés, vacío si ya es inglés",
   "card_number": "número/total de colección",
   "set": "Nombre del set · Número/Total · Idioma · Año",
   "game": "Pokémon TCG|Yu-Gi-Oh!|MTG|Dragon Ball Super|One Piece|Otro",
-  "variant": "1st Edition|Shadowless|Celebrations Classic|25th Promo|Reverse Holo|Full Art|Alternate Art|Normal|otro",
+  "variant": "1st Edition|Shadowless|Celebrations Classic Collection|Celebrations Promo|Reverse Holo|Full Art|Alternate Art|Special Illustration Rare|Normal|otro",
   "rareza": "rareza con símbolo si es identificable",
-  "special_badges_found": "descripción de badges especiales encontrados, o 'ninguno'",
-  "detalles_identificacion": "elementos visuales clave que usaste para identificar",
+  "special_badges_found": "descripción completa de todos los badges o marcas especiales",
+  "detalles_identificacion": "elementos visuales clave usados para identificar",
   "usd_nm_estimado": 25,
   "auth": {
     "estado": "autentica|falsificacion_detectada",
@@ -988,6 +1023,26 @@ RESPONDÉ SOLO CON JSON puro, sin markdown:
 
   const rawId = await callProxy([{ role:'user', content:[...imageParts, {type:'text', text:PROMPT_ID}] }]);
   const cardId = parseJSON(rawId);
+
+  // Fusionar datos de edición del gate con los de identificación
+  // El gate es más confiable para badges porque fue específico
+  if (gateResult.badge_25_pikachu && !cardId.variant?.includes('Celebrations')) {
+    cardId.variant = 'Celebrations Classic Collection';
+    if (!cardId.set?.includes('Celebrations')) cardId.set = 'Celebrations · 002/025 · ' + (cardId.set?.split('·').slice(-2).join('·').trim() || '2021');
+  }
+  if (gateResult.sello_1st_edition && !cardId.variant?.includes('1st')) {
+    cardId.variant = '1st Edition';
+  }
+  if (gateResult.es_shadowless && cardId.variant === 'Normal') {
+    cardId.variant = 'Shadowless';
+  }
+  // Enriquecer el campo de badges en el card final
+  const allBadgeInfo = [
+    gateResult.otros_badges && gateResult.otros_badges !== 'ninguno' ? gateResult.otros_badges : '',
+    gateResult.notas_edicion || '',
+    cardId.special_badges_found || ''
+  ].filter(Boolean).join(' | ');
+  cardId.special_badges_found = allBadgeInfo || 'ninguno';
 
   // ── PASO 2: Condición física ──
   const cardName = cardId.name || 'esta carta TCG';
@@ -1341,28 +1396,65 @@ function renderReport(card, fromPortfolio = false) {
 }
 
 // ════════════════════════════════════════════════════════
-//  SAVE TO PORTFOLIO — FIX MOBILE
+//  COMPRESIÓN DE IMÁGENES PARA STORAGE MÓVIL
+//  Reduce base64 de ~1.5MB a ~80KB para thumbnail
 // ════════════════════════════════════════════════════════
-function saveToPortfolio() {
+function compressImageForStorage(dataUrl, maxWidth = 320) {
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ratio  = Math.min(maxWidth / img.width, maxWidth / img.height, 1);
+        canvas.width  = Math.round(img.width  * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.72));
+      };
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  SAVE TO PORTFOLIO — con compresión automática en móvil
+// ════════════════════════════════════════════════════════
+async function saveToPortfolio() {
   if (!lastAnalysis) {
     showToast('Error: no hay análisis activo');
     return;
   }
 
-  // Crear una copia limpia sin las fotos en base64 para ahorrar espacio
-  // pero conservar la primera foto como thumbnail
+  // Feedback inmediato — el usuario sabe que algo está pasando
+  const btn = document.getElementById('btnSave');
+  if (btn) { btn.disabled = true; btn.textContent = 'GUARDANDO...'; }
+
+  // Comprimir thumbnail para móvil (320px, ~80KB vs ~1.5MB)
+  let thumbDataUrl = null;
+  const rawThumb = lastAnalysis.fotos?.[0] || lastAnalysis.foto || null;
+  if (rawThumb) {
+    try {
+      thumbDataUrl = await compressImageForStorage(rawThumb, 320);
+    } catch {
+      thumbDataUrl = null;
+    }
+  }
+
   const cardToSave = {
     ...lastAnalysis,
-    // Conservar solo la primera foto como thumbnail para ahorrar espacio en storage
-    foto: lastAnalysis.fotos?.[0] || lastAnalysis.foto || null,
-    // Guardar máximo 2 fotos en portfolio para no llenar el storage
-    fotos: (lastAnalysis.fotos || []).slice(0, 2)
+    foto:  thumbDataUrl,
+    fotos: [] // no guardar fotos full en portfolio — solo el thumbnail
   };
 
   const cards = getCards();
 
   if (cards.some(c => c.id === cardToSave.id)) {
     showToast('Esta carta ya está en tu colección');
+    if (btn) { btn.disabled = true; btn.textContent = '✓ GUARDADA EN COLECCIÓN'; }
     return;
   }
 
@@ -1370,23 +1462,31 @@ function saveToPortfolio() {
   const saved = saveCards(cards);
 
   if (!saved) {
-    // Intentar guardar sin fotos si no hay espacio
-    const cardSinFotos = { ...cardToSave, foto: null, fotos: [] };
-    cards[cards.length - 1] = cardSinFotos;
-    const savedSinFotos = saveCards(cards);
+    // Si falla con thumbnail, intentar sin foto
+    const cardSinFoto = { ...cardToSave, foto: null, fotos: [] };
+    cards[cards.length - 1] = cardSinFoto;
+    const savedSinFoto = saveCards(cards);
 
-    if (!savedSinFotos) {
-      showToast('⚠ No se pudo guardar: almacenamiento lleno o bloqueado');
-      return;
+    if (!savedSinFoto) {
+      // Último recurso: limpiar cartas más antiguas y reintentar
+      const cardsLimitadas = cards.slice(-8); // mantener solo las últimas 8
+      cardsLimitadas[cardsLimitadas.length - 1] = cardSinFoto;
+      const savedFinal = saveCards(cardsLimitadas);
+      if (!savedFinal) {
+        showToast('⚠ Almacenamiento lleno. Eliminá cartas antiguas desde Mi Colección.');
+        if (btn) { btn.disabled = false; btn.textContent = '+ GUARDAR EN MI COLECCIÓN'; }
+        return;
+      }
+      showToast('Guardada (se liberó espacio eliminando cartas viejas)');
+    } else {
+      showToast('Guardada sin foto (espacio limitado en tu dispositivo)');
     }
-    showToast('Guardada sin fotos (almacenamiento limitado)');
   } else {
     showToast('¡Carta guardada en tu colección!');
   }
 
   maybeSnapshot();
 
-  const btn = document.getElementById('btnSave');
   if (btn) { btn.disabled = true; btn.textContent = '✓ GUARDADA EN COLECCIÓN'; }
 
   const confirmEl = document.getElementById('saveConfirm');
